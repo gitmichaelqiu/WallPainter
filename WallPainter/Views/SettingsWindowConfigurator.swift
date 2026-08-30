@@ -41,6 +41,7 @@ struct SettingsWindowConfigurator: NSViewRepresentable {
             }
 
             let size = NSSize(width: contentSize.width, height: contentSize.height)
+            window.styleMask.insert(.fullSizeContentView)
             window.setContentSize(size)
             window.minSize = size
             window.titleVisibility = .hidden

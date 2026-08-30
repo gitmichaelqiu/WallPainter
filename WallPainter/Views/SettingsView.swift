@@ -111,36 +111,35 @@ struct SettingsView: View {
     private var searchField: some View {
         HStack(spacing: 6) {
             Image(systemName: "magnifyingglass")
-                .foregroundStyle(.secondary)
+                .foregroundColor(.secondary)
                 .font(.system(size: 13))
 
             TextField("Search", text: $searchText)
                 .textFieldStyle(.plain)
                 .font(.system(size: 13))
-                .foregroundStyle(.primary)
+                .foregroundColor(.primary)
 
             if !searchText.isEmpty {
                 Button {
                     searchText = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(.secondary)
+                        .foregroundColor(.secondary)
                         .font(.system(size: 13))
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Clear search")
             }
         }
         .padding(.horizontal, 8)
         .frame(height: 28)
-        .background {
+        .background(
             RoundedRectangle(cornerRadius: 6, style: .continuous)
                 .fill(Color(nsColor: .controlBackgroundColor))
-                .overlay {
+                .overlay(
                     RoundedRectangle(cornerRadius: 6, style: .continuous)
                         .stroke(Color.gray.opacity(0.15), lineWidth: 1)
-                }
-        }
+                )
+        )
         .padding(.leading, -4)
         .padding(.trailing, 10)
     }
