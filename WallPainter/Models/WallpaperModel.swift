@@ -35,6 +35,9 @@ extension Notification.Name {
     static let wallPainterWallpaperModelDidChange = Notification.Name(
         "WallPainter.wallpaperModelDidChange"
     )
+    static let wallPainterWallpaperCatalogDidChange = Notification.Name(
+        "WallPainter.wallpaperCatalogDidChange"
+    )
 }
 
 @MainActor
@@ -100,6 +103,10 @@ final class WallpaperModel {
 
         isLoading = false
         postChange()
+        NotificationCenter.default.post(
+            name: .wallPainterWallpaperCatalogDidChange,
+            object: self
+        )
     }
 
     func synchronizeCurrentWallpaper() {
@@ -116,7 +123,6 @@ final class WallpaperModel {
             return false
         }
 
-        selectedWallpaperID = wallpaper.id
         isSwitching = true
         operationStatus = nil
         defer {
@@ -125,6 +131,7 @@ final class WallpaperModel {
         }
 
         if currentWallpaperID == wallpaper.id {
+            selectedWallpaperID = wallpaper.id
             operationStatus = .success("\(wallpaper.name) is already active on your desktop.")
             return true
         }
@@ -132,6 +139,7 @@ final class WallpaperModel {
         do {
             try store.setAerialWallpaper(assetID: wallpaper.id)
             currentWallpaperID = wallpaper.id
+            selectedWallpaperID = wallpaper.id
             operationStatus = .success("\(wallpaper.name) is now active on your desktop.")
             return true
         } catch {

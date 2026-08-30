@@ -25,12 +25,18 @@ enum WallpaperMenuEntries {
 final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
     private let model: WallpaperModel
     private let preferences: WallPainterPreferences
+    private let automationCoordinator: WallpaperAutomationCoordinator
     private let statusItem: NSStatusItem
     private var settingsWindowController: NSWindowController?
 
-    init(model: WallpaperModel, preferences: WallPainterPreferences) {
+    init(
+        model: WallpaperModel,
+        preferences: WallPainterPreferences,
+        automationCoordinator: WallpaperAutomationCoordinator
+    ) {
         self.model = model
         self.preferences = preferences
+        self.automationCoordinator = automationCoordinator
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         super.init()
 
@@ -150,6 +156,7 @@ final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
         window.titlebarSeparatorStyle = .none
+        window.isMovableByWindowBackground = true
         window.center()
         window.minSize = NSSize(width: 750, height: 550)
         window.collectionBehavior = [.participatesInCycle]
@@ -158,6 +165,7 @@ final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
         let settingsViewController = SettingsHostingController(
             model: model,
             preferences: preferences,
+            automationCoordinator: automationCoordinator,
             initialTab: tab
         )
         window.contentViewController = settingsViewController

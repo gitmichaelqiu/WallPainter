@@ -6,6 +6,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private(set) var wallpaperModel: WallpaperModel!
     private(set) var preferences: WallPainterPreferences!
     private(set) var statusBarController: StatusBarController?
+    private(set) var automationCoordinator: WallpaperAutomationCoordinator?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -16,10 +17,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.wallpaperModel = wallpaperModel
 
         wallpaperModel.refresh()
-        statusBarController = StatusBarController(
+
+        let automationCoordinator = WallpaperAutomationCoordinator(
             model: wallpaperModel,
             preferences: preferences
         )
+        self.automationCoordinator = automationCoordinator
+
+        statusBarController = StatusBarController(
+            model: wallpaperModel,
+            preferences: preferences,
+            automationCoordinator: automationCoordinator
+        )
+        automationCoordinator.start()
     }
 
     func applicationShouldHandleReopen(

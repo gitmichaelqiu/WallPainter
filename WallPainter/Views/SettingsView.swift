@@ -32,6 +32,7 @@ let titleHeaderHeight: CGFloat = 48
 struct SettingsView: View {
     let wallpaperModel: WallpaperModel
     let launchAtLoginManager: any LaunchAtLoginManaging
+    let automationCoordinator: WallpaperAutomationCoordinator
 
     @StateObject private var navigationState = SettingsNavigationState()
     @State private var selectedTab: SettingsTab?
@@ -41,10 +42,12 @@ struct SettingsView: View {
     init(
         model: WallpaperModel,
         launchAtLoginManager: any LaunchAtLoginManaging,
+        automationCoordinator: WallpaperAutomationCoordinator,
         initialTab: SettingsTab? = .general
     ) {
         self.wallpaperModel = model
         self.launchAtLoginManager = launchAtLoginManager
+        self.automationCoordinator = automationCoordinator
         _selectedTab = State(initialValue: initialTab)
     }
 
@@ -64,7 +67,10 @@ struct SettingsView: View {
                     )
                     .environment(\.settingsTab, .general)
 
-                    SearchSettingsPlaceholderView(tab: .automation)
+                    AutomationSettingsView(
+                        model: wallpaperModel,
+                        coordinator: automationCoordinator
+                    )
                     AboutView()
                         .environment(\.settingsTab, .about)
                 }
@@ -257,7 +263,10 @@ struct SettingsView: View {
                         launchAtLoginManager: launchAtLoginManager
                     )
                 case .automation:
-                    SearchSettingsPlaceholderView(tab: .automation)
+                    AutomationSettingsView(
+                        model: wallpaperModel,
+                        coordinator: automationCoordinator
+                    )
                 case .about:
                     AboutView()
                 }
@@ -298,15 +307,5 @@ struct SettingsView: View {
             }
         }
         .frame(height: sidebarRowHeight)
-    }
-}
-
-private struct SearchSettingsPlaceholderView: View {
-    let tab: SettingsTab
-
-    var body: some View {
-        SettingsContainer(tab) {
-            EmptyView()
-        }
     }
 }

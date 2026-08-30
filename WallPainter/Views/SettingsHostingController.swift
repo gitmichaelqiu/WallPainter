@@ -6,11 +6,13 @@ final class SettingsHostingController: NSHostingController<AnyView> {
     init(
         model: WallpaperModel,
         preferences: WallPainterPreferences,
+        automationCoordinator: WallpaperAutomationCoordinator,
         initialTab: SettingsTab? = nil
     ) {
         let rootView = SettingsView(
             model: model,
             launchAtLoginManager: LaunchAtLoginManager(),
+            automationCoordinator: automationCoordinator,
             initialTab: initialTab
         )
             .environment(preferences)
