@@ -21,9 +21,22 @@
 		A0F100000000000000000001 /* WallPainterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WallPainterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		A0F10000000000000000000C /* Exceptions for "WallPainter" folder in "WallPainter" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 460A8DE8304432E100EBF8C5 /* WallPainter */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		460A8DEB304432E100EBF8C5 /* WallPainter */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				A0F10000000000000000000C /* Exceptions for "WallPainter" folder in "WallPainter" target */,
+			);
 			path = WallPainter;
 			sourceTree = "<group>";
 		};
@@ -310,7 +323,9 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WallPainter/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = WallPainter;
+				INFOPLIST_KEY_ATSApplicationFontsPath = Fonts;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -345,7 +360,9 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WallPainter/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = WallPainter;
+				INFOPLIST_KEY_ATSApplicationFontsPath = Fonts;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";

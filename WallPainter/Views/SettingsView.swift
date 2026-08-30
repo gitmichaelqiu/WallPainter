@@ -65,7 +65,8 @@ struct SettingsView: View {
                     .environment(\.settingsTab, .general)
 
                     SearchSettingsPlaceholderView(tab: .automation)
-                    SearchSettingsPlaceholderView(tab: .about)
+                    AboutView()
+                        .environment(\.settingsTab, .about)
                 }
                 .environmentObject(navigationState)
                 .environment(\.isSettingsPreRendering, true)
@@ -258,7 +259,7 @@ struct SettingsView: View {
                 case .automation:
                     SearchSettingsPlaceholderView(tab: .automation)
                 case .about:
-                    SearchSettingsPlaceholderView(tab: .about)
+                    AboutView()
                 }
             }
             .environmentObject(navigationState)
