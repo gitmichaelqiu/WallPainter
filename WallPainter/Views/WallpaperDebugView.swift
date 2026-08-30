@@ -7,17 +7,13 @@ struct WallpaperDebugView: View {
     var body: some View {
         SettingsContainer(.wallpaper) {
             VStack(alignment: .leading, spacing: 20) {
-                Text("Select an installed Apple Aerial wallpaper to apply it across your configured spaces.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-
                 SettingsSection("Current Wallpaper") {
                     SettingsRow("Current desktop wallpaper") {
                         Text(model.currentWallpaperName)
                             .lineLimit(1)
                             .truncationMode(.middle)
                             .frame(maxWidth: 220, alignment: .trailing)
+                            .frame(minHeight: 24)
                     }
 
                     Divider()
@@ -28,6 +24,7 @@ struct WallpaperDebugView: View {
                             .foregroundStyle(
                                 model.currentWallpaperID == nil ? Color.secondary : Color.green
                             )
+                            .frame(minHeight: 24)
                     }
                 }
 
@@ -104,20 +101,15 @@ private struct WallpaperCatalogContent: View {
     @Binding var selection: String?
     let isLoading: Bool
 
+    @ViewBuilder
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(isLoading ? "Reading the local Apple wallpaper catalog…" : "Choose one to apply.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-            if isLoading {
-                ProgressView()
-                    .frame(maxWidth: .infinity, minHeight: 180)
-            } else if wallpapers.isEmpty {
-                EmptyWallpaperCatalogView()
-            } else {
-                WallpaperGrid(wallpapers: wallpapers, selection: $selection)
-            }
+        if isLoading {
+            ProgressView()
+                .frame(maxWidth: .infinity, minHeight: 180)
+        } else if wallpapers.isEmpty {
+            EmptyWallpaperCatalogView()
+        } else {
+            WallpaperGrid(wallpapers: wallpapers, selection: $selection)
         }
     }
 }
