@@ -28,12 +28,15 @@ private let sidebarFontSize: CGFloat = 16
 private let titleHeaderHeight: CGFloat = 48
 
 struct SettingsView: View {
+    let wallpaperModel: WallpaperModel
+
     @StateObject private var navigationState = SettingsNavigationState()
     @State private var selectedTab: SettingsTab?
     @State private var searchText = ""
     @State private var isIndexingSettings = true
 
-    init(initialTab: SettingsTab? = .wallpaper) {
+    init(model: WallpaperModel, initialTab: SettingsTab? = .wallpaper) {
+        self.wallpaperModel = model
         _selectedTab = State(initialValue: initialTab)
     }
 
@@ -235,7 +238,7 @@ struct SettingsView: View {
             ZStack(alignment: .top) {
                 switch activeTab {
                 case .wallpaper:
-                    WallpaperDebugView()
+                    WallpaperDebugView(model: wallpaperModel)
                 }
             }
             .environment(\.settingsTab, activeTab)

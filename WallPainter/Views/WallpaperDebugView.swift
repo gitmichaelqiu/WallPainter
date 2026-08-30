@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 struct WallpaperDebugView: View {
-    @State private var model = WallpaperModel()
+    @Bindable var model: WallpaperModel
 
     var body: some View {
         SettingsContainer(.wallpaper) {
@@ -54,7 +54,9 @@ struct WallpaperDebugView: View {
                         "Apply wallpaper",
                         helperText: "The selected Aerial is written to every configured space and display."
                     ) {
-                        Button(action: model.switchSelectedWallpaper) {
+                        Button {
+                            model.switchSelectedWallpaper()
+                        } label: {
                             if model.isSwitching {
                                 ProgressView()
                                     .controlSize(.small)
