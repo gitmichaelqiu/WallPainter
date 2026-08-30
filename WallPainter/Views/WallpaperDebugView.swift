@@ -20,7 +20,7 @@ struct WallpaperDebugView: View {
 
                     SettingsRow("Status") {
                         Text(model.currentWallpaperID == nil ? "Unavailable" : "Active")
-                            .font(.caption.weight(.semibold))
+                            .font(.body.weight(.semibold))
                             .foregroundStyle(
                                 model.currentWallpaperID == nil ? Color.secondary : Color.green
                             )
