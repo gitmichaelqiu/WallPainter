@@ -40,7 +40,7 @@ struct WallpaperAgentReloader: WallpaperAgentReloading {
     }
 }
 
-struct WallpaperStore {
+struct WallpaperStore: WallpaperStoring {
     private static let aerialProvider = "com.apple.wallpaper.choice.aerials"
 
     private let indexURL: URL

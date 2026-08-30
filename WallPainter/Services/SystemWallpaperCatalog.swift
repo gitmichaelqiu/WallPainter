@@ -11,7 +11,7 @@ private struct AerialAsset: Decodable {
     let shotID: String?
 }
 
-struct SystemWallpaperCatalog {
+struct SystemWallpaperCatalog: WallpaperCatalogProviding {
     private let fileManager: FileManager
 
     init(fileManager: FileManager = .default) {

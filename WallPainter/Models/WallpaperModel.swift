@@ -31,19 +31,19 @@ enum WallpaperOperationStatus: Equatable {
     }
 }
 
+extension Notification.Name {
+    static let wallPainterWallpaperModelDidChange = Notification.Name(
+        "WallPainter.wallpaperModelDidChange"
+    )
+}
+
 @MainActor
 @Observable
 final class WallpaperModel {
-    private static let selectedWallpaperKey = "WallPainter.selectedWallpaperID"
-
     var items: [WallpaperItem] = []
     var selectedWallpaperID: String? {
         didSet {
-            if let selectedWallpaperID {
-                UserDefaults.standard.set(selectedWallpaperID, forKey: Self.selectedWallpaperKey)
-            } else {
-                UserDefaults.standard.removeObject(forKey: Self.selectedWallpaperKey)
-            }
+            preferences.selectedWallpaperID = selectedWallpaperID
         }
     }
     private(set) var currentWallpaperID: String?
@@ -51,16 +51,20 @@ final class WallpaperModel {
     var isSwitching = false
     var operationStatus: WallpaperOperationStatus?
 
-    @ObservationIgnored private let catalog: SystemWallpaperCatalog
-    @ObservationIgnored private let store: WallpaperStore
+    @ObservationIgnored private let catalog: any WallpaperCatalogProviding
+    @ObservationIgnored private let store: any WallpaperStoring
+    @ObservationIgnored private let preferences: WallPainterPreferences
 
     init(
-        catalog: SystemWallpaperCatalog? = nil,
-        store: WallpaperStore? = nil
+        catalog: (any WallpaperCatalogProviding)? = nil,
+        store: (any WallpaperStoring)? = nil,
+        preferences: WallPainterPreferences? = nil
     ) {
         self.catalog = catalog ?? SystemWallpaperCatalog()
         self.store = store ?? WallpaperStore()
-        self.selectedWallpaperID = UserDefaults.standard.string(forKey: Self.selectedWallpaperKey)
+        let preferences = preferences ?? WallPainterPreferences()
+        self.preferences = preferences
+        selectedWallpaperID = preferences.selectedWallpaperID
     }
 
     var selectedWallpaper: WallpaperItem? {
@@ -95,23 +99,51 @@ final class WallpaperModel {
         }
 
         isLoading = false
+        postChange()
     }
 
-    func switchSelectedWallpaper() {
-        guard !isSwitching, let selectedWallpaper else { return }
+    func synchronizeCurrentWallpaper() {
+        currentWallpaperID = try? store.currentAerialID()
+        postChange()
+    }
 
-        isSwitching = true
-        operationStatus = nil
-
-        do {
-            try store.setAerialWallpaper(assetID: selectedWallpaper.id)
-            currentWallpaperID = selectedWallpaper.id
-            operationStatus = .success("\(selectedWallpaper.name) is now active on your desktop.")
-        } catch {
-            operationStatus = .failure(error.localizedDescription)
+    @discardableResult
+    func applyWallpaper(id: String) -> Bool {
+        guard !isSwitching else { return false }
+        guard let wallpaper = items.first(where: { $0.id == id }) else {
+            operationStatus = .failure("The selected wallpaper is not installed.")
+            postChange()
+            return false
         }
 
-        isSwitching = false
+        selectedWallpaperID = wallpaper.id
+        isSwitching = true
+        operationStatus = nil
+        defer {
+            isSwitching = false
+            postChange()
+        }
+
+        if currentWallpaperID == wallpaper.id {
+            operationStatus = .success("\(wallpaper.name) is already active on your desktop.")
+            return true
+        }
+
+        do {
+            try store.setAerialWallpaper(assetID: wallpaper.id)
+            currentWallpaperID = wallpaper.id
+            operationStatus = .success("\(wallpaper.name) is now active on your desktop.")
+            return true
+        } catch {
+            operationStatus = .failure(error.localizedDescription)
+            return false
+        }
+    }
+
+    @discardableResult
+    func switchSelectedWallpaper() -> Bool {
+        guard let selectedWallpaper else { return false }
+        return applyWallpaper(id: selectedWallpaper.id)
     }
 
     private func normalizeSelection() {
@@ -126,5 +158,12 @@ final class WallpaperModel {
         } else {
             selectedWallpaperID = items.first?.id
         }
+    }
+
+    private func postChange() {
+        NotificationCenter.default.post(
+            name: .wallPainterWallpaperModelDidChange,
+            object: self
+        )
     }
 }
