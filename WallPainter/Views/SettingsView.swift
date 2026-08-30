@@ -31,16 +31,32 @@ struct SettingsView: View {
     @StateObject private var navigationState = SettingsNavigationState()
     @State private var selectedTab: SettingsTab?
     @State private var searchText = ""
+    @State private var isIndexingSettings = true
 
     init(initialTab: SettingsTab? = .wallpaper) {
         _selectedTab = State(initialValue: initialTab)
     }
 
     var body: some View {
-        NavigationSplitView(columnVisibility: .constant(.all)) {
-            sidebar
-        } detail: {
-            detailView
+        ZStack {
+            NavigationSplitView(columnVisibility: .constant(.all)) {
+                sidebar
+            } detail: {
+                detailView
+            }
+
+            if isIndexingSettings {
+                WallpaperSearchIndexView()
+                    .environmentObject(navigationState)
+                    .environment(\.settingsTab, .wallpaper)
+                    .environment(\.isSettingsPreRendering, true)
+                    .frame(
+                        width: defaultSettingsWindowWidth,
+                        height: defaultSettingsWindowHeight
+                    )
+                    .opacity(0.001)
+                    .allowsHitTesting(false)
+            }
         }
         .environmentObject(navigationState)
         .navigationTitle("")
@@ -63,6 +79,11 @@ struct SettingsView: View {
                 self.selectedTab = tabs.first
             } else if selectedTab == nil {
                 selectedTab = tabs.first
+            }
+        }
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                isIndexingSettings = false
             }
         }
     }
@@ -253,5 +274,42 @@ struct SettingsView: View {
             }
         }
         .frame(height: sidebarRowHeight)
+    }
+}
+
+private struct WallpaperSearchIndexView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            SettingsSection("Current Wallpaper") {
+                SettingsRow("Current desktop wallpaper") {
+                    EmptyView()
+                }
+
+                Divider()
+
+                SettingsRow("Status") {
+                    EmptyView()
+                }
+            }
+
+            SettingsSection("Installed Live Wallpapers") {
+                SettingsRow("Refresh catalog") {
+                    EmptyView()
+                }
+            }
+
+            SettingsSection(nil) {
+                SettingsRow("Apply wallpaper") {
+                    EmptyView()
+                }
+            }
+
+            SettingsSection(nil) {
+                SettingsRow("Last operation") {
+                    EmptyView()
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .topLeading)
     }
 }

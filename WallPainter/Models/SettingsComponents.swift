@@ -166,7 +166,7 @@ struct SearchableSettingItem: Identifiable, Hashable {
     let keywords: [String]
 
     var id: String {
-        "(tab.rawValue).(title)"
+        "\(tab.rawValue).\(title)"
     }
 }
 
@@ -185,7 +185,7 @@ final class SettingsNavigationState: ObservableObject {
     }
 
     func register(title: String, tab: SettingsTab, keywords: [String] = []) {
-        let registrationKey = "(title)-(tab.rawValue)"
+        let registrationKey = "\(title)-\(tab.rawValue)"
         let count = registeredTitlesCounts[registrationKey] ?? 0
         registeredTitlesCounts[registrationKey] = count + 1
 
@@ -207,7 +207,7 @@ final class SettingsNavigationState: ObservableObject {
     }
 
     func unregister(title: String, tab: SettingsTab) {
-        let registrationKey = "(title)-(tab.rawValue)"
+        let registrationKey = "\(title)-\(tab.rawValue)"
         let count = registeredTitlesCounts[registrationKey] ?? 0
 
         if count <= 1 {
