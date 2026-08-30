@@ -26,6 +26,11 @@ final class WallPainterPreferences {
         }
     }
 
+    var hideMenuBarIcon: Bool {
+        get { !showStatusBarItem }
+        set { showStatusBarItem = !newValue }
+    }
+
     var automationEnabled: Bool {
         didSet {
             defaults.set(automationEnabled, forKey: Self.automationEnabledKey)

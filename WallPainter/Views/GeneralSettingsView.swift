@@ -84,16 +84,16 @@ struct GeneralSettingsView: View {
                     }
                 }
 
-                SettingsSection(nil) {
-                    SettingsRow("Show Status Bar Item") {
-                        Toggle("", isOn: $preferences.showStatusBarItem)
+                SettingsSection("General") {
+                    SettingsRow("Hide menubar icon") {
+                        Toggle("", isOn: $preferences.hideMenuBarIcon)
                             .labelsHidden()
                             .toggleStyle(.switch)
                     }
 
                     Divider()
 
-                    SettingsRow("Launch at Login") {
+                    SettingsRow("Launch at login") {
                         Toggle("", isOn: $launchAtLoginEnabled)
                             .labelsHidden()
                             .toggleStyle(.switch)

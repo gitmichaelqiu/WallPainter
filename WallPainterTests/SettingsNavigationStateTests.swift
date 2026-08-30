@@ -40,8 +40,8 @@ final class SettingsNavigationStateTests: XCTestCase {
     func testSettingsCanRegisterItemsAcrossEveryTab() async {
         let state = SettingsNavigationState()
 
-        state.register(title: "Show Status Bar Item", tab: .general)
-        state.register(title: "Launch at Login", tab: .general)
+        state.register(title: "Hide menubar icon", tab: .general)
+        state.register(title: "Launch at login", tab: .general)
         state.register(title: "Enable Automatic Switching", tab: .automation)
         state.register(title: "Light wallpaper", tab: .automation)
         state.register(title: "GitHub / Support", tab: .about)
@@ -51,7 +51,7 @@ final class SettingsNavigationStateTests: XCTestCase {
             Set(state.registeredItems.map(\.tab)),
             Set(SettingsTab.allCases)
         )
-        XCTAssertTrue(state.registeredItems.contains { $0.title == "Show Status Bar Item" })
+        XCTAssertTrue(state.registeredItems.contains { $0.title == "Hide menubar icon" })
         XCTAssertTrue(state.registeredItems.contains { $0.title == "Light wallpaper" })
         XCTAssertTrue(state.registeredItems.contains { $0.title == "GitHub / Support" })
     }
