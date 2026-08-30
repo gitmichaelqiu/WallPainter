@@ -23,6 +23,7 @@ struct AutomationSettingsView: View {
                     ) {
                         Toggle("", isOn: $preferences.automationEnabled)
                             .labelsHidden()
+                            .toggleStyle(.switch)
                             .disabled(!coordinator.hasValidMappings)
                     }
 

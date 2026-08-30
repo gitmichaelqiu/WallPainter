@@ -44,7 +44,6 @@ struct GeneralSettingsView: View {
                         } label: {
                             Label("Refresh", systemImage: "arrow.clockwise")
                         }
-                        .buttonStyle(.bordered)
                         .disabled(model.isLoading)
                     }
 
@@ -71,7 +70,6 @@ struct GeneralSettingsView: View {
                                 Label("Set as Desktop Wallpaper", systemImage: "checkmark.circle.fill")
                             }
                         }
-                        .buttonStyle(.borderedProminent)
                         .disabled(model.selectedWallpaper == nil || model.isSwitching)
                     }
                 }
@@ -86,10 +84,11 @@ struct GeneralSettingsView: View {
                     }
                 }
 
-                SettingsSection("Application") {
+                SettingsSection(nil) {
                     SettingsRow("Show Status Bar Item") {
                         Toggle("", isOn: $preferences.showStatusBarItem)
                             .labelsHidden()
+                            .toggleStyle(.switch)
                     }
 
                     Divider()
@@ -97,6 +96,7 @@ struct GeneralSettingsView: View {
                     SettingsRow("Launch at Login") {
                         Toggle("", isOn: $launchAtLoginEnabled)
                             .labelsHidden()
+                            .toggleStyle(.switch)
                             .disabled(!hasLoadedLaunchAtLogin)
                     }
                 }
