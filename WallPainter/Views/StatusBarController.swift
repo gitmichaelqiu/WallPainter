@@ -185,7 +185,7 @@ final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
     }
 
     @objc func openSettingsWindow() {
-        openSettingsWindow(tab: .wallpaper)
+        openSettingsWindow(tab: .general)
     }
 
     @objc private func quitApp() {

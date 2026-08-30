@@ -1,42 +1,50 @@
 import SwiftUI
 
 enum SettingsTab: String, CaseIterable, Identifiable {
-    case wallpaper
+    case general, automation, about
 
-    var id: String { rawValue }
+    var id: String { self.rawValue }
 
     var localizedName: LocalizedStringResource {
         switch self {
-        case .wallpaper:
-            return "Wallpaper"
+        case .general: return "General"
+        case .automation: return "Automation"
+        case .about: return "About"
         }
     }
 
     var iconName: String {
         switch self {
-        case .wallpaper:
-            return "photo.on.rectangle.angled"
+        case .general: return "gearshape"
+        case .automation: return "arrow.triangle.2.circlepath"
+        case .about: return "info.circle"
         }
     }
 }
 
-private let sidebarWidth: CGFloat = 180
-private let defaultSettingsWindowWidth: CGFloat = 750
-private let defaultSettingsWindowHeight: CGFloat = 550
-private let sidebarRowHeight: CGFloat = 32
-private let sidebarFontSize: CGFloat = 16
-private let titleHeaderHeight: CGFloat = 48
+let sidebarWidth: CGFloat = 180
+let defaultSettingsWindowWidth = 750
+let defaultSettingsWindowHeight = 550
+let sidebarRowHeight: CGFloat = 32
+let sidebarFontSize: CGFloat = 16
+let titleHeaderHeight: CGFloat = 48
 
 struct SettingsView: View {
     let wallpaperModel: WallpaperModel
+    let launchAtLoginManager: any LaunchAtLoginManaging
 
     @StateObject private var navigationState = SettingsNavigationState()
     @State private var selectedTab: SettingsTab?
     @State private var searchText = ""
     @State private var isIndexingSettings = true
 
-    init(model: WallpaperModel, initialTab: SettingsTab? = .wallpaper) {
+    init(
+        model: WallpaperModel,
+        launchAtLoginManager: any LaunchAtLoginManaging,
+        initialTab: SettingsTab? = .general
+    ) {
         self.wallpaperModel = model
+        self.launchAtLoginManager = launchAtLoginManager
         _selectedTab = State(initialValue: initialTab)
     }
 
@@ -49,39 +57,42 @@ struct SettingsView: View {
             }
 
             if isIndexingSettings {
-                WallpaperSearchIndexView()
-                    .environmentObject(navigationState)
-                    .environment(\.settingsTab, .wallpaper)
-                    .environment(\.isSettingsPreRendering, true)
-                    .frame(
-                        width: defaultSettingsWindowWidth,
-                        height: defaultSettingsWindowHeight
+                ZStack {
+                    GeneralSettingsView(
+                        model: wallpaperModel,
+                        launchAtLoginManager: launchAtLoginManager
                     )
-                    .opacity(0.001)
-                    .allowsHitTesting(false)
+                    .environment(\.settingsTab, .general)
+
+                    SearchSettingsPlaceholderView(tab: .automation)
+                    SearchSettingsPlaceholderView(tab: .about)
+                }
+                .environmentObject(navigationState)
+                .environment(\.isSettingsPreRendering, true)
+                .frame(
+                    width: CGFloat(defaultSettingsWindowWidth),
+                    height: CGFloat(defaultSettingsWindowHeight)
+                )
+                .opacity(0.001)
+                .allowsHitTesting(false)
             }
         }
         .environmentObject(navigationState)
         .navigationTitle("")
         .ignoresSafeArea(.container, edges: .top)
-        .frame(width: defaultSettingsWindowWidth, height: defaultSettingsWindowHeight)
-        .background {
-            SettingsWindowConfigurator(
-                contentSize: CGSize(
-                    width: defaultSettingsWindowWidth,
-                    height: defaultSettingsWindowHeight
-                )
-            )
-        }
+        .frame(
+            width: CGFloat(defaultSettingsWindowWidth),
+            height: CGFloat(defaultSettingsWindowHeight)
+        )
         .onChange(of: searchText) { _, newValue in
             navigationState.searchText = newValue
-
-            guard !newValue.isEmpty else { return }
-            let tabs = filteredTabs
-            if let selectedTab, !tabs.contains(selectedTab) {
-                self.selectedTab = tabs.first
-            } else if selectedTab == nil {
-                selectedTab = tabs.first
+            if !newValue.isEmpty {
+                let tabs = filteredTabs
+                if let selected = selectedTab, !tabs.contains(selected) {
+                    selectedTab = tabs.first
+                } else if selectedTab == nil {
+                    selectedTab = tabs.first
+                }
             }
         }
         .onAppear {
@@ -91,8 +102,10 @@ struct SettingsView: View {
         }
     }
 
-    private var filteredTabs: [SettingsTab] {
-        guard !searchText.isEmpty else { return SettingsTab.allCases }
+    var filteredTabs: [SettingsTab] {
+        if searchText.isEmpty {
+            return SettingsTab.allCases
+        }
 
         let query = searchText.lowercased()
         return SettingsTab.allCases.filter { tab in
@@ -103,7 +116,7 @@ struct SettingsView: View {
                 item.tab == tab && (
                     item.title.lowercased().contains(query)
                         || item.localizedTitle.lowercased().contains(query)
-                        || item.keywords.contains { $0.contains(query) }
+                        || item.keywords.contains { $0.lowercased().contains(query) }
                 )
             }
 
@@ -153,7 +166,7 @@ struct SettingsView: View {
             if filteredTabs.isEmpty {
                 Text("No results")
                     .font(.system(size: 13))
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.secondary)
                     .padding(.leading, 8)
                     .padding(.top, 4)
             } else {
@@ -167,7 +180,7 @@ struct SettingsView: View {
                                     item.title.lowercased().contains(searchText.lowercased())
                                         || item.localizedTitle.lowercased().contains(searchText.lowercased())
                                         || item.keywords.contains {
-                                            $0.contains(searchText.lowercased())
+                                            $0.lowercased().contains(searchText.lowercased())
                                         }
                                 )
                             }
@@ -180,7 +193,7 @@ struct SettingsView: View {
                                     HStack(spacing: 4) {
                                         Image(systemName: "arrow.turn.down.right")
                                             .font(.system(size: 9))
-                                            .foregroundStyle(.secondary)
+                                            .foregroundColor(.secondary)
                                             .padding(.leading, 12)
 
                                         Text(highlightedText(
@@ -189,7 +202,7 @@ struct SettingsView: View {
                                             color: nil
                                         ))
                                         .font(.system(size: 11, weight: .regular))
-                                        .foregroundStyle(.secondary)
+                                        .foregroundColor(.secondary)
                                         .lineLimit(1)
                                     }
                                 }
@@ -232,15 +245,23 @@ struct SettingsView: View {
 
     @ViewBuilder
     private var detailView: some View {
-        let activeTab = selectedTab ?? filteredTabs.first ?? .wallpaper
+        let activeTab = selectedTab ?? filteredTabs.first ?? .general
 
         ZStack(alignment: .top) {
             ZStack(alignment: .top) {
                 switch activeTab {
-                case .wallpaper:
-                    WallpaperDebugView(model: wallpaperModel)
+                case .general:
+                    GeneralSettingsView(
+                        model: wallpaperModel,
+                        launchAtLoginManager: launchAtLoginManager
+                    )
+                case .automation:
+                    SearchSettingsPlaceholderView(tab: .automation)
+                case .about:
+                    SearchSettingsPlaceholderView(tab: .about)
                 }
             }
+            .environmentObject(navigationState)
             .environment(\.settingsTab, activeTab)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .padding(.top, titleHeaderHeight)
@@ -279,39 +300,12 @@ struct SettingsView: View {
     }
 }
 
-private struct WallpaperSearchIndexView: View {
+private struct SearchSettingsPlaceholderView: View {
+    let tab: SettingsTab
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            SettingsSection("Current Wallpaper") {
-                SettingsRow("Current desktop wallpaper") {
-                    EmptyView()
-                }
-
-                Divider()
-
-                SettingsRow("Status") {
-                    EmptyView()
-                }
-            }
-
-            SettingsSection("Installed Live Wallpapers") {
-                SettingsRow("Refresh catalog") {
-                    EmptyView()
-                }
-            }
-
-            SettingsSection(nil) {
-                SettingsRow("Apply wallpaper") {
-                    EmptyView()
-                }
-            }
-
-            SettingsSection(nil) {
-                SettingsRow("Last operation") {
-                    EmptyView()
-                }
-            }
+        SettingsContainer(tab) {
+            EmptyView()
         }
-        .frame(maxWidth: .infinity, alignment: .topLeading)
     }
 }

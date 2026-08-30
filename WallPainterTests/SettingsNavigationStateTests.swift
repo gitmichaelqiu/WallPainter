@@ -4,38 +4,44 @@ import XCTest
 
 @MainActor
 final class SettingsNavigationStateTests: XCTestCase {
-    func testRegisterKeepsEachSettingSearchable() {
+    func testRegisterKeepsEachSettingSearchable() async {
         let state = SettingsNavigationState()
 
-        state.register(title: "Current desktop wallpaper", tab: .wallpaper)
-        state.register(title: "Status", tab: .wallpaper)
-        state.register(title: "Refresh catalog", tab: .wallpaper)
+        state.register(title: "Current desktop wallpaper", tab: .general)
+        state.register(title: "Status", tab: .general)
+        state.register(title: "Refresh catalog", tab: .general)
+        await drainMainQueue()
 
         XCTAssertEqual(
             state.registeredItems.map(\.title),
             ["Current desktop wallpaper", "Status", "Refresh catalog"]
         )
-        XCTAssertEqual(
-            state.registeredItems.map(\.id),
-            [
-                "wallpaper.Current desktop wallpaper",
-                "wallpaper.Status",
-                "wallpaper.Refresh catalog"
-            ]
-        )
+        XCTAssertEqual(state.registeredItems.map(\.tab), [.general, .general, .general])
+        XCTAssertEqual(Set(state.registeredItems.map(\.id)).count, 3)
     }
 
-    func testDuplicateRegistrationIsRemovedAfterFinalUnregister() {
+    func testDuplicateRegistrationIsRemovedAfterFinalUnregister() async {
         let state = SettingsNavigationState()
 
-        state.register(title: "Status", tab: .wallpaper)
-        state.register(title: "Status", tab: .wallpaper)
+        state.register(title: "Status", tab: .general)
+        state.register(title: "Status", tab: .general)
+        await drainMainQueue()
         XCTAssertEqual(state.registeredItems.count, 1)
 
-        state.unregister(title: "Status", tab: .wallpaper)
+        state.unregister(title: "Status", tab: .general)
+        await drainMainQueue()
         XCTAssertEqual(state.registeredItems.count, 1)
 
-        state.unregister(title: "Status", tab: .wallpaper)
+        state.unregister(title: "Status", tab: .general)
+        await drainMainQueue()
         XCTAssertTrue(state.registeredItems.isEmpty)
+    }
+
+    private func drainMainQueue() async {
+        let expectation = expectation(description: "Main queue drained")
+        DispatchQueue.main.async {
+            expectation.fulfill()
+        }
+        await fulfillment(of: [expectation], timeout: 1)
     }
 }

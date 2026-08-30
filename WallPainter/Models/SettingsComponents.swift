@@ -17,7 +17,7 @@ struct AnimatedSettingsValue: View {
         Text(displayedText)
             .monospacedDigit()
             .contentTransition(.numericText())
-            .onChange(of: text) { _, newText in
+            .onChange(of: text) { newText in
                 withSettingsAnimation {
                     displayedText = newText
                 }
@@ -43,46 +43,42 @@ class LoopVideoPlayerNSView: NSView {
     private(set) var currentURL: URL?
 
     var playerLayer: AVPlayerLayer? {
-        layer as? AVPlayerLayer
+        self.layer as? AVPlayerLayer
     }
-
+    
     override func makeBackingLayer() -> CALayer {
         let layer = AVPlayerLayer()
         layer.videoGravity = .resizeAspect
         layer.backgroundColor = NSColor.clear.cgColor
         return layer
     }
-
+    
     func setupPlayer(with url: URL) {
         cleanup()
-        currentURL = url
-        wantsLayer = true
-        layer?.backgroundColor = NSColor.clear.cgColor
-
+        self.currentURL = url
+        self.wantsLayer = true
+        self.layer?.backgroundColor = NSColor.clear.cgColor
+        
         let player = AVQueuePlayer()
         let playerItem = AVPlayerItem(url: url)
         let playerLooper = AVPlayerLooper(player: player, templateItem: playerItem)
-
-        playerLayer?.player = player
+        
+        self.playerLayer?.player = player
         player.isMuted = true
         player.play()
-
-        looper = playerLooper
+        
+        self.looper = playerLooper
         self.player = player
     }
 
     override func viewWillMove(toWindow newWindow: NSWindow?) {
         super.viewWillMove(toWindow: newWindow)
-
-        if let oldWindow = window {
-            NotificationCenter.default.removeObserver(
-                self,
-                name: NSWindow.willCloseNotification,
-                object: oldWindow
-            )
+        
+        if let oldWindow = self.window {
+            NotificationCenter.default.removeObserver(self, name: NSWindow.willCloseNotification, object: oldWindow)
         }
-
-        if let newWindow {
+        
+        if let newWindow = newWindow {
             NotificationCenter.default.addObserver(
                 self,
                 selector: #selector(windowWillClose(_:)),
@@ -93,7 +89,7 @@ class LoopVideoPlayerNSView: NSView {
             cleanup()
         }
     }
-
+    
     @objc private func windowWillClose(_ notification: Notification) {
         cleanup()
     }
@@ -109,42 +105,53 @@ class LoopVideoPlayerNSView: NSView {
         player = nil
         currentURL = nil
     }
-
+    
     override func scrollWheel(with event: NSEvent) {
-        nextResponder?.scrollWheel(with: event)
+        self.nextResponder?.scrollWheel(with: event)
     }
 }
 
 struct LoopVideoPlayerRepresentable: NSViewRepresentable {
     let videoURL: URL
-
+    
     func makeNSView(context: Context) -> LoopVideoPlayerNSView {
         let view = LoopVideoPlayerNSView()
         view.setupPlayer(with: videoURL)
         return view
     }
-
+    
     func updateNSView(_ nsView: LoopVideoPlayerNSView, context: Context) {
         if nsView.currentURL != videoURL {
             nsView.setupPlayer(with: videoURL)
         }
     }
-
+    
     static func dismantleNSView(_ nsView: LoopVideoPlayerNSView, coordinator: Coordinator) {
         nsView.cleanup()
     }
-
+    
     func makeCoordinator() -> Coordinator {
         Coordinator()
     }
+    
+    class Coordinator {}
+}
 
-    class Coordinator { }
+struct IsSettingsPreRenderingKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    var isSettingsPreRendering: Bool {
+        get { self[IsSettingsPreRenderingKey.self] }
+        set { self[IsSettingsPreRenderingKey.self] = newValue }
+    }
 }
 
 struct LoopVideoPlayerView: View {
     let videoURL: URL
     @Environment(\.isSettingsPreRendering) private var isPreRendering
-
+    
     var body: some View {
         if isPreRendering {
             Color.clear
@@ -154,65 +161,83 @@ struct LoopVideoPlayerView: View {
     }
 }
 
+struct SettingsTabKey: EnvironmentKey {
+    static let defaultValue: SettingsTab = .general
+}
+
 extension EnvironmentValues {
-    @Entry var isSettingsPreRendering = false
-    @Entry var settingsTab: SettingsTab = .wallpaper
+    var settingsTab: SettingsTab {
+        get { self[SettingsTabKey.self] }
+        set { self[SettingsTabKey.self] = newValue }
+    }
 }
 
 struct SearchableSettingItem: Identifiable, Hashable {
+    let id = UUID()
     let title: String
     let localizedTitle: String
     let tab: SettingsTab
     let keywords: [String]
-
-    var id: String {
-        "\(tab.rawValue).\(title)"
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(title)
+        hasher.combine(tab)
+    }
+    
+    static func == (lhs: SearchableSettingItem, rhs: SearchableSettingItem) -> Bool {
+        lhs.title == rhs.title && lhs.tab == rhs.tab
     }
 }
 
-@MainActor
-final class SettingsNavigationState: ObservableObject {
-    @Published var scrollToItemID: String?
-    @Published var searchText = ""
+class SettingsNavigationState: ObservableObject {
+    @Published var scrollToItemID: String? = nil
+    @Published var searchText: String = ""
     @Published var registeredItems: [SearchableSettingItem] = []
-
+    
     private var registeredTitlesCounts = [String: Int]()
-
+    
     private func extractKeywords(from string: String) -> [String] {
         string.lowercased()
             .components(separatedBy: CharacterSet.alphanumerics.inverted)
             .filter { !$0.isEmpty && $0.count > 1 }
     }
-
+    
     func register(title: String, tab: SettingsTab, keywords: [String] = []) {
         let registrationKey = "\(title)-\(tab.rawValue)"
         let count = registeredTitlesCounts[registrationKey] ?? 0
         registeredTitlesCounts[registrationKey] = count + 1
-
+        
         guard count == 0 else { return }
-
+        
         let localizedTitle = NSLocalizedString(title, comment: "")
         var generatedKeywords = keywords.map { $0.lowercased() }
+        
         generatedKeywords.append(contentsOf: extractKeywords(from: localizedTitle))
         generatedKeywords.append(contentsOf: extractKeywords(from: title))
-
+        
+        let uniqueKeywords = Array(Set(generatedKeywords))
+        
         let item = SearchableSettingItem(
             title: title,
             localizedTitle: localizedTitle,
             tab: tab,
-            keywords: Array(Set(generatedKeywords))
+            keywords: uniqueKeywords
         )
-
-        registeredItems.append(item)
+        
+        DispatchQueue.main.async {
+            self.registeredItems.append(item)
+        }
     }
-
+    
     func unregister(title: String, tab: SettingsTab) {
         let registrationKey = "\(title)-\(tab.rawValue)"
         let count = registeredTitlesCounts[registrationKey] ?? 0
-
+        
         if count <= 1 {
             registeredTitlesCounts[registrationKey] = nil
-            registeredItems.removeAll { $0.title == title && $0.tab == tab }
+            DispatchQueue.main.async {
+                self.registeredItems.removeAll { $0.title == title && $0.tab == tab }
+            }
         } else {
             registeredTitlesCounts[registrationKey] = count - 1
         }
@@ -222,45 +247,42 @@ final class SettingsNavigationState: ObservableObject {
 func highlightedText(text: String, query: String, color: Color? = .blue) -> AttributedString {
     var attributed = AttributedString(text)
     guard !query.isEmpty else { return attributed }
-
+    
     let lowerQuery = query.lowercased()
     var searchStart = attributed.startIndex
-
+    
     while searchStart < attributed.endIndex {
         let remainingString = String(attributed[searchStart...].characters)
         guard let range = remainingString.lowercased().range(of: lowerQuery) else { break }
-
-        let matchStartIndex = remainingString.distance(
-            from: remainingString.startIndex,
-            to: range.lowerBound
-        )
+        
+        let matchStartIndex = remainingString.distance(from: remainingString.startIndex, to: range.lowerBound)
         let matchLength = remainingString.distance(from: range.lowerBound, to: range.upperBound)
-
-        let startIndex = attributed.index(searchStart, offsetByCharacters: matchStartIndex)
-        let endIndex = attributed.index(startIndex, offsetByCharacters: matchLength)
-        let targetRange = startIndex..<endIndex
-
-        if let color {
+        
+        let startIdx = attributed.index(searchStart, offsetByCharacters: matchStartIndex)
+        let endIdx = attributed.index(startIdx, offsetByCharacters: matchLength)
+        let targetRange = startIdx..<endIdx
+        
+        if let color = color {
             attributed[targetRange].foregroundColor = color
         }
         attributed[targetRange].inlinePresentationIntent = .stronglyEmphasized
-
-        searchStart = endIndex
+        
+        searchStart = endIdx
     }
-
+    
     return attributed
 }
 
 struct SettingsContainer<Content: View>: View {
     let tab: SettingsTab
     let content: () -> Content
-    @EnvironmentObject private var navigationState: SettingsNavigationState
-
+    @EnvironmentObject var navigationState: SettingsNavigationState
+        
     init(_ tab: SettingsTab, @ViewBuilder content: @escaping () -> Content) {
         self.tab = tab
         self.content = content
     }
-
+    
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView {
@@ -268,14 +290,16 @@ struct SettingsContainer<Content: View>: View {
                     .padding(16)
             }
             .environment(\.settingsTab, tab)
-            .onChange(of: navigationState.scrollToItemID) { _, id in
-                guard let id else { return }
-
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                    withAnimation {
-                        proxy.scrollTo(id, anchor: .center)
+            .onChange(of: navigationState.scrollToItemID) { id in
+                if let id = id {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                        withAnimation {
+                            proxy.scrollTo(id, anchor: .center)
+                        }
+                        DispatchQueue.main.async {
+                            navigationState.scrollToItemID = nil
+                        }
                     }
-                    navigationState.scrollToItemID = nil
                 }
             }
         }
@@ -288,11 +312,11 @@ struct SettingsRow<Content: View>: View {
     let helperText: LocalizedStringKey?
     let warningText: LocalizedStringKey?
     let demoVideoName: String?
-
+    
     @AppStorage("ShowDemoVideos") private var showDemoVideos = true
-    @Environment(\.settingsTab) private var currentTab
+    @Environment(\.settingsTab) var currentTab
     @Environment(\.isSettingsPreRendering) private var isPreRendering
-    @EnvironmentObject private var navigationState: SettingsNavigationState
+    @EnvironmentObject var navigationState: SettingsNavigationState
 
     init(
         _ title: LocalizedStringResource,
@@ -312,17 +336,14 @@ struct SettingsRow<Content: View>: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 HStack(spacing: 4) {
-                    Text(highlightedText(
-                        text: String(localized: title),
-                        query: navigationState.searchText
-                    ))
-                    .frame(alignment: .leading)
+                    Text(highlightedText(text: String(localized: title), query: navigationState.searchText))
+                        .frame(alignment: .leading)
 
-                    if let helperText {
+                    if let helperText = helperText {
                         HelperInfoButton(text: helperText)
                     }
 
-                    if let warningText {
+                    if let warningText = warningText {
                         WarningInfoButton(text: warningText)
                     }
                 }
@@ -337,11 +358,11 @@ struct SettingsRow<Content: View>: View {
                let videoURL = Bundle.main.url(forResource: videoName, withExtension: "mp4") {
                 LoopVideoPlayerView(videoURL: videoURL)
                     .frame(height: 180)
-                    .clipShape(.rect(cornerRadius: 8))
-                    .overlay {
+                    .cornerRadius(8)
+                    .overlay(
                         RoundedRectangle(cornerRadius: 8)
                             .stroke(Color.gray.opacity(0.15), lineWidth: 1)
-                    }
+                    )
                     .padding(.top, 4)
                     .padding(.bottom, 6)
             }
@@ -366,8 +387,7 @@ struct SettingsSection<Content: View>: View {
     let content: Content
 
     init(
-        _ title: LocalizedStringKey? = nil,
-        helperText: LocalizedStringKey? = nil,
+        _ title: LocalizedStringKey? = nil, helperText: LocalizedStringKey? = nil,
         @ViewBuilder content: () -> Content
     ) {
         self.title = title
@@ -377,12 +397,12 @@ struct SettingsSection<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if let title {
+            if let title = title {
                 HStack(spacing: 4) {
                     Text(title)
                         .font(.headline)
 
-                    if let helperText {
+                    if let helperText = helperText {
                         HelperInfoButton(text: helperText)
                     }
                 }
@@ -392,14 +412,14 @@ struct SettingsSection<Content: View>: View {
             VStack(spacing: 0) {
                 content
             }
-            .background {
+            .background(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(backgroundColor.opacity(0.6))
-                    .overlay {
+                    .overlay(
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
                             .fill(.regularMaterial)
-                    }
-            }
+                    )
+            )
         }
         .padding(.top, title == nil ? -10 : 0)
     }
@@ -408,8 +428,9 @@ struct SettingsSection<Content: View>: View {
         let nsColor = NSColor(name: nil) { appearance in
             if appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua {
                 return NSColor(calibratedWhite: 0.20, alpha: 1.0)
+            } else {
+                return NSColor(calibratedWhite: 1.00, alpha: 1.0)
             }
-            return NSColor(calibratedWhite: 1.00, alpha: 1.0)
         }
         return Color(nsColor: nsColor)
     }
@@ -425,7 +446,7 @@ struct HelperInfoButton: View {
         } label: {
             Image(systemName: "questionmark.circle.fill")
                 .font(.caption)
-                .foregroundStyle(.gray)
+                .foregroundColor(.gray)
         }
         .buttonStyle(.plain)
         .popover(isPresented: $showingPopover, arrowEdge: .top) {
@@ -450,7 +471,7 @@ struct WarningInfoButton: View {
         } label: {
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.caption)
-                .foregroundStyle(.yellow)
+                .foregroundColor(.yellow)
         }
         .buttonStyle(.plain)
         .popover(isPresented: $showingPopover, arrowEdge: .top) {

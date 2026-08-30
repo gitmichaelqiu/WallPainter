@@ -1,11 +1,18 @@
 import AppKit
 import SwiftUI
 
-struct WallpaperDebugView: View {
+struct GeneralSettingsView: View {
     @Bindable var model: WallpaperModel
+    let launchAtLoginManager: any LaunchAtLoginManaging
+
+    @Environment(WallPainterPreferences.self) private var preferences
+    @State private var launchAtLoginEnabled = false
+    @State private var hasLoadedLaunchAtLogin = false
 
     var body: some View {
-        SettingsContainer(.wallpaper) {
+        @Bindable var preferences = preferences
+
+        SettingsContainer(.general) {
             VStack(alignment: .leading, spacing: 20) {
                 SettingsSection("Current Wallpaper") {
                     SettingsRow("Current desktop wallpaper") {
@@ -32,7 +39,9 @@ struct WallpaperDebugView: View {
                     helperText: "Only Apple Aerial wallpapers already downloaded by macOS are shown here."
                 ) {
                     SettingsRow("Refresh catalog") {
-                        Button(action: model.refresh) {
+                        Button {
+                            model.refresh()
+                        } label: {
                             Label("Refresh", systemImage: "arrow.clockwise")
                         }
                         .buttonStyle(.bordered)
@@ -49,11 +58,8 @@ struct WallpaperDebugView: View {
                     .padding(10)
                 }
 
-                SettingsSection(nil) {
-                    SettingsRow(
-                        "Apply wallpaper",
-                        helperText: "The selected Aerial is written to every configured space and display."
-                    ) {
+                SettingsSection {
+                    SettingsRow("Apply wallpaper") {
                         Button {
                             model.switchSelectedWallpaper()
                         } label: {
@@ -71,7 +77,7 @@ struct WallpaperDebugView: View {
                 }
 
                 if let status = model.operationStatus {
-                    SettingsSection(nil) {
+                    SettingsSection {
                         SettingsRow("Last operation") {
                             Label(status.message, systemImage: status.symbolName)
                                 .foregroundStyle(status.isSuccess ? .green : .orange)
@@ -80,18 +86,36 @@ struct WallpaperDebugView: View {
                     }
                 }
 
-                Text("Debug interface • Changes are applied to the installed Apple Aerial wallpaper choices.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                SettingsSection("Application") {
+                    SettingsRow("Show Status Bar Item") {
+                        Toggle("", isOn: $preferences.showStatusBarItem)
+                            .labelsHidden()
+                    }
+
+                    Divider()
+
+                    SettingsRow("Launch at Login") {
+                        Toggle("", isOn: $launchAtLoginEnabled)
+                            .labelsHidden()
+                            .disabled(!hasLoadedLaunchAtLogin)
+                    }
+                }
 
                 Spacer()
             }
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }
-        .task {
-            if model.items.isEmpty {
-                model.refresh()
+        .onAppear {
+            launchAtLoginEnabled = launchAtLoginManager.isEnabled
+            hasLoadedLaunchAtLogin = true
+        }
+        .onChange(of: launchAtLoginEnabled) { _, newValue in
+            guard hasLoadedLaunchAtLogin else { return }
+
+            do {
+                try launchAtLoginManager.setEnabled(newValue)
+            } catch {
+                launchAtLoginEnabled = launchAtLoginManager.isEnabled
             }
         }
     }
@@ -241,10 +265,4 @@ private struct EmptyWallpaperCatalogView: View {
         .padding()
         .background(.quaternary.opacity(0.35), in: .rect(cornerRadius: 12))
     }
-}
-
-#Preview("Wallpaper card") {
-    WallpaperCard(wallpaper: .preview, isSelected: true) { }
-        .frame(width: 300)
-        .padding()
 }

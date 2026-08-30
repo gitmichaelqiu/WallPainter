@@ -8,7 +8,11 @@ final class SettingsHostingController: NSHostingController<AnyView> {
         preferences: WallPainterPreferences,
         initialTab: SettingsTab? = nil
     ) {
-        let rootView = SettingsView(model: model, initialTab: initialTab)
+        let rootView = SettingsView(
+            model: model,
+            launchAtLoginManager: LaunchAtLoginManager(),
+            initialTab: initialTab
+        )
             .environment(preferences)
         super.init(rootView: AnyView(rootView))
     }
