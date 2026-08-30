@@ -46,6 +46,14 @@ struct SettingsView: View {
         .navigationTitle("")
         .ignoresSafeArea(.container, edges: .top)
         .frame(width: defaultSettingsWindowWidth, height: defaultSettingsWindowHeight)
+        .background {
+            SettingsWindowConfigurator(
+                contentSize: CGSize(
+                    width: defaultSettingsWindowWidth,
+                    height: defaultSettingsWindowHeight
+                )
+            )
+        }
         .onChange(of: searchText) { _, newValue in
             navigationState.searchText = newValue
 

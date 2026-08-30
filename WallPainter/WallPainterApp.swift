@@ -7,13 +7,13 @@ struct WallPainterApp: App {
             SettingsView()
         }
         .defaultSize(width: 750, height: 550)
-        .windowResizability(.contentMinSize)
+        .windowResizability(.contentSize)
         .windowToolbarStyle(.unifiedCompact)
 
         Settings {
             SettingsView()
         }
         .defaultSize(width: 750, height: 550)
-        .windowResizability(.contentMinSize)
+        .windowResizability(.contentSize)
     }
 }
