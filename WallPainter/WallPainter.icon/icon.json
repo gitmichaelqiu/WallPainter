@@ -1,0 +1,142 @@
+{
+  "features" : [
+    "refractivity"
+  ],
+  "fill" : {
+    "automatic-gradient" : "extended-srgb:0.00000,0.53333,1.00000,1.00000"
+  },
+  "groups" : [
+    {
+      "blur-material" : null,
+      "layers" : [
+        {
+          "fill-specializations" : [
+            {
+              "value" : {
+                "automatic-gradient" : "extended-gray:0.00000,1.00000"
+              }
+            },
+            {
+              "appearance" : "dark",
+              "value" : {
+                "automatic-gradient" : "extended-gray:1.00000,1.00000"
+              }
+            }
+          ],
+          "image-name" : "ios-appearance-icon-transparent.png",
+          "name" : "ios-appearance-icon-transparent",
+          "position" : {
+            "scale" : 0.8,
+            "translation-in-points" : [
+              259.140625,
+              258.5100000000001
+            ]
+          }
+        }
+      ],
+      "refractivity" : {
+        "depth" : 0,
+        "enabled" : true,
+        "strength" : 0.5
+      },
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.6
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.75
+      }
+    },
+    {
+      "blend-mode-specializations" : [
+        {
+          "value" : "normal"
+        },
+        {
+          "appearance" : "dark",
+          "value" : "normal"
+        }
+      ],
+      "blur-material" : null,
+      "hidden" : false,
+      "layers" : [
+        {
+          "image-name" : "4_shape1.png",
+          "name" : "4_shape1",
+          "position" : {
+            "scale" : 0.175,
+            "translation-in-points" : [
+              -66,
+              -37
+            ]
+          }
+        },
+        {
+          "hidden" : true,
+          "image-name" : "6_shape2_rounded.png",
+          "name" : "6_shape2_rounded",
+          "position" : {
+            "scale" : 0.15,
+            "translation-in-points" : [
+              77,
+              66.5
+            ]
+          }
+        },
+        {
+          "image-name" : "6_shape2_rounded copy.png",
+          "name" : "6_shape2_rounded copy",
+          "position" : {
+            "scale" : 0.15,
+            "translation-in-points" : [
+              77,
+              66.5
+            ]
+          }
+        },
+        {
+          "hidden" : true,
+          "image-name" : "photo.on.rectangle.angled.fill.png",
+          "name" : "photo.on.rectangle.angled.fill",
+          "position" : {
+            "scale" : 0.48,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "lighting" : "individual",
+      "opacity" : 1,
+      "position" : {
+        "scale" : 1.12,
+        "translation-in-points" : [
+          -4,
+          -4
+        ]
+      },
+      "refractivity" : {
+        "depth" : 0,
+        "enabled" : false,
+        "strength" : 0.5
+      },
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 1
+      },
+      "specular" : true,
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.25
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}
