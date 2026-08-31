@@ -3,53 +3,100 @@ import SwiftUI
 struct AutomationSettingsView: View {
     let model: WallpaperModel
     let coordinator: WallpaperAutomationCoordinator
+    let spaceProvider: (any SpaceAPIProviding)?
 
     @Environment(WallPainterPreferences.self) private var preferences
+    @State private var isSpaceAPIAvailable = false
+
+    private var installedWallpaperIDs: Set<String> {
+        Set(model.items.map(\.id))
+    }
+
+    private var isDefaultRuleValid: Bool {
+        preferences.automationDefaultRule.isValid(
+            installedWallpaperIDs: installedWallpaperIDs
+        )
+    }
 
     var body: some View {
         @Bindable var preferences = preferences
 
         SettingsContainer(.automation) {
             VStack(alignment: .leading, spacing: 20) {
-                SettingsSection(
-                    "Wallpaper Automation",
-                    helperText: "Use a different installed wallpaper for Light and Dark system appearances."
-                ) {
+                SettingsSection("Automation") {
                     SettingsRow(
                         "Enable Automatic Switching",
-                        warningText: coordinator.hasValidMappings
+                        warningText: isDefaultRuleValid
                             ? nil
-                            : "Select an installed wallpaper for both Light and Dark before enabling automation."
+                            : "Select the wallpaper mapping for All Spaces before enabling automation."
                     ) {
                         Toggle("", isOn: $preferences.automationEnabled)
                             .labelsHidden()
                             .toggleStyle(.switch)
-                            .disabled(!coordinator.hasValidMappings)
+                            .disabled(!isDefaultRuleValid)
+                    }
+                }
+
+                SettingsSection("All Spaces") {
+                    SettingsRow("Wallpaper behavior") {
+                        Picker("", selection: $preferences.automationDefaultRule.mode) {
+                            ForEach(WallpaperRuleMode.allCases) { mode in
+                                Text(mode.displayName)
+                                    .tag(mode)
+                            }
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .frame(minWidth: 190, alignment: .trailing)
                     }
 
                     Divider()
 
+                    if preferences.automationDefaultRule.mode == .fixed {
+                        SettingsRow("Fixed wallpaper") {
+                            WallpaperPicker(
+                                selection: $preferences.automationDefaultRule.fixedWallpaperID,
+                                wallpapers: model.items
+                            )
+                        }
+                    } else {
+                        SettingsRow("Light wallpaper") {
+                            WallpaperPicker(
+                                selection: $preferences.automationDefaultRule.lightWallpaperID,
+                                wallpapers: model.items
+                            )
+                        }
+
+                        Divider()
+
+                        SettingsRow("Dark wallpaper") {
+                            WallpaperPicker(
+                                selection: $preferences.automationDefaultRule.darkWallpaperID,
+                                wallpapers: model.items
+                            )
+                        }
+                    }
+                }
+
+                SettingsSection("Current Status") {
                     SettingsRow("Current system appearance") {
                         Text(coordinator.currentAppearance.displayName)
                             .frame(minHeight: 24)
                     }
-                }
-
-                SettingsSection("Theme Wallpapers") {
-                    SettingsRow("Light wallpaper") {
-                        WallpaperAppearancePicker(
-                            selection: $preferences.automationLightWallpaperID,
-                            wallpapers: model.items
-                        )
-                    }
 
                     Divider()
 
-                    SettingsRow("Dark wallpaper") {
-                        WallpaperAppearancePicker(
-                            selection: $preferences.automationDarkWallpaperID,
-                            wallpapers: model.items
-                        )
+                    SettingsRow(
+                        "SpaceAPI availability",
+                        warningText: isSpaceAPIAvailable
+                            ? nil
+                            : "Space-aware automation pauses while DesktopRenamer SpaceAPI is unavailable."
+                    ) {
+                        Text(isSpaceAPIAvailable ? "Available" : "Unavailable")
+                            .foregroundStyle(
+                                isSpaceAPIAvailable ? Color.green : Color.secondary
+                            )
+                            .frame(minHeight: 24)
                     }
                 }
 
@@ -57,10 +104,32 @@ struct AutomationSettingsView: View {
             }
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }
+        .onAppear {
+            updateSpaceAPIAvailability()
+        }
+        .onReceive(NotificationCenter.default.publisher(
+            for: .wallPainterSpaceAvailabilityDidChange
+        )) { _ in
+            updateSpaceAPIAvailability()
+        }
+        .onReceive(NotificationCenter.default.publisher(
+            for: .wallPainterSpaceSnapshotDidChange
+        )) { _ in
+            updateSpaceAPIAvailability()
+        }
+        .onChange(of: isDefaultRuleValid) { _, isValid in
+            if !isValid, preferences.automationEnabled {
+                preferences.automationEnabled = false
+            }
+        }
+    }
+
+    private func updateSpaceAPIAvailability() {
+        isSpaceAPIAvailable = spaceProvider?.isAvailable == true
     }
 }
 
-private struct WallpaperAppearancePicker: View {
+struct WallpaperPicker: View {
     @Binding var selection: String?
     let wallpapers: [WallpaperItem]
 
@@ -81,6 +150,7 @@ private struct WallpaperAppearancePicker: View {
             }
         }
         .labelsHidden()
-        .frame(minWidth: 180, alignment: .trailing)
+        .pickerStyle(.menu)
+        .frame(minWidth: 190, alignment: .trailing)
     }
 }

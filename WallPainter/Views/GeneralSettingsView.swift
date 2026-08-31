@@ -4,10 +4,12 @@ import SwiftUI
 struct GeneralSettingsView: View {
     @Bindable var model: WallpaperModel
     let launchAtLoginManager: any LaunchAtLoginManaging
+    let spaceProvider: (any SpaceAPIProviding)?
 
     @Environment(WallPainterPreferences.self) private var preferences
     @State private var launchAtLoginEnabled = false
     @State private var hasLoadedLaunchAtLogin = false
+    @State private var snapshot: SpaceSnapshot?
 
     var body: some View {
         @Bindable var preferences = preferences
@@ -26,10 +28,20 @@ struct GeneralSettingsView: View {
                     Divider()
 
                     SettingsRow("Status") {
-                        Text(model.currentWallpaperID == nil ? "Unavailable" : "Active")
+                        Text(currentWallpaperStatus)
                             .foregroundStyle(
-                                model.currentWallpaperID == nil ? Color.secondary : Color.green
+                                isWallpaperActive ? Color.green : Color.secondary
                             )
+                            .frame(minHeight: 24)
+                    }
+
+                    Divider()
+
+                    SettingsRow("Active spaces") {
+                        Text(activeSpaceSummary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .frame(maxWidth: 240, alignment: .trailing)
                             .frame(minHeight: 24)
                     }
                 }
@@ -57,18 +69,29 @@ struct GeneralSettingsView: View {
                     .padding(10)
                 }
 
-                SettingsSection {
-                    SettingsRow("Apply wallpaper") {
+                SettingsSection("Apply Wallpaper") {
+                    SettingsRow("Apply to current space(s)") {
                         Button {
-                            model.switchSelectedWallpaper()
+                            applyToCurrentSpaces()
                         } label: {
                             if model.isSwitching {
                                 ProgressView()
                                     .controlSize(.small)
                                 Text("Switching…")
                             } else {
-                                Label("Set as Desktop Wallpaper", systemImage: "checkmark.circle.fill")
+                                Label("Apply", systemImage: "checkmark.circle.fill")
                             }
+                        }
+                        .disabled(!canApplyToCurrentSpaces || model.isSwitching)
+                    }
+
+                    Divider()
+
+                    SettingsRow("Apply Everywhere") {
+                        Button {
+                            applyEverywhere()
+                        } label: {
+                            Label("Apply", systemImage: "square.grid.3x3.fill")
                         }
                         .disabled(model.selectedWallpaper == nil || model.isSwitching)
                     }
@@ -108,6 +131,17 @@ struct GeneralSettingsView: View {
         .onAppear {
             launchAtLoginEnabled = launchAtLoginManager.isEnabled
             hasLoadedLaunchAtLogin = true
+            updateSpaceState()
+        }
+        .onReceive(NotificationCenter.default.publisher(
+            for: .wallPainterSpaceSnapshotDidChange
+        )) { _ in
+            updateSpaceState()
+        }
+        .onReceive(NotificationCenter.default.publisher(
+            for: .wallPainterSpaceAvailabilityDidChange
+        )) { _ in
+            updateSpaceState()
         }
         .onChange(of: launchAtLoginEnabled) { _, newValue in
             guard hasLoadedLaunchAtLogin else { return }
@@ -118,6 +152,71 @@ struct GeneralSettingsView: View {
                 launchAtLoginEnabled = launchAtLoginManager.isEnabled
             }
         }
+    }
+
+    private var regularSpaces: [SpaceDescriptor] {
+        snapshot?.spaces.filter { !$0.isFullscreen } ?? []
+    }
+
+    private var currentSpaces: [SpaceDescriptor] {
+        guard let snapshot else { return [] }
+        let spacesByID = Dictionary(uniqueKeysWithValues: regularSpaces.map { ($0.id, $0) })
+        return snapshot.currentSpaceIDs.compactMap { spacesByID[$0] }
+    }
+
+    private var currentTargets: [WallpaperSpaceTarget] {
+        currentSpaces.map {
+            WallpaperSpaceTarget(spaceID: $0.id, displayID: $0.displayID)
+        }
+    }
+
+    private var currentWallpaperStatus: String {
+        switch model.currentWallpaperState {
+        case .empty, .unavailable:
+            return "Unavailable"
+        case .uniform, .mixed:
+            return "Active"
+        }
+    }
+
+    private var isWallpaperActive: Bool {
+        switch model.currentWallpaperState {
+        case .uniform, .mixed:
+            return true
+        case .empty, .unavailable:
+            return false
+        }
+    }
+
+    private var activeSpaceSummary: String {
+        guard spaceProvider != nil else { return "Unavailable" }
+        guard snapshot != nil else { return "Unavailable" }
+        guard !currentSpaces.isEmpty else { return "None detected" }
+        if currentSpaces.count == 1 {
+            return currentSpaces[0].name
+        }
+        return "\(currentSpaces.count) active spaces"
+    }
+
+    private var canApplyToCurrentSpaces: Bool {
+        spaceProvider?.isAvailable == true && !currentTargets.isEmpty
+    }
+
+    private func updateSpaceState() {
+        snapshot = spaceProvider?.snapshot
+        guard !currentTargets.isEmpty else { return }
+        model.synchronizeCurrentWallpapers(for: currentTargets)
+    }
+
+    private func applyToCurrentSpaces() {
+        guard let wallpaperID = model.selectedWallpaperID else { return }
+        updateSpaceState()
+        _ = model.applyWallpaper(id: wallpaperID, to: currentTargets)
+    }
+
+    private func applyEverywhere() {
+        guard let wallpaperID = model.selectedWallpaperID else { return }
+        _ = model.applyWallpaperEverywhere(id: wallpaperID)
     }
 }
 

@@ -1,13 +1,14 @@
 import SwiftUI
 
 enum SettingsTab: String, CaseIterable, Identifiable {
-    case general, automation, about
+    case general, spaces, automation, about
 
     var id: String { self.rawValue }
 
     var localizedName: LocalizedStringResource {
         switch self {
         case .general: return "General"
+        case .spaces: return "Spaces"
         case .automation: return "Automation"
         case .about: return "About"
         }
@@ -16,6 +17,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     var iconName: String {
         switch self {
         case .general: return "gearshape"
+        case .spaces: return "macwindow.on.rectangle"
         case .automation: return "arrow.triangle.2.circlepath"
         case .about: return "info.circle"
         }
@@ -33,6 +35,7 @@ struct SettingsView: View {
     let wallpaperModel: WallpaperModel
     let launchAtLoginManager: any LaunchAtLoginManaging
     let automationCoordinator: WallpaperAutomationCoordinator
+    let spaceProvider: (any SpaceAPIProviding)?
 
     @StateObject private var navigationState = SettingsNavigationState()
     @State private var selectedTab: SettingsTab?
@@ -43,11 +46,13 @@ struct SettingsView: View {
         model: WallpaperModel,
         launchAtLoginManager: any LaunchAtLoginManaging,
         automationCoordinator: WallpaperAutomationCoordinator,
+        spaceProvider: (any SpaceAPIProviding)? = nil,
         initialTab: SettingsTab? = .general
     ) {
         self.wallpaperModel = model
         self.launchAtLoginManager = launchAtLoginManager
         self.automationCoordinator = automationCoordinator
+        self.spaceProvider = spaceProvider
         _selectedTab = State(initialValue: initialTab)
     }
 
@@ -63,14 +68,23 @@ struct SettingsView: View {
                 ZStack {
                     GeneralSettingsView(
                         model: wallpaperModel,
-                        launchAtLoginManager: launchAtLoginManager
+                        launchAtLoginManager: launchAtLoginManager,
+                        spaceProvider: spaceProvider
                     )
                     .environment(\.settingsTab, .general)
 
+                    SpacesSettingsView(
+                        model: wallpaperModel,
+                        spaceProvider: spaceProvider
+                    )
+                    .environment(\.settingsTab, .spaces)
+
                     AutomationSettingsView(
                         model: wallpaperModel,
-                        coordinator: automationCoordinator
+                        coordinator: automationCoordinator,
+                        spaceProvider: spaceProvider
                     )
+                    .environment(\.settingsTab, .automation)
                     AboutView()
                         .environment(\.settingsTab, .about)
                 }
@@ -259,12 +273,19 @@ struct SettingsView: View {
                 case .general:
                     GeneralSettingsView(
                         model: wallpaperModel,
-                        launchAtLoginManager: launchAtLoginManager
+                        launchAtLoginManager: launchAtLoginManager,
+                        spaceProvider: spaceProvider
+                    )
+                case .spaces:
+                    SpacesSettingsView(
+                        model: wallpaperModel,
+                        spaceProvider: spaceProvider
                     )
                 case .automation:
                     AutomationSettingsView(
                         model: wallpaperModel,
-                        coordinator: automationCoordinator
+                        coordinator: automationCoordinator,
+                        spaceProvider: spaceProvider
                     )
                 case .about:
                     AboutView()
