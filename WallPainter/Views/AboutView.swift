@@ -50,10 +50,6 @@ struct AboutView: View {
                             .font(.title3)
                             .foregroundColor(.secondary)
 
-                        Text("Native macOS wallpaper automation")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        
                         Text("© \(currentYear) Michael Yicheng Qiu")
                             .font(.footnote)
                             .foregroundColor(.secondary.opacity(0.8))
@@ -83,14 +79,21 @@ struct AboutView: View {
                     
                     VStack(spacing: 12) {
                         OtherAppRow(
-                            imageName: "OptClickerIcon_Default",
+                            imageName: "DesktopRenamerIcon\(iconSuffix)",
+                            appName: "DesktopRenamer",
+                            description: NSLocalizedString("Manage and rename your macOS desktop spaces.", comment: ""),
+                            url: "https://desktoprenamer.mqiu.dev"
+                        )
+
+                        OtherAppRow(
+                            imageName: "OptClickerIcon\(iconSuffix)",
                             appName: "OptClicker",
                             description: NSLocalizedString("Let you right-click with the Option key.", comment: ""),
                             url: "https://optclicker.mqiu.dev"
                         )
                         
                         OtherAppRow(
-                            imageName: "SpaceSwitcherIcon_Default",
+                            imageName: "SpaceSwitcherIcon\(iconSuffix)",
                             appName: "SpaceSwitcher",
                             description: NSLocalizedString("Control which app and dock to show in each space.", comment: ""),
                             url: "https://spaceswitcher.mqiu.dev"
@@ -101,13 +104,6 @@ struct AboutView: View {
                             appName: "VTPlayer",
                             description: NSLocalizedString("Real-time video enhancing player.", comment: ""),
                             url: "https://vtplayer.mqiu.dev"
-                        )
-
-                        OtherAppRow(
-                            imageName: "DesktopRenamerIcon\(iconSuffix)",
-                            appName: "DesktopRenamer",
-                            description: NSLocalizedString("Manage and rename your macOS desktop spaces.", comment: ""),
-                            url: "https://desktoprenamer.mqiu.dev"
                         )
                     }
                 }
