@@ -84,7 +84,12 @@ struct SettingsView: View {
         .environmentObject(navigationState)
         .navigationTitle("")
         .ignoresSafeArea(.container, edges: .top)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(
+            minWidth: CGFloat(defaultSettingsWindowWidth),
+            maxWidth: .infinity,
+            minHeight: CGFloat(defaultSettingsWindowHeight),
+            maxHeight: .infinity
+        )
         .onChange(of: searchText) { _, newValue in
             navigationState.searchText = newValue
             if !newValue.isEmpty {
