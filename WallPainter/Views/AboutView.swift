@@ -27,11 +27,11 @@ struct AboutView: View {
             VStack(alignment: .leading, spacing: 32) {
                 // Header Section
                 HStack(spacing: 20) {
-                    if let nsImage = NSImage(
-                        systemSymbolName: "photo.tv",
-                        accessibilityDescription: "WallPainter"
-                    )
-                        ?? NSApplication.shared.applicationIconImage {
+                    if let nsImage = NSApplication.shared.applicationIconImage
+                        ?? NSImage(
+                            systemSymbolName: "photo.tv",
+                            accessibilityDescription: "WallPainter"
+                        ) {
                         ZStack {
                             Image(nsImage: nsImage)
                                 .resizable()
