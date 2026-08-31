@@ -321,7 +321,7 @@ private struct WallpaperCard: View {
     }
 }
 
-private struct WallpaperThumbnail: View {
+struct WallpaperThumbnail: View {
     let url: URL?
     @State private var image: NSImage?
 

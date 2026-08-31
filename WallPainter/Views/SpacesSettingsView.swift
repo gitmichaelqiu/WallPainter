@@ -7,7 +7,8 @@ struct SpacesSettingsView: View {
 
     @Environment(WallPainterPreferences.self) private var preferences
     @State private var snapshot: SpaceSnapshot?
-    @State private var editingSpace: SpaceDescriptor?
+    @State private var selectedDisplayID: String?
+    @State private var selectedSpaceID: String?
 
     private var regularSpaces: [SpaceDescriptor] {
         snapshot?.spaces
@@ -32,32 +33,77 @@ struct SpacesSettingsView: View {
                     spaces: spaces
                 )
             }
-            .sorted { lhs, rhs in
-                lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending
+            .sorted {
+                $0.name.localizedStandardCompare($1.name) == .orderedAscending
             }
     }
 
+    private var selectedDisplayGroup: WallpaperDisplayGroup? {
+        if let selectedDisplayID,
+           let group = displayGroups.first(where: { $0.id == selectedDisplayID }) {
+            return group
+        }
+
+        if let selectedSpaceID,
+           let group = displayGroups.first(where: { group in
+               group.spaces.contains { $0.id == selectedSpaceID }
+           }) {
+            return group
+        }
+
+        return displayGroups.first
+    }
+
+    private var selectedSpace: SpaceDescriptor? {
+        guard let group = selectedDisplayGroup else { return nil }
+
+        if let selectedSpaceID,
+           let space = group.spaces.first(where: { $0.id == selectedSpaceID }) {
+            return space
+        }
+
+        return group.spaces.first
+    }
+
     private var activeSpaceIDs: Set<String> {
-        Set(snapshot?.currentSpaceIDs ?? [])
+        let regularSpaceIDs = Set(regularSpaces.map(\.id))
+        return Set(snapshot?.currentSpaceIDs ?? []).intersection(regularSpaceIDs)
     }
 
     var body: some View {
         SettingsContainer(.spaces) {
             VStack(alignment: .leading, spacing: 20) {
                 SettingsSection("Space Arrangement") {
-                    SettingsRow(
-                        "Reset space overrides",
-                        helperText: "Every space will use the All Spaces rule again."
-                    ) {
-                        Button("Reset") {
-                            preferences.resetSpaceRules()
+                    if displayGroups.count > 1 {
+                        SettingsRow("Display") {
+                            Picker("", selection: $selectedDisplayID) {
+                                ForEach(displayGroups) { group in
+                                    Text(group.name)
+                                        .tag(Optional(group.id))
+                                }
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                            .frame(minWidth: 190, alignment: .trailing)
                         }
-                        .disabled(preferences.automationSpaceRules.isEmpty)
-                    }
-                }
 
-                if displayGroups.isEmpty {
-                    SettingsSection("Available Spaces") {
+                        Divider()
+                    }
+
+                    if let group = selectedDisplayGroup {
+                        SettingsRow("Space") {
+                            Picker("", selection: $selectedSpaceID) {
+                                ForEach(group.spaces) { space in
+                                    Text(space.name)
+                                        .lineLimit(1)
+                                        .tag(Optional(space.id))
+                                }
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.segmented)
+                            .frame(maxWidth: 380, alignment: .trailing)
+                        }
+                    } else {
                         SettingsRow(
                             "SpaceAPI availability",
                             warningText: spaceProvider?.isAvailable == true
@@ -73,26 +119,42 @@ struct SpacesSettingsView: View {
                                 .frame(minHeight: 24)
                         }
                     }
-                } else {
-                    ForEach(displayGroups) { group in
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(group.name)
-                                .font(.headline)
-                                .padding(.leading, 4)
 
-                            SpaceTable(
-                                group: group,
-                                activeSpaceIDs: activeSpaceIDs,
-                                model: model,
-                                defaultRule: preferences.automationDefaultRule,
-                                overrides: preferences.automationSpaceRules
-                            ) { space in
-                                editingSpace = space
-                            }
-                            .clipShape(.rect(cornerRadius: 8))
-                            .padding(.bottom, 10)
+                    Divider()
+
+                    SettingsRow(
+                        "Reset space overrides",
+                        helperText: "Every space will use the All Spaces rule again."
+                    ) {
+                        Button("Reset") {
+                            preferences.resetSpaceRules()
                         }
+                        .disabled(preferences.automationSpaceRules.isEmpty)
                     }
+                }
+
+                if let selectedSpace {
+                    HStack(spacing: 8) {
+                        Text(selectedSpace.name)
+                            .font(.headline)
+
+                        if activeSpaceIDs.contains(selectedSpace.id) {
+                            Text("Active")
+                                .font(.caption)
+                                .foregroundStyle(.tint)
+                        }
+
+                        Spacer()
+                    }
+                    .padding(.leading, 4)
+
+                    SpaceRuleEditor(
+                        space: selectedSpace,
+                        model: model,
+                        existingRule: preferences.spaceRule(for: selectedSpace.id),
+                        defaultRule: preferences.automationDefaultRule
+                    )
+                    .id(selectedSpace.id)
                 }
 
                 Spacer()
@@ -113,20 +175,47 @@ struct SpacesSettingsView: View {
         )) { _ in
             updateSnapshot()
         }
-        .sheet(item: $editingSpace) { space in
-            SpaceRuleEditor(
-                space: space,
-                model: model,
-                existingRule: preferences.spaceRule(for: space.id),
-                defaultRule: preferences.automationDefaultRule
-            )
-            .environment(preferences)
-            .frame(minWidth: 430, minHeight: 330)
+        .onChange(of: selectedDisplayID) { _, newValue in
+            guard let group = displayGroups.first(where: { $0.id == newValue }) else { return }
+            selectedSpaceID = preferredSpace(in: group)?.id
         }
     }
 
     private func updateSnapshot() {
         snapshot = spaceProvider?.snapshot
+        reconcileSelection()
+    }
+
+    private func reconcileSelection() {
+        guard !displayGroups.isEmpty else {
+            selectedDisplayID = nil
+            selectedSpaceID = nil
+            return
+        }
+
+        let group: WallpaperDisplayGroup
+        if let selectedDisplayID,
+           let selectedGroup = displayGroups.first(where: { $0.id == selectedDisplayID }) {
+            group = selectedGroup
+        } else if let selectedSpaceID,
+                  let selectedGroup = displayGroups.first(where: { group in
+                      group.spaces.contains { $0.id == selectedSpaceID }
+                  }) {
+            group = selectedGroup
+        } else {
+            group = displayGroups.first(where: { preferredSpace(in: $0) != nil })
+                ?? displayGroups[0]
+        }
+
+        selectedDisplayID = group.id
+        if !group.spaces.contains(where: { $0.id == selectedSpaceID }) {
+            selectedSpaceID = preferredSpace(in: group)?.id
+        }
+    }
+
+    private func preferredSpace(in group: WallpaperDisplayGroup) -> SpaceDescriptor? {
+        group.spaces.first(where: { activeSpaceIDs.contains($0.id) })
+            ?? group.spaces.first
     }
 }
 
@@ -136,143 +225,6 @@ private struct WallpaperDisplayGroup: Identifiable {
     let spaces: [SpaceDescriptor]
 }
 
-private struct SpaceTable: View {
-    let group: WallpaperDisplayGroup
-    let activeSpaceIDs: Set<String>
-    let model: WallpaperModel
-    let defaultRule: WallpaperRule
-    let overrides: [String: WallpaperRule]
-    let select: (SpaceDescriptor) -> Void
-
-    var body: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 10) {
-                Color.clear
-                    .frame(width: 16)
-                Text("#")
-                    .frame(width: 30, alignment: .leading)
-                Text("Name")
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                Text("Rule")
-                    .frame(width: 150, alignment: .trailing)
-                Text("Actions")
-                    .frame(width: 40, alignment: .trailing)
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-
-            Divider()
-
-            ForEach(group.spaces) { space in
-                spaceRow(for: space)
-            }
-        }
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(sectionBackgroundColor.opacity(0.6))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(.regularMaterial)
-                )
-        )
-    }
-
-    private func spaceRow(for space: SpaceDescriptor) -> some View {
-        VStack(spacing: 0) {
-            Button {
-                select(space)
-            } label: {
-                HStack(spacing: 10) {
-                    Image(systemName: activeSpaceIDs.contains(space.id) ? "circle.fill" : "circle")
-                        .font(.caption2)
-                        .foregroundStyle(
-                            activeSpaceIDs.contains(space.id) ? Color.accentColor : Color.clear
-                        )
-                        .frame(width: 16)
-                        .accessibilityHidden(true)
-
-                    Text(activeSpaceIDs.contains(space.id)
-                         ? "[\(space.number)]"
-                         : "\(space.number)")
-                        .font(.system(.body, design: .monospaced))
-                        .foregroundStyle(
-                            activeSpaceIDs.contains(space.id) ? Color.accentColor : Color.primary
-                        )
-                        .fontWeight(activeSpaceIDs.contains(space.id) ? .bold : .regular)
-                        .frame(width: 30, alignment: .leading)
-
-                    Text(space.name)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                    Text(ruleTitle(for: space))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                        .frame(width: 150, alignment: .trailing)
-
-                    Image(systemName: "chevron.right")
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                        .frame(width: 40, alignment: .trailing)
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .contentShape(Rectangle())
-                .background(
-                    activeSpaceIDs.contains(space.id)
-                        ? Color.accentColor.opacity(0.12)
-                        : Color.clear
-                )
-            }
-            .buttonStyle(.plain)
-            .accessibilityElement(children: .combine)
-            .accessibilityHint("Edit the wallpaper rule for this space")
-
-            if space.id != group.spaces.last?.id {
-                Divider()
-                    .padding(.leading, 12)
-            }
-        }
-        .transition(.opacity.combined(with: .move(edge: .top)))
-    }
-
-    private var sectionBackgroundColor: Color {
-        let nsColor = NSColor(name: nil) { appearance in
-            if appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua {
-                return NSColor(calibratedWhite: 0.20, alpha: 1.0)
-            } else {
-                return NSColor(calibratedWhite: 1.00, alpha: 1.0)
-            }
-        }
-        return Color(nsColor: nsColor)
-    }
-
-    private func ruleTitle(for space: SpaceDescriptor) -> String {
-        guard let rule = overrides[space.id] else {
-            return defaultRule.isValid(installedWallpaperIDs: Set(model.items.map(\.id)))
-                ? "Use All Spaces"
-                : "All Spaces unavailable"
-        }
-
-        guard rule.isValid(installedWallpaperIDs: Set(model.items.map(\.id))) else {
-            return "Unavailable"
-        }
-
-        switch rule.mode {
-        case .fixed:
-            guard let wallpaperID = rule.fixedWallpaperID else { return "Unavailable" }
-            return model.items.first(where: { $0.id == wallpaperID })?.name ?? "Unavailable"
-        case .appearance:
-            return "Follow appearance"
-        }
-    }
-}
-
 private struct SpaceRuleEditor: View {
     let space: SpaceDescriptor
     let model: WallpaperModel
@@ -280,7 +232,6 @@ private struct SpaceRuleEditor: View {
     let defaultRule: WallpaperRule
 
     @Environment(WallPainterPreferences.self) private var preferences
-    @Environment(\.dismiss) private var dismiss
     @State private var selection: SpaceRuleSelection
     @State private var fixedWallpaperID: String?
     @State private var lightWallpaperID: String?
@@ -308,93 +259,220 @@ private struct SpaceRuleEditor: View {
         _darkWallpaperID = State(initialValue: startingRule.darkWallpaperID)
     }
 
-    var body: some View {
-        @Bindable var preferences = preferences
-
-        VStack(alignment: .leading, spacing: 20) {
-            Text(space.name)
-                .font(.title2)
-
-            SettingsSection("Wallpaper Rule") {
-                SettingsRow("Rule") {
-                    Picker("", selection: $selection) {
-                        ForEach(SpaceRuleSelection.allCases) { option in
-                            Text(option.title)
-                                .tag(option)
-                        }
-                    }
-                    .labelsHidden()
-                    .pickerStyle(.menu)
-                    .frame(minWidth: 190, alignment: .trailing)
-                }
-
-                if selection == .fixed {
-                    Divider()
-
-                    SettingsRow("Fixed wallpaper") {
-                        WallpaperPicker(
-                            selection: $fixedWallpaperID,
-                            wallpapers: model.items
-                        )
-                    }
-                } else if selection == .appearance {
-                    Divider()
-
-                    SettingsRow("Light wallpaper") {
-                        WallpaperPicker(
-                            selection: $lightWallpaperID,
-                            wallpapers: model.items
-                        )
-                    }
-
-                    Divider()
-
-                    SettingsRow("Dark wallpaper") {
-                        WallpaperPicker(
-                            selection: $darkWallpaperID,
-                            wallpapers: model.items
-                        )
-                    }
-                }
-            }
-
-            Spacer()
-
-            HStack {
-                Spacer()
-
-                Button("Cancel") {
-                    dismiss()
-                }
-
-                Button("Save") {
-                    save(using: preferences)
-                }
-                .keyboardShortcut(.defaultAction)
-            }
+    private var effectiveRule: WallpaperRule {
+        switch selection {
+        case .allSpaces:
+            return defaultRule
+        case .fixed:
+            return .fixed(fixedWallpaperID)
+        case .appearance:
+            return .appearance(
+                lightWallpaperID: lightWallpaperID,
+                darkWallpaperID: darkWallpaperID
+            )
         }
-        .padding(20)
     }
 
-    private func save(using preferences: WallPainterPreferences) {
+    var body: some View {
+        SettingsSection("Wallpaper Rule") {
+            SettingsRow("Rule") {
+                Picker("", selection: $selection) {
+                    ForEach(SpaceRuleSelection.allCases) { option in
+                        Text(option.title)
+                            .tag(option)
+                    }
+                }
+                .labelsHidden()
+                .pickerStyle(.menu)
+                .frame(minWidth: 190, alignment: .trailing)
+            }
+
+            if selection == .fixed {
+                Divider()
+
+                SettingsRow("Fixed wallpaper") {
+                    WallpaperPicker(
+                        selection: $fixedWallpaperID,
+                        wallpapers: model.items
+                    )
+                }
+            } else if selection == .appearance {
+                Divider()
+
+                SettingsRow("Light wallpaper") {
+                    WallpaperPicker(
+                        selection: $lightWallpaperID,
+                        wallpapers: model.items
+                    )
+                }
+
+                Divider()
+
+                SettingsRow("Dark wallpaper") {
+                    WallpaperPicker(
+                        selection: $darkWallpaperID,
+                        wallpapers: model.items
+                    )
+                }
+            }
+
+            Divider()
+
+            SpaceWallpaperPreview(
+                rule: effectiveRule,
+                wallpapers: model.items,
+                title: selection == .allSpaces ? "All Spaces preview" : "Preview"
+            )
+        }
+        .onChange(of: selection) { _, _ in
+            saveIfNeeded()
+        }
+        .onChange(of: fixedWallpaperID) { _, _ in
+            saveIfNeeded()
+        }
+        .onChange(of: lightWallpaperID) { _, _ in
+            saveIfNeeded()
+        }
+        .onChange(of: darkWallpaperID) { _, _ in
+            saveIfNeeded()
+        }
+        .onChange(of: existingRule) { _, newRule in
+            load(newRule ?? defaultRule, isInherited: newRule == nil)
+        }
+        .onChange(of: defaultRule) { _, newRule in
+            guard existingRule == nil else { return }
+            load(newRule, isInherited: true)
+        }
+    }
+
+    private func saveIfNeeded() {
         switch selection {
         case .allSpaces:
             preferences.setSpaceRule(nil, for: space.id)
         case .fixed:
             preferences.setSpaceRule(
-                WallpaperRule.fixed(fixedWallpaperID),
+                .fixed(fixedWallpaperID),
                 for: space.id
             )
         case .appearance:
             preferences.setSpaceRule(
-                WallpaperRule.appearance(
+                .appearance(
                     lightWallpaperID: lightWallpaperID,
                     darkWallpaperID: darkWallpaperID
                 ),
                 for: space.id
             )
         }
-        dismiss()
+    }
+
+    private func load(_ rule: WallpaperRule, isInherited: Bool) {
+        selection = isInherited ? .allSpaces : SpaceRuleSelection(mode: rule.mode)
+        fixedWallpaperID = rule.fixedWallpaperID
+        lightWallpaperID = rule.lightWallpaperID
+        darkWallpaperID = rule.darkWallpaperID
+    }
+}
+
+private struct SpaceWallpaperPreview: View {
+    let rule: WallpaperRule
+    let wallpapers: [WallpaperItem]
+    let title: String
+
+    private var fixedWallpaper: WallpaperItem? {
+        wallpaper(withID: rule.fixedWallpaperID)
+    }
+
+    private var lightWallpaper: WallpaperItem? {
+        wallpaper(withID: rule.lightWallpaperID)
+    }
+
+    private var darkWallpaper: WallpaperItem? {
+        wallpaper(withID: rule.darkWallpaperID)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            switch rule.mode {
+            case .fixed:
+                SpaceWallpaperPreviewCard(
+                    wallpaper: fixedWallpaper,
+                    label: "Fixed"
+                )
+            case .appearance:
+                HStack(spacing: 12) {
+                    SpaceWallpaperPreviewCard(
+                        wallpaper: lightWallpaper,
+                        label: "Light"
+                    )
+
+                    SpaceWallpaperPreviewCard(
+                        wallpaper: darkWallpaper,
+                        label: "Dark"
+                    )
+                }
+            }
+        }
+        .padding(10)
+    }
+
+    private func wallpaper(withID id: String?) -> WallpaperItem? {
+        guard let id else { return nil }
+        return wallpapers.first { $0.id == id }
+    }
+}
+
+private struct SpaceWallpaperPreviewCard: View {
+    let wallpaper: WallpaperItem?
+    let label: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            if let wallpaper {
+                WallpaperThumbnail(url: wallpaper.thumbnailURL)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 120)
+                    .clipShape(.rect(cornerRadius: 8))
+
+                HStack(spacing: 8) {
+                    Text(label)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    Spacer(minLength: 0)
+
+                    Text(wallpaper.name)
+                        .font(.caption)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                }
+            } else {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(.quaternary.opacity(0.35))
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 120)
+                    .overlay {
+                        VStack(spacing: 6) {
+                            Image(systemName: "photo")
+                                .font(.title3)
+                                .foregroundStyle(.secondary)
+                            Text("Wallpaper unavailable")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+            }
+        }
+        .padding(8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.regularMaterial, in: .rect(cornerRadius: 10))
+        .overlay {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+        }
     }
 }
 
