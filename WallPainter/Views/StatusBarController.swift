@@ -158,6 +158,7 @@ final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
         window.titlebarSeparatorStyle = .none
         window.isMovableByWindowBackground = true
         window.center()
+        window.minSize = NSSize(width: 750, height: 550)
         window.collectionBehavior = [.participatesInCycle, .fullScreenNone]
         window.standardWindowButton(.zoomButton)?.isEnabled = false
         window.level = .normal
