@@ -7,27 +7,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private(set) var preferences: WallPainterPreferences!
     private(set) var statusBarController: StatusBarController?
     private(set) var automationCoordinator: WallpaperAutomationCoordinator?
+    private(set) var spaceAPIClient: SpaceAPIClient?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
 
         let preferences = WallPainterPreferences()
         let wallpaperModel = WallpaperModel(preferences: preferences)
+        let spaceAPIClient = SpaceAPIClient()
         self.preferences = preferences
         self.wallpaperModel = wallpaperModel
+        self.spaceAPIClient = spaceAPIClient
 
         wallpaperModel.refresh()
 
         let automationCoordinator = WallpaperAutomationCoordinator(
             model: wallpaperModel,
-            preferences: preferences
+            preferences: preferences,
+            spaceProvider: spaceAPIClient
         )
         self.automationCoordinator = automationCoordinator
 
         statusBarController = StatusBarController(
             model: wallpaperModel,
             preferences: preferences,
-            automationCoordinator: automationCoordinator
+            automationCoordinator: automationCoordinator,
+            spaceProvider: spaceAPIClient
         )
         automationCoordinator.start()
     }

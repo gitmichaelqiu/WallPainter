@@ -161,6 +161,25 @@ final class WallpaperModel {
         let normalizedTargets = uniqueTargets(targets)
         activeSpaceTargets = normalizedTargets
 
+        readCurrentWallpapers(for: normalizedTargets)
+        updateCurrentWallpaperState()
+        postChange()
+    }
+
+    /// Refreshes the cached values for the supplied spaces without changing which
+    /// spaces are considered active in the settings and status-bar surfaces.
+    func synchronizeWallpaperIDs(for targets: [WallpaperSpaceTarget]) {
+        let normalizedTargets = uniqueTargets(targets)
+        readCurrentWallpapers(for: normalizedTargets)
+        if normalizedTargets == activeSpaceTargets {
+            updateCurrentWallpaperState()
+        }
+        postChange()
+    }
+
+    private func readCurrentWallpapers(for targets: [WallpaperSpaceTarget]) {
+        let normalizedTargets = uniqueTargets(targets)
+
         do {
             let IDs = try store.currentAerialIDs(for: normalizedTargets)
             for target in normalizedTargets {
@@ -171,8 +190,6 @@ final class WallpaperModel {
         } catch {
             currentWallpaperState = .unavailable
         }
-
-        postChange()
     }
 
     func wallpaperIDs(for targets: [WallpaperSpaceTarget]) -> [String: String] {

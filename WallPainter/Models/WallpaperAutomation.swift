@@ -69,18 +69,38 @@ final class WallpaperAutomationCoordinator {
     private(set) var isRunning = false
 
     @ObservationIgnored private let appearanceMonitor: any AppearanceMonitoring
+    @ObservationIgnored private let spaceProvider: (any SpaceAPIProviding)?
     @ObservationIgnored private var catalogObserver: NSObjectProtocol?
     @ObservationIgnored private var preferencesObserver: NSObjectProtocol?
+    @ObservationIgnored private var spaceSnapshotObserver: NSObjectProtocol?
+    @ObservationIgnored private var spaceAvailabilityObserver: NSObjectProtocol?
     @ObservationIgnored private var lastAttemptedAutomaticID: String?
+    @ObservationIgnored private var lastAttemptedSpaceConfiguration: [String: String]?
 
     init(
         model: WallpaperModel,
         preferences: WallPainterPreferences,
-        appearanceMonitor: (any AppearanceMonitoring)? = nil
+        appearanceMonitor: (any AppearanceMonitoring)? = nil,
+        spaceProvider: (any SpaceAPIProviding)? = nil
     ) {
         self.model = model
         self.preferences = preferences
         self.appearanceMonitor = appearanceMonitor ?? SystemAppearanceMonitor()
+        self.spaceProvider = spaceProvider
+    }
+
+    var isSpaceAPIAvailable: Bool {
+        spaceProvider?.isAvailable == true
+    }
+
+    var hasValidMappings: Bool {
+        preferences.automationDefaultRule.isValid(
+            installedWallpaperIDs: Set(model.items.map(\.id))
+        )
+    }
+
+    func targetWallpaperID(for appearance: WallpaperAppearance) -> String? {
+        preferences.automationDefaultRule.resolvedWallpaperID(for: appearance)
     }
 
     func start() {
@@ -108,16 +128,42 @@ final class WallpaperAutomationCoordinator {
                 self?.preferencesDidChange()
             }
         }
+        if let spaceProvider {
+            let observedSpaceProvider = spaceProvider as AnyObject
+            spaceSnapshotObserver = notificationCenter.addObserver(
+                forName: .wallPainterSpaceSnapshotDidChange,
+                object: observedSpaceProvider,
+                queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    self?.spaceStateDidChange()
+                }
+            }
+            spaceAvailabilityObserver = notificationCenter.addObserver(
+                forName: .wallPainterSpaceAvailabilityDidChange,
+                object: observedSpaceProvider,
+                queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    self?.spaceStateDidChange()
+                }
+            }
+        }
 
+        spaceProvider?.start()
         appearanceMonitor.start { [weak self] appearance in
             self?.appearanceDidChange(appearance)
         }
+
+        synchronizeActiveSpaces()
         evaluateCurrentAppearance()
     }
 
     func stop() {
         guard isRunning else { return }
+
         appearanceMonitor.stop()
+        spaceProvider?.stop()
 
         let notificationCenter = NotificationCenter.default
         if let catalogObserver {
@@ -126,29 +172,17 @@ final class WallpaperAutomationCoordinator {
         if let preferencesObserver {
             notificationCenter.removeObserver(preferencesObserver)
         }
+        if let spaceSnapshotObserver {
+            notificationCenter.removeObserver(spaceSnapshotObserver)
+        }
+        if let spaceAvailabilityObserver {
+            notificationCenter.removeObserver(spaceAvailabilityObserver)
+        }
         self.catalogObserver = nil
         self.preferencesObserver = nil
+        self.spaceSnapshotObserver = nil
+        self.spaceAvailabilityObserver = nil
         isRunning = false
-    }
-
-    var hasValidMappings: Bool {
-        guard let lightID = preferences.automationLightWallpaperID,
-              let darkID = preferences.automationDarkWallpaperID
-        else {
-            return false
-        }
-
-        return model.items.contains { $0.id == lightID }
-            && model.items.contains { $0.id == darkID }
-    }
-
-    func targetWallpaperID(for appearance: WallpaperAppearance) -> String? {
-        switch appearance {
-        case .light:
-            return preferences.automationLightWallpaperID
-        case .dark:
-            return preferences.automationDarkWallpaperID
-        }
     }
 
     func evaluateCurrentAppearance() {
@@ -159,10 +193,66 @@ final class WallpaperAutomationCoordinator {
             return
         }
 
+        guard let spaceProvider else {
+            evaluateLegacyGlobalWallpaper()
+            return
+        }
+
+        guard spaceProvider.isAvailable,
+              let snapshot = spaceProvider.snapshot
+        else {
+            // Space-aware automation never falls back to a global write. The
+            // explicit Apply Everywhere action remains available in General.
+            return
+        }
+
+        let regularSpaces = snapshot.spaces.filter { !$0.isFullscreen }
+        guard !regularSpaces.isEmpty else { return }
+
+        synchronizeActiveSpaces()
+
+        let targets = regularSpaces.map {
+            WallpaperSpaceTarget(spaceID: $0.id, displayID: $0.displayID)
+        }
+        model.synchronizeWallpaperIDs(for: targets)
+
+        var wallpaperIDsBySpaceID: [String: String] = [:]
+        var writableTargets: [WallpaperSpaceTarget] = []
+        let currentWallpaperIDs = model.wallpaperIDs(for: targets)
+
+        for space in regularSpaces {
+            let rule = preferences.spaceRule(for: space.id)
+                ?? preferences.automationDefaultRule
+
+            // An invalid per-space override remains saved for repair, but does
+            // not prevent valid spaces from being automated.
+            guard rule.isValid(installedWallpaperIDs: Set(model.items.map(\.id))) else {
+                continue
+            }
+            guard let wallpaperID = rule.resolvedWallpaperID(for: currentAppearance) else {
+                continue
+            }
+
+            guard currentWallpaperIDs[space.id] != wallpaperID else {
+                continue
+            }
+
+            wallpaperIDsBySpaceID[space.id] = wallpaperID
+            writableTargets.append(
+                WallpaperSpaceTarget(spaceID: space.id, displayID: space.displayID)
+            )
+        }
+
+        guard !writableTargets.isEmpty else { return }
+        guard lastAttemptedSpaceConfiguration != wallpaperIDsBySpaceID else { return }
+        lastAttemptedSpaceConfiguration = wallpaperIDsBySpaceID
+        _ = model.applyWallpapers(wallpaperIDsBySpaceID, to: writableTargets)
+    }
+
+    private func evaluateLegacyGlobalWallpaper() {
         guard let targetID = targetWallpaperID(for: currentAppearance) else { return }
 
         if model.currentWallpaperID == targetID {
-            lastAttemptedAutomaticID = nil
             if model.selectedWallpaperID != targetID {
                 model.selectedWallpaperID = targetID
             }
@@ -170,24 +260,53 @@ final class WallpaperAutomationCoordinator {
         }
 
         guard lastAttemptedAutomaticID != targetID else { return }
-
         lastAttemptedAutomaticID = targetID
         _ = model.applyWallpaper(id: targetID)
     }
 
+    private func synchronizeActiveSpaces() {
+        guard let spaceProvider,
+              spaceProvider.isAvailable,
+              let snapshot = spaceProvider.snapshot
+        else { return }
+
+        let regularSpacesByID = Dictionary(
+            uniqueKeysWithValues: snapshot.spaces
+                .filter { !$0.isFullscreen }
+                .map { ($0.id, $0) }
+        )
+        let targets: [WallpaperSpaceTarget] = snapshot.currentSpaceIDs.compactMap { spaceID in
+            guard let space = regularSpacesByID[spaceID] else { return nil }
+            return WallpaperSpaceTarget(spaceID: space.id, displayID: space.displayID)
+        }
+        model.setActiveSpaceTargets(targets)
+        if !targets.isEmpty {
+            model.synchronizeCurrentWallpapers(for: targets)
+        }
+    }
+
     private func appearanceDidChange(_ appearance: WallpaperAppearance) {
         lastAttemptedAutomaticID = nil
+        lastAttemptedSpaceConfiguration = nil
         currentAppearance = appearance
         evaluateCurrentAppearance()
     }
 
     private func catalogDidChange() {
         lastAttemptedAutomaticID = nil
+        lastAttemptedSpaceConfiguration = nil
         evaluateCurrentAppearance()
     }
 
     private func preferencesDidChange() {
         lastAttemptedAutomaticID = nil
+        lastAttemptedSpaceConfiguration = nil
+        evaluateCurrentAppearance()
+    }
+
+    private func spaceStateDidChange() {
+        lastAttemptedSpaceConfiguration = nil
+        synchronizeActiveSpaces()
         evaluateCurrentAppearance()
     }
 }

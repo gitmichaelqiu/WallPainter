@@ -170,6 +170,12 @@ struct GeneralSettingsView: View {
         }
     }
 
+    private var allSpaceTargets: [WallpaperSpaceTarget] {
+        regularSpaces.map {
+            WallpaperSpaceTarget(spaceID: $0.id, displayID: $0.displayID)
+        }
+    }
+
     private var currentWallpaperStatus: String {
         switch model.currentWallpaperState {
         case .empty, .unavailable:
@@ -216,7 +222,13 @@ struct GeneralSettingsView: View {
 
     private func applyEverywhere() {
         guard let wallpaperID = model.selectedWallpaperID else { return }
-        _ = model.applyWallpaperEverywhere(id: wallpaperID)
+
+        if spaceProvider?.isAvailable == true, !allSpaceTargets.isEmpty {
+            model.synchronizeWallpaperIDs(for: allSpaceTargets)
+            _ = model.applyWallpaper(id: wallpaperID, to: allSpaceTargets)
+        } else {
+            _ = model.applyWallpaperEverywhere(id: wallpaperID)
+        }
     }
 }
 
