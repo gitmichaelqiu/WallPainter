@@ -221,68 +221,37 @@ private struct SpaceSwitcher: View {
         HStack {
             Spacer(minLength: 0)
 
-            HStack(spacing: 0) {
-                ForEach(Array(spaces.enumerated()), id: \.element.id) { index, space in
-                    SpaceSwitcherSegment(
-                        title: space.name,
-                        isSelected: selection == space.id,
-                        showsSeparator: index > 0
-                            && selection != space.id
-                            && selection != spaces[index - 1].id
-                    ) {
-                        selection = space.id
-                    }
-                }
-            }
-            .padding(4)
-            .background(.regularMaterial, in: Capsule())
-            .overlay {
-                Capsule()
-                    .stroke(Color.primary.opacity(0.18), lineWidth: 1)
-            }
-            .shadow(color: .black.opacity(0.18), radius: 4, y: 2)
+            spacePicker
 
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 2)
     }
-}
 
-private struct SpaceSwitcherSegment: View {
-    let title: String
-    let isSelected: Bool
-    let showsSeparator: Bool
-    let action: () -> Void
-
-    var body: some View {
-        HStack(spacing: 0) {
-            Rectangle()
-                .fill(Color.primary.opacity(showsSeparator ? 0.22 : 0))
-                .frame(width: 1, height: 18)
-                .padding(.vertical, 6)
-                .frame(width: showsSeparator ? 1 : 0)
-
-            Button(action: action) {
-                Text(title)
-                    .font(.body)
-                    .lineLimit(1)
-                    .padding(.horizontal, 16)
-                    .frame(minHeight: 30)
-                    .background {
-                        Capsule()
-                            .fill(
-                                isSelected
-                                    ? Color.primary.opacity(0.16)
-                                    : .clear
-                            )
-                    }
+    @ViewBuilder
+    private var spacePicker: some View {
+        if #available(macOS 27.0, *) {
+            Picker("Space", selection: $selection) {
+                spacePickerOptions
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(.primary)
-            .accessibilityLabel(title)
-            .accessibilityValue(isSelected ? "Selected" : "Not selected")
-            .accessibilityAddTraits(isSelected ? .isSelected : [])
+            .labelsHidden()
+            .pickerStyle(.tabs)
+        } else {
+            Picker("Space", selection: $selection) {
+                spacePickerOptions
+            }
+            .labelsHidden()
+            .pickerStyle(.segmented)
+        }
+    }
+
+    @ViewBuilder
+    private var spacePickerOptions: some View {
+        ForEach(spaces) { space in
+            Text(space.name)
+                .lineLimit(1)
+                .tag(Optional(space.id))
         }
     }
 }
