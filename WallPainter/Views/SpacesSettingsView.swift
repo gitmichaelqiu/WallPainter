@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct SpacesSettingsView: View {
@@ -43,7 +44,7 @@ struct SpacesSettingsView: View {
     var body: some View {
         SettingsContainer(.spaces) {
             VStack(alignment: .leading, spacing: 20) {
-                SettingsSection("Space Overrides") {
+                SettingsSection("Space Arrangement") {
                     SettingsRow(
                         "Reset space overrides",
                         helperText: "Every space will use the All Spaces rule again."
@@ -88,6 +89,8 @@ struct SpacesSettingsView: View {
                             ) { space in
                                 editingSpace = space
                             }
+                            .clipShape(.rect(cornerRadius: 8))
+                            .padding(.bottom, 10)
                         }
                     }
                 }
@@ -144,12 +147,16 @@ private struct SpaceTable: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 10) {
-                Text("Space")
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                Text("Wallpaper rule")
-                    .frame(width: 150, alignment: .trailing)
                 Color.clear
-                    .frame(width: 14)
+                    .frame(width: 16)
+                Text("#")
+                    .frame(width: 30, alignment: .leading)
+                Text("Name")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text("Rule")
+                    .frame(width: 150, alignment: .trailing)
+                Text("Actions")
+                    .frame(width: 40, alignment: .trailing)
             }
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -158,68 +165,102 @@ private struct SpaceTable: View {
 
             Divider()
 
-            ForEach(Array(group.spaces.enumerated()), id: \.element.id) { index, space in
-                Button {
-                    select(space)
-                } label: {
-                    HStack(spacing: 10) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(space.name)
-                                .lineLimit(1)
-                                .truncationMode(.middle)
-
-                            Text("Space \(space.number)")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                        VStack(alignment: .trailing, spacing: 2) {
-                            Text(ruleTitle(for: space))
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-
-                            if activeSpaceIDs.contains(space.id) {
-                                Text("Active")
-                                    .font(.caption)
-                                    .foregroundStyle(.tint)
-                            }
-                        }
-                        .frame(width: 150, alignment: .trailing)
-
-                        Image(systemName: "chevron.right")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                            .frame(width: 14)
-                    }
-                    .padding(.horizontal, 12)
-                    .frame(minHeight: 52)
-                    .contentShape(Rectangle())
-                    .background(
-                        activeSpaceIDs.contains(space.id)
-                            ? Color.accentColor.opacity(0.12)
-                            : Color.clear
-                    )
-                }
-                .buttonStyle(.plain)
-                .accessibilityElement(children: .combine)
-                .accessibilityHint("Edit the wallpaper rule for this space")
-
-                if index < group.spaces.count - 1 {
-                    Divider()
-                }
+            ForEach(group.spaces) { space in
+                spaceRow(for: space)
             }
         }
-        .background(.regularMaterial, in: .rect(cornerRadius: 12))
-        .overlay {
+        .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+                .fill(sectionBackgroundColor.opacity(0.6))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(.regularMaterial)
+                )
+        )
+    }
+
+    private func spaceRow(for space: SpaceDescriptor) -> some View {
+        VStack(spacing: 0) {
+            Button {
+                select(space)
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: activeSpaceIDs.contains(space.id) ? "circle.fill" : "circle")
+                        .font(.caption2)
+                        .foregroundStyle(
+                            activeSpaceIDs.contains(space.id) ? Color.accentColor : Color.clear
+                        )
+                        .frame(width: 16)
+                        .accessibilityHidden(true)
+
+                    Text(activeSpaceIDs.contains(space.id)
+                         ? "[\(space.number)]"
+                         : "\(space.number)")
+                        .font(.system(.body, design: .monospaced))
+                        .foregroundStyle(
+                            activeSpaceIDs.contains(space.id) ? Color.accentColor : Color.primary
+                        )
+                        .fontWeight(activeSpaceIDs.contains(space.id) ? .bold : .regular)
+                        .frame(width: 30, alignment: .leading)
+
+                    Text(space.name)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Text(ruleTitle(for: space))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .frame(width: 150, alignment: .trailing)
+
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .frame(width: 40, alignment: .trailing)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .contentShape(Rectangle())
+                .background(
+                    activeSpaceIDs.contains(space.id)
+                        ? Color.accentColor.opacity(0.12)
+                        : Color.clear
+                )
+            }
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .combine)
+            .accessibilityHint("Edit the wallpaper rule for this space")
+
+            if space.id != group.spaces.last?.id {
+                Divider()
+                    .padding(.leading, 12)
+            }
         }
+        .transition(.opacity.combined(with: .move(edge: .top)))
+    }
+
+    private var sectionBackgroundColor: Color {
+        let nsColor = NSColor(name: nil) { appearance in
+            if appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua {
+                return NSColor(calibratedWhite: 0.20, alpha: 1.0)
+            } else {
+                return NSColor(calibratedWhite: 1.00, alpha: 1.0)
+            }
+        }
+        return Color(nsColor: nsColor)
     }
 
     private func ruleTitle(for space: SpaceDescriptor) -> String {
         guard let rule = overrides[space.id] else {
-            return "Use All Spaces"
+            return defaultRule.isValid(installedWallpaperIDs: Set(model.items.map(\.id)))
+                ? "Use All Spaces"
+                : "All Spaces unavailable"
+        }
+
+        guard rule.isValid(installedWallpaperIDs: Set(model.items.map(\.id))) else {
+            return "Unavailable"
         }
 
         switch rule.mode {

@@ -17,7 +17,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     var iconName: String {
         switch self {
         case .general: return "gearshape"
-        case .spaces: return "macwindow.on.rectangle"
+        case .spaces: return "macwindow"
         case .automation: return "arrow.triangle.2.circlepath"
         case .about: return "info.circle"
         }

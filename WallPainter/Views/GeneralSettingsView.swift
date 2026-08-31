@@ -97,16 +97,6 @@ struct GeneralSettingsView: View {
                     }
                 }
 
-                if let status = model.operationStatus {
-                    SettingsSection {
-                        SettingsRow("Last operation") {
-                            Label(status.message, systemImage: status.symbolName)
-                                .foregroundStyle(status.isSuccess ? .green : .orange)
-                                .multilineTextAlignment(.trailing)
-                        }
-                    }
-                }
-
                 SettingsSection("General") {
                     SettingsRow("Hide menubar icon") {
                         Toggle("", isOn: $preferences.hideMenuBarIcon)
@@ -308,10 +298,13 @@ private struct WallpaperCard: View {
             .padding(10)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
-                isSelected ? Color.accentColor.opacity(0.1) : Color(nsColor: .controlBackgroundColor),
-                in: .rect(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(.regularMaterial)
             )
             .overlay {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(isSelected ? Color.accentColor.opacity(0.1) : .clear)
+
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .stroke(
                         isSelected ? Color.accentColor : Color.primary.opacity(0.08),
@@ -374,6 +367,10 @@ private struct EmptyWallpaperCatalogView: View {
         }
         .frame(maxWidth: .infinity, minHeight: 180)
         .padding()
-        .background(.quaternary.opacity(0.35), in: .rect(cornerRadius: 12))
+        .background(.regularMaterial, in: .rect(cornerRadius: 12))
+        .overlay {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+        }
     }
 }

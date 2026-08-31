@@ -1,7 +1,6 @@
 import SwiftUI
 import AVKit
 import AVFoundation
-import AppKit
 import Combine
 
 struct AnimatedSettingsValue: View {
