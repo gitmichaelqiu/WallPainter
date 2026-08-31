@@ -76,10 +76,7 @@ struct SettingsView: View {
                 }
                 .environmentObject(navigationState)
                 .environment(\.isSettingsPreRendering, true)
-                .frame(
-                    width: CGFloat(defaultSettingsWindowWidth),
-                    height: CGFloat(defaultSettingsWindowHeight)
-                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .opacity(0.001)
                 .allowsHitTesting(false)
             }
@@ -87,10 +84,7 @@ struct SettingsView: View {
         .environmentObject(navigationState)
         .navigationTitle("")
         .ignoresSafeArea(.container, edges: .top)
-        .frame(
-            width: CGFloat(defaultSettingsWindowWidth),
-            height: CGFloat(defaultSettingsWindowHeight)
-        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onChange(of: searchText) { _, newValue in
             navigationState.searchText = newValue
             if !newValue.isEmpty {

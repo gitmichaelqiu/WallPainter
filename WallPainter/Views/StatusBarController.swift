@@ -148,7 +148,7 @@ final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
 
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 750, height: 550),
-            styleMask: [.titled, .closable, .miniaturizable, .fullSizeContentView],
+            styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
@@ -158,8 +158,8 @@ final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
         window.titlebarSeparatorStyle = .none
         window.isMovableByWindowBackground = true
         window.center()
-        window.minSize = NSSize(width: 750, height: 550)
-        window.collectionBehavior = [.participatesInCycle]
+        window.collectionBehavior = [.participatesInCycle, .fullScreenNone]
+        window.standardWindowButton(.zoomButton)?.isEnabled = false
         window.level = .normal
 
         let settingsViewController = SettingsHostingController(
