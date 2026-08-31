@@ -48,13 +48,16 @@ struct WallpaperStore: WallpaperStoring {
 
     private let indexURL: URL
     private let reloader: any WallpaperAgentReloading
+    private let spaceIDResolver: any WallpaperSpaceIDResolving
 
     init(
         indexURL: URL = WallpaperStore.defaultIndexURL,
-        reloader: any WallpaperAgentReloading = WallpaperAgentReloader()
+        reloader: any WallpaperAgentReloading = WallpaperAgentReloader(),
+        spaceIDResolver: any WallpaperSpaceIDResolving = SystemWallpaperSpaceIDResolver()
     ) {
         self.indexURL = indexURL
         self.reloader = reloader
+        self.spaceIDResolver = spaceIDResolver
     }
 
     func currentAerialID() throws -> String? {
@@ -67,18 +70,19 @@ struct WallpaperStore: WallpaperStoring {
 
         let root = try readStore()
         let spaces = root["Spaces"] as? [String: Any] ?? [:]
-        let displays = root["Displays"] as? [String: Any] ?? [:]
         var result: [String: String] = [:]
 
         for target in uniqueTargets(targets) {
-            if let space = spaces[target.spaceID],
-               let wallpaperID = findAerialID(in: space, forDisplayID: target.displayID) {
-                result[target.spaceID] = wallpaperID
+            guard let storeSpaceID = storeSpaceID(
+                for: target.spaceID,
+                in: spaces
+            ),
+            let space = spaces[storeSpaceID]
+            else {
                 continue
             }
 
-            if let display = displays[target.displayID],
-               let wallpaperID = findAerialID(in: display) {
+            if let wallpaperID = findAerialID(in: space, forDisplayID: target.displayID) {
                 result[target.spaceID] = wallpaperID
             }
         }
@@ -111,7 +115,6 @@ struct WallpaperStore: WallpaperStoring {
             configurations[spaceID] = try makeConfiguration(assetID: wallpaperID)
         }
         let spaces = root["Spaces"] as? [String: Any] ?? [:]
-        var updatedRoot = root
         var updatedSpaces = spaces
         var didChange = false
 
@@ -119,28 +122,28 @@ struct WallpaperStore: WallpaperStoring {
             guard let configuration = configurations[target.spaceID] else {
                 throw WallpaperStoreError.noAerialChoices
             }
-            guard let space = spaces[target.spaceID] else {
+            guard let storeSpaceID = storeSpaceID(
+                for: target.spaceID,
+                in: spaces
+            ),
+            let space = spaces[storeSpaceID]
+            else {
                 throw WallpaperStoreError.spaceNotFound(target.spaceID)
             }
 
-            let spaceResult = updateTarget(node: space, configuration: configuration)
+            let spaceResult = updateSpace(
+                node: space,
+                displayID: target.displayID,
+                configuration: configuration
+            )
             guard spaceResult.hasWritableChoice else {
                 throw WallpaperStoreError.noAerialChoices
             }
-            updatedSpaces[target.spaceID] = spaceResult.node
+            updatedSpaces[storeSpaceID] = spaceResult.node
             didChange = didChange || spaceResult.didChange
-
-            if var rootDisplays = updatedRoot["Displays"] as? [String: Any],
-               let display = rootDisplays[target.displayID] {
-                let displayResult = updateTarget(node: display, configuration: configuration)
-                if displayResult.hasWritableChoice {
-                    rootDisplays[target.displayID] = displayResult.node
-                    didChange = didChange || displayResult.didChange
-                    updatedRoot["Displays"] = rootDisplays
-                }
-            }
         }
 
+        var updatedRoot = root
         updatedRoot["Spaces"] = updatedSpaces
         guard didChange else { return }
         try writeAndReload(updatedRoot)
@@ -176,6 +179,16 @@ struct WallpaperStore: WallpaperStoring {
             throw WallpaperStoreError.invalidStore
         }
         return root
+    }
+
+    private func storeSpaceID(
+        for managedSpaceID: String,
+        in spaces: [String: Any]
+    ) -> String? {
+        if spaces[managedSpaceID] != nil {
+            return managedSpaceID
+        }
+        return spaceIDResolver.wallpaperStoreSpaceID(for: managedSpaceID)
     }
 
     private func makeConfiguration(assetID: String) throws -> Data {
@@ -325,6 +338,45 @@ struct WallpaperStore: WallpaperStoring {
         return (node, false, false)
     }
 
+    private func updateSpace(
+        node: Any,
+        displayID: String,
+        configuration: Data
+    ) -> (node: Any, didChange: Bool, hasWritableChoice: Bool) {
+        guard var dictionary = node as? [String: Any] else {
+            return (node, false, false)
+        }
+
+        if dictionary["Choices"] != nil {
+            return updateTarget(node: dictionary, configuration: configuration)
+        }
+
+        var didChange = false
+        var hasWritableChoice = false
+
+        if let defaultNode = dictionary["Default"] {
+            let result = updateTarget(node: defaultNode, configuration: configuration)
+            if result.hasWritableChoice {
+                dictionary["Default"] = result.node
+                didChange = didChange || result.didChange
+                hasWritableChoice = true
+            }
+        }
+
+        if var displays = dictionary["Displays"] as? [String: Any],
+           let displayNode = displays[displayID] {
+            let result = updateTarget(node: displayNode, configuration: configuration)
+            if result.hasWritableChoice {
+                displays[displayID] = result.node
+                dictionary["Displays"] = displays
+                didChange = didChange || result.didChange
+                hasWritableChoice = true
+            }
+        }
+
+        return (dictionary, didChange, hasWritableChoice)
+    }
+
     private func updateChoices(
         _ choices: [Any],
         configuration: Data
@@ -346,11 +398,18 @@ struct WallpaperStore: WallpaperStoring {
             }
         }
 
-        if !hasAerialChoice,
-           var firstChoice = updatedChoices.first as? [String: Any] {
-            firstChoice["Provider"] = Self.aerialProvider
-            firstChoice["Configuration"] = configuration
-            updatedChoices[updatedChoices.startIndex] = firstChoice
+        if !hasAerialChoice {
+            if var firstChoice = updatedChoices.first as? [String: Any] {
+                firstChoice["Provider"] = Self.aerialProvider
+                firstChoice["Configuration"] = configuration
+                updatedChoices[updatedChoices.startIndex] = firstChoice
+            } else {
+                updatedChoices = [[
+                    "Provider": Self.aerialProvider,
+                    "Configuration": configuration,
+                    "Files": [Any]()
+                ]]
+            }
             didChange = true
             hasAerialChoice = true
         }
@@ -366,5 +425,76 @@ struct WallpaperStore: WallpaperStoring {
             }
             return true
         }
+    }
+}
+
+struct SystemWallpaperSpaceIDResolver: WallpaperSpaceIDResolving {
+    private let spacesURL: URL
+
+    init(
+        spacesURL: URL = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/Preferences/com.apple.spaces.plist")
+    ) {
+        self.spacesURL = spacesURL
+    }
+
+    func wallpaperStoreSpaceID(for managedSpaceID: String) -> String? {
+        guard !managedSpaceID.isEmpty,
+              let data = try? Data(contentsOf: spacesURL),
+              let propertyList = try? PropertyListSerialization.propertyList(
+                  from: data,
+                  options: [],
+                  format: nil
+              )
+        else {
+            return nil
+        }
+
+        return findWallpaperSpaceID(
+            in: propertyList,
+            managedSpaceID: managedSpaceID
+        )
+    }
+
+    private func findWallpaperSpaceID(
+        in value: Any,
+        managedSpaceID: String
+    ) -> String? {
+        if let dictionary = value as? [String: Any] {
+            if stringValue(dictionary["ManagedSpaceID"]) == managedSpaceID,
+               let wallpaperSpaceID = dictionary["uuid"] as? String {
+                return wallpaperSpaceID
+            }
+
+            for child in dictionary.values {
+                if let wallpaperSpaceID = findWallpaperSpaceID(
+                    in: child,
+                    managedSpaceID: managedSpaceID
+                ) {
+                    return wallpaperSpaceID
+                }
+            }
+        } else if let array = value as? [Any] {
+            for child in array {
+                if let wallpaperSpaceID = findWallpaperSpaceID(
+                    in: child,
+                    managedSpaceID: managedSpaceID
+                ) {
+                    return wallpaperSpaceID
+                }
+            }
+        }
+
+        return nil
+    }
+
+    private func stringValue(_ value: Any?) -> String? {
+        if let value = value as? String {
+            return value
+        }
+        if let value = value as? NSNumber {
+            return value.stringValue
+        }
+        return nil
     }
 }

@@ -14,6 +14,10 @@ protocol WallpaperStoring {
     ) throws
 }
 
+protocol WallpaperSpaceIDResolving {
+    func wallpaperStoreSpaceID(for managedSpaceID: String) -> String?
+}
+
 enum WallpaperScopedStoreError: LocalizedError {
     case unsupportedMixedWrite
 

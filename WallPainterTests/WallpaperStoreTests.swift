@@ -83,6 +83,110 @@ final class WallpaperStoreTests: XCTestCase {
         )
     }
 
+    func testSystemResolverMapsManagedSpaceIDToWallpaperStoreUUID() throws {
+        let fileManager = FileManager.default
+        let directory = fileManager.temporaryDirectory
+            .appendingPathComponent("WallPainterSpaceResolverTests-\(UUID().uuidString)", isDirectory: true)
+        try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? fileManager.removeItem(at: directory) }
+
+        let spaces = [
+            "SpacesDisplayConfiguration": [
+                "Management Data": [
+                    "Monitors": [[
+                        "Spaces": [[
+                            "ManagedSpaceID": 4,
+                            "uuid": "wallpaper-space"
+                        ]]
+                    ]]
+                ]
+            ]
+        ]
+        let spacesURL = directory.appendingPathComponent("com.apple.spaces.plist")
+        let data = try PropertyListSerialization.data(
+            fromPropertyList: spaces,
+            format: .binary,
+            options: 0
+        )
+        try data.write(to: spacesURL)
+
+        let resolver = SystemWallpaperSpaceIDResolver(spacesURL: spacesURL)
+
+        XCTAssertEqual(
+            resolver.wallpaperStoreSpaceID(for: "4"),
+            "wallpaper-space"
+        )
+        XCTAssertNil(resolver.wallpaperStoreSpaceID(for: "missing"))
+    }
+
+    func testScopedWriteResolvesManagedSpaceIDAndPreservesUnrelatedRecords() throws {
+        let fileManager = FileManager.default
+        let directory = fileManager.temporaryDirectory
+            .appendingPathComponent("WallPainterMappedStoreTests-\(UUID().uuidString)", isDirectory: true)
+        try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? fileManager.removeItem(at: directory) }
+
+        let root: [String: Any] = [
+            "Displays": [
+                "display-1": [
+                    "Choices": [try aerialChoice(assetID: "root-old")]
+                ]
+            ],
+            "Spaces": [
+                "wallpaper-space": try spaceRecord(
+                    defaultChoices: [aerialChoice(assetID: "target-old")],
+                    displayChoices: [aerialChoice(assetID: "target-old")]
+                ),
+                "other-space": try spaceRecord(
+                    defaultChoices: [aerialChoice(assetID: "other-old")],
+                    displayChoices: [aerialChoice(assetID: "other-old")]
+                )
+            ]
+        ]
+        let indexURL = directory.appendingPathComponent("Index.plist")
+        let data = try PropertyListSerialization.data(
+            fromPropertyList: root,
+            format: .binary,
+            options: 0
+        )
+        try data.write(to: indexURL)
+
+        let reloader = RecordingReloader()
+        let store = WallpaperStore(
+            indexURL: indexURL,
+            reloader: reloader,
+            spaceIDResolver: DictionaryWallpaperSpaceIDResolver(
+                values: ["4": "wallpaper-space"]
+            )
+        )
+        let target = WallpaperSpaceTarget(spaceID: "4", displayID: "display-1")
+
+        XCTAssertEqual(
+            try store.currentAerialIDs(for: [target]),
+            ["4": "target-old"]
+        )
+
+        try store.setAerialWallpapers(["4": "target-new"], for: [target])
+
+        let updatedRoot = try readStore(at: indexURL)
+        let spaces = try XCTUnwrap(updatedRoot["Spaces"] as? [String: Any])
+        let targetSpace = try XCTUnwrap(spaces["wallpaper-space"] as? [String: Any])
+        let otherSpace = try XCTUnwrap(spaces["other-space"] as? [String: Any])
+        let targetDefault = try XCTUnwrap(targetSpace["Default"])
+        let targetDisplay = try XCTUnwrap(
+            (targetSpace["Displays"] as? [String: Any])?["display-1"]
+        )
+        let rootDisplay = try XCTUnwrap(
+            (updatedRoot["Displays"] as? [String: Any])?["display-1"]
+        )
+
+        XCTAssertEqual(firstAssetID(in: targetDefault), "target-new")
+        XCTAssertEqual(firstAssetID(in: targetDisplay), "target-new")
+        XCTAssertEqual(firstAssetID(in: otherSpace), "other-old")
+        XCTAssertEqual(firstAssetID(in: rootDisplay), "root-old")
+        XCTAssertEqual(reloader.reloadCount, 1)
+    }
+
     private var imageChoice: [String: Any] {
         [
             "Provider": "com.apple.wallpaper.choice.image",
@@ -160,6 +264,41 @@ final class WallpaperStoreTests: XCTestCase {
         }
         return configuration["assetID"] as? String
     }
+
+    private func spaceRecord(
+        defaultChoices: [[String: Any]],
+        displayChoices: [[String: Any]]
+    ) throws -> [String: Any] {
+        [
+            "Default": [
+                "Linked": [
+                    "Content": ["Choices": defaultChoices],
+                    "LastSet": Date(timeIntervalSince1970: 0)
+                ]
+            ],
+            "Displays": [
+                "display-1": [
+                    "Linked": [
+                        "Content": ["Choices": displayChoices],
+                        "LastSet": Date(timeIntervalSince1970: 0)
+                    ]
+                ]
+            ]
+        ]
+    }
+
+    private func firstAssetID(in value: Any) -> String? {
+        if let dictionary = value as? [String: Any] {
+            if dictionary["Provider"] as? String == "com.apple.wallpaper.choice.aerials" {
+                return assetID(from: dictionary["Configuration"])
+            }
+            return dictionary.values.lazy.compactMap { self.firstAssetID(in: $0) }.first
+        }
+        if let array = value as? [Any] {
+            return array.lazy.compactMap { self.firstAssetID(in: $0) }.first
+        }
+        return nil
+    }
 }
 
 @MainActor
@@ -168,5 +307,13 @@ private final class RecordingReloader: WallpaperAgentReloading {
 
     func reload() throws {
         reloadCount += 1
+    }
+}
+
+private struct DictionaryWallpaperSpaceIDResolver: WallpaperSpaceIDResolving {
+    let values: [String: String]
+
+    func wallpaperStoreSpaceID(for managedSpaceID: String) -> String? {
+        values[managedSpaceID]
     }
 }
