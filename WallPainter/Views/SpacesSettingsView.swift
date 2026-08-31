@@ -73,6 +73,13 @@ struct SpacesSettingsView: View {
     var body: some View {
         SettingsContainer(.spaces) {
             VStack(alignment: .leading, spacing: 20) {
+                if let group = selectedDisplayGroup {
+                    SpaceSwitcher(
+                        spaces: group.spaces,
+                        selection: $selectedSpaceID
+                    )
+                }
+
                 SettingsSection("Space Arrangement") {
                     if displayGroups.count > 1 {
                         SettingsRow("Display") {
@@ -90,20 +97,7 @@ struct SpacesSettingsView: View {
                         Divider()
                     }
 
-                    if let group = selectedDisplayGroup {
-                        SettingsRow("Space") {
-                            Picker("", selection: $selectedSpaceID) {
-                                ForEach(group.spaces) { space in
-                                    Text(space.name)
-                                        .lineLimit(1)
-                                        .tag(Optional(space.id))
-                                }
-                            }
-                            .labelsHidden()
-                            .pickerStyle(.segmented)
-                            .frame(maxWidth: 380, alignment: .trailing)
-                        }
-                    } else {
+                    if displayGroups.isEmpty {
                         SettingsRow(
                             "SpaceAPI availability",
                             warningText: spaceProvider?.isAvailable == true
@@ -216,6 +210,32 @@ struct SpacesSettingsView: View {
     private func preferredSpace(in group: WallpaperDisplayGroup) -> SpaceDescriptor? {
         group.spaces.first(where: { activeSpaceIDs.contains($0.id) })
             ?? group.spaces.first
+    }
+}
+
+private struct SpaceSwitcher: View {
+    let spaces: [SpaceDescriptor]
+    @Binding var selection: String?
+
+    var body: some View {
+        HStack {
+            Spacer(minLength: 0)
+
+            Picker("Space", selection: $selection) {
+                ForEach(spaces) { space in
+                    Text(space.name)
+                        .lineLimit(1)
+                        .tag(Optional(space.id))
+                }
+            }
+            .labelsHidden()
+            .pickerStyle(.segmented)
+            .frame(maxWidth: 520)
+
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 2)
     }
 }
 

@@ -16,6 +16,23 @@ struct GeneralSettingsView: View {
 
         SettingsContainer(.general) {
             VStack(alignment: .leading, spacing: 20) {
+                SettingsSection("General") {
+                    SettingsRow("Hide menubar icon") {
+                        Toggle("", isOn: $preferences.hideMenuBarIcon)
+                            .labelsHidden()
+                            .toggleStyle(.switch)
+                    }
+
+                    Divider()
+
+                    SettingsRow("Launch at login") {
+                        Toggle("", isOn: $launchAtLoginEnabled)
+                            .labelsHidden()
+                            .toggleStyle(.switch)
+                            .disabled(!hasLoadedLaunchAtLogin)
+                    }
+                }
+
                 SettingsSection("Current Wallpaper") {
                     SettingsRow("Current desktop wallpaper") {
                         Text(model.currentWallpaperName)
@@ -94,23 +111,6 @@ struct GeneralSettingsView: View {
                             Label("Apply", systemImage: "square.grid.3x3.fill")
                         }
                         .disabled(model.selectedWallpaper == nil || model.isSwitching)
-                    }
-                }
-
-                SettingsSection("General") {
-                    SettingsRow("Hide menubar icon") {
-                        Toggle("", isOn: $preferences.hideMenuBarIcon)
-                            .labelsHidden()
-                            .toggleStyle(.switch)
-                    }
-
-                    Divider()
-
-                    SettingsRow("Launch at login") {
-                        Toggle("", isOn: $launchAtLoginEnabled)
-                            .labelsHidden()
-                            .toggleStyle(.switch)
-                            .disabled(!hasLoadedLaunchAtLogin)
                     }
                 }
 
@@ -290,10 +290,6 @@ private struct WallpaperCard: View {
                             .accessibilityHidden(true)
                     }
                 }
-
-                Text("Installed Apple Aerial")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
             .padding(10)
             .frame(maxWidth: .infinity, alignment: .leading)
