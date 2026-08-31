@@ -49,7 +49,11 @@ final class WallpaperModel {
             preferences.selectedWallpaperID = selectedWallpaperID
         }
     }
+
     private(set) var currentWallpaperID: String?
+    private(set) var currentWallpaperIDsBySpaceID: [String: String] = [:]
+    private(set) var currentWallpaperState: WallpaperActiveState = .empty
+    private(set) var activeSpaceTargets: [WallpaperSpaceTarget] = []
     var isLoading = false
     var isSwitching = false
     var operationStatus: WallpaperOperationStatus?
@@ -76,14 +80,32 @@ final class WallpaperModel {
     }
 
     var currentWallpaperName: String {
-        if let currentWallpaperID,
-           let currentItem = items.first(where: { $0.id == currentWallpaperID }) {
-            return currentItem.name
+        switch currentWallpaperState {
+        case .mixed:
+            return "Multiple wallpapers"
+        case .unavailable:
+            return "Not detected"
+        case .empty:
+            if let currentWallpaperID {
+                return name(for: currentWallpaperID)
+            }
+            return "Not detected"
+        case .uniform(let wallpaperID):
+            return name(for: wallpaperID)
         }
-        if let currentWallpaperID {
-            return "Apple Aerial \(currentWallpaperID.prefix(8))"
+    }
+
+    var currentWallpaperSummary: String {
+        switch currentWallpaperState {
+        case .mixed:
+            return "Multiple wallpapers"
+        case .unavailable:
+            return "Unavailable"
+        case .empty:
+            return "Not detected"
+        case .uniform:
+            return currentWallpaperName
         }
-        return "Not detected"
     }
 
     func refresh() {
@@ -92,11 +114,19 @@ final class WallpaperModel {
 
         do {
             items = try catalog.installedAerials()
-            currentWallpaperID = try? store.currentAerialID()
+            if activeSpaceTargets.isEmpty {
+                currentWallpaperID = try? store.currentAerialID()
+                currentWallpaperIDsBySpaceID = [:]
+                updateCurrentWallpaperState()
+            } else {
+                synchronizeCurrentWallpapers(for: activeSpaceTargets)
+            }
             normalizeSelection()
         } catch {
             items = []
             currentWallpaperID = nil
+            currentWallpaperIDsBySpaceID = [:]
+            currentWallpaperState = .empty
             selectedWallpaperID = nil
             operationStatus = .failure(error.localizedDescription)
         }
@@ -109,13 +139,66 @@ final class WallpaperModel {
         )
     }
 
+    func setActiveSpaceTargets(_ targets: [WallpaperSpaceTarget]) {
+        let normalizedTargets = uniqueTargets(targets)
+        guard normalizedTargets != activeSpaceTargets else { return }
+        activeSpaceTargets = normalizedTargets
+        synchronizeCurrentWallpapers(for: normalizedTargets)
+    }
+
     func synchronizeCurrentWallpaper() {
-        currentWallpaperID = try? store.currentAerialID()
+        if activeSpaceTargets.isEmpty {
+            currentWallpaperID = try? store.currentAerialID()
+            currentWallpaperIDsBySpaceID = [:]
+            updateCurrentWallpaperState()
+            postChange()
+        } else {
+            synchronizeCurrentWallpapers(for: activeSpaceTargets)
+        }
+    }
+
+    func synchronizeCurrentWallpapers(for targets: [WallpaperSpaceTarget]) {
+        let normalizedTargets = uniqueTargets(targets)
+        activeSpaceTargets = normalizedTargets
+
+        do {
+            let IDs = try store.currentAerialIDs(for: normalizedTargets)
+            for target in normalizedTargets {
+                currentWallpaperIDsBySpaceID.removeValue(forKey: target.spaceID)
+            }
+            currentWallpaperIDsBySpaceID.merge(IDs) { _, new in new }
+            updateCurrentWallpaperState()
+        } catch {
+            currentWallpaperState = .unavailable
+        }
+
         postChange()
+    }
+
+    func wallpaperIDs(for targets: [WallpaperSpaceTarget]) -> [String: String] {
+        Dictionary(uniqueKeysWithValues: uniqueTargets(targets).compactMap { target in
+            guard let wallpaperID = currentWallpaperIDsBySpaceID[target.spaceID] else {
+                return nil
+            }
+            return (target.spaceID, wallpaperID)
+        })
+    }
+
+    func wallpaperState(for targets: [WallpaperSpaceTarget]) -> WallpaperActiveState {
+        let IDs = uniqueTargets(targets).compactMap { currentWallpaperIDsBySpaceID[$0.spaceID] }
+        guard !IDs.isEmpty else { return .empty }
+        let uniqueIDs = Set(IDs)
+        guard uniqueIDs.count == 1, let wallpaperID = uniqueIDs.first else { return .mixed }
+        return .uniform(wallpaperID)
     }
 
     @discardableResult
     func applyWallpaper(id: String) -> Bool {
+        applyWallpaperEverywhere(id: id)
+    }
+
+    @discardableResult
+    func applyWallpaperEverywhere(id: String) -> Bool {
         guard !isSwitching else { return false }
         guard let wallpaper = items.first(where: { $0.id == id }) else {
             operationStatus = .failure("The selected wallpaper is not installed.")
@@ -130,7 +213,7 @@ final class WallpaperModel {
             postChange()
         }
 
-        if currentWallpaperID == wallpaper.id {
+        if activeSpaceTargets.isEmpty, currentWallpaperID == wallpaper.id {
             selectedWallpaperID = wallpaper.id
             operationStatus = .success("\(wallpaper.name) is already active on your desktop.")
             return true
@@ -138,9 +221,88 @@ final class WallpaperModel {
 
         do {
             try store.setAerialWallpaper(assetID: wallpaper.id)
+            currentWallpaperIDsBySpaceID = activeSpaceTargets.reduce(into: [:]) { result, target in
+                result[target.spaceID] = wallpaper.id
+            }
             currentWallpaperID = wallpaper.id
+            currentWallpaperState = .uniform(wallpaper.id)
             selectedWallpaperID = wallpaper.id
-            operationStatus = .success("\(wallpaper.name) is now active on your desktop.")
+            operationStatus = .success("\(wallpaper.name) is now active everywhere.")
+            return true
+        } catch {
+            operationStatus = .failure(error.localizedDescription)
+            return false
+        }
+    }
+
+    @discardableResult
+    func applyWallpaper(id: String, to targets: [WallpaperSpaceTarget]) -> Bool {
+        let normalizedTargets = uniqueTargets(targets)
+        guard !normalizedTargets.isEmpty else {
+            operationStatus = .failure("No active regular spaces are available.")
+            postChange()
+            return false
+        }
+        let IDs = Dictionary(uniqueKeysWithValues: normalizedTargets.map { ($0.spaceID, id) })
+        return applyWallpapers(IDs, to: normalizedTargets)
+    }
+
+    @discardableResult
+    func applyWallpapers(
+        _ wallpaperIDsBySpaceID: [String: String],
+        to targets: [WallpaperSpaceTarget]
+    ) -> Bool {
+        let normalizedTargets = uniqueTargets(targets)
+        guard !isSwitching else { return false }
+        guard !normalizedTargets.isEmpty else {
+            operationStatus = .failure("No regular spaces are available.")
+            postChange()
+            return false
+        }
+
+        for target in normalizedTargets {
+            guard let wallpaperID = wallpaperIDsBySpaceID[target.spaceID],
+                  items.contains(where: { $0.id == wallpaperID })
+            else {
+                operationStatus = .failure("The selected wallpaper is not installed.")
+                postChange()
+                return false
+            }
+        }
+
+        let currentIDs = wallpaperIDs(for: normalizedTargets)
+        if normalizedTargets.allSatisfy({ currentIDs[$0.spaceID] == wallpaperIDsBySpaceID[$0.spaceID] }) {
+            if let firstID = normalizedTargets.compactMap({ wallpaperIDsBySpaceID[$0.spaceID] }).first {
+                selectedWallpaperID = firstID
+            }
+            updateCurrentWallpaperState()
+            operationStatus = .success("The selected wallpaper is already active.")
+            postChange()
+            return true
+        }
+
+        isSwitching = true
+        operationStatus = nil
+        defer {
+            isSwitching = false
+            postChange()
+        }
+
+        do {
+            try store.setAerialWallpapers(wallpaperIDsBySpaceID, for: normalizedTargets)
+            currentWallpaperIDsBySpaceID.merge(wallpaperIDsBySpaceID) { _, new in new }
+            updateCurrentWallpaperState()
+            if let firstID = normalizedTargets.compactMap({ wallpaperIDsBySpaceID[$0.spaceID] }).first {
+                selectedWallpaperID = firstID
+                let names = Set(normalizedTargets.compactMap { target in
+                    wallpaperIDsBySpaceID[target.spaceID]
+                }.compactMap { id in
+                    items.first(where: { $0.id == id })?.name
+                })
+                operationStatus = .success(names.count == 1
+                    ? "\(names.first ?? "Wallpaper") is now active on the selected spaces."
+                    : "Wallpapers are now active on the selected spaces.")
+            }
             return true
         } catch {
             operationStatus = .failure(error.localizedDescription)
@@ -151,7 +313,7 @@ final class WallpaperModel {
     @discardableResult
     func switchSelectedWallpaper() -> Bool {
         guard let selectedWallpaper else { return false }
-        return applyWallpaper(id: selectedWallpaper.id)
+        return applyWallpaperEverywhere(id: selectedWallpaper.id)
     }
 
     private func normalizeSelection() {
@@ -165,6 +327,42 @@ final class WallpaperModel {
             selectedWallpaperID = currentWallpaperID
         } else {
             selectedWallpaperID = items.first?.id
+        }
+    }
+
+    private func name(for wallpaperID: String) -> String {
+        if let item = items.first(where: { $0.id == wallpaperID }) {
+            return item.name
+        }
+        return "Apple Aerial \(wallpaperID.prefix(8))"
+    }
+
+    private func updateCurrentWallpaperState() {
+        if !activeSpaceTargets.isEmpty {
+            currentWallpaperState = wallpaperState(for: activeSpaceTargets)
+            switch currentWallpaperState {
+            case .uniform(let wallpaperID):
+                currentWallpaperID = wallpaperID
+            case .mixed, .empty, .unavailable:
+                currentWallpaperID = nil
+            }
+            return
+        }
+
+        if let currentWallpaperID {
+            currentWallpaperState = .uniform(currentWallpaperID)
+        } else {
+            currentWallpaperState = .empty
+        }
+    }
+
+    private func uniqueTargets(_ targets: [WallpaperSpaceTarget]) -> [WallpaperSpaceTarget] {
+        var seenSpaceIDs = Set<String>()
+        return targets.filter { target in
+            guard !target.spaceID.isEmpty,
+                  seenSpaceIDs.insert(target.spaceID).inserted
+            else { return false }
+            return true
         }
     }
 

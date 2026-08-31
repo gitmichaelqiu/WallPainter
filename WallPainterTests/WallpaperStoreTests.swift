@@ -52,6 +52,37 @@ final class WallpaperStoreTests: XCTestCase {
         XCTAssertEqual(reloader.reloadCount, 0)
     }
 
+    func testScopedWritePromotesTheTargetChoice() throws {
+        let (store, directory, reloader) = try makeStore(choices: [imageChoice])
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let target = WallpaperSpaceTarget(spaceID: "space-1", displayID: "display-1")
+        try store.setAerialWallpapers(["space-1": "new-aerial"], for: [target])
+
+        let root = try readStore(at: directory.appendingPathComponent("Index.plist"))
+        let spaces = try XCTUnwrap(root["Spaces"] as? [String: Any])
+        let space = try XCTUnwrap(spaces["space-1"] as? [String: Any])
+        let choices = try XCTUnwrap(space["Choices"] as? [[String: Any]])
+
+        XCTAssertEqual(choices[0]["Provider"] as? String, "com.apple.wallpaper.choice.aerials")
+        XCTAssertEqual(assetID(from: choices[0]["Configuration"]), "new-aerial")
+        XCTAssertEqual(reloader.reloadCount, 1)
+    }
+
+    func testScopedReadReturnsOnlyRequestedSpaceIDs() throws {
+        let (store, directory, _) = try makeStore(
+            choices: [try aerialChoice(assetID: "space-aerial")]
+        )
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let target = WallpaperSpaceTarget(spaceID: "space-1", displayID: "display-1")
+
+        XCTAssertEqual(
+            try store.currentAerialIDs(for: [target]),
+            ["space-1": "space-aerial"]
+        )
+    }
+
     private var imageChoice: [String: Any] {
         [
             "Provider": "com.apple.wallpaper.choice.image",
