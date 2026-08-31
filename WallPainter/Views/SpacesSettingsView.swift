@@ -237,12 +237,14 @@ private struct SpaceSwitcher: View {
             }
             .labelsHidden()
             .pickerStyle(.tabs)
+            .controlSize(.large)
         } else {
             Picker("Space", selection: $selection) {
                 spacePickerOptions
             }
             .labelsHidden()
             .pickerStyle(.segmented)
+            .controlSize(.large)
         }
     }
 
