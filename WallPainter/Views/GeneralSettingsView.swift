@@ -11,6 +11,8 @@ struct GeneralSettingsView: View {
     @State private var hasLoadedLaunchAtLogin = false
     @State private var snapshot: SpaceSnapshot?
 
+    private let wallpaperCatalogMaxHeight: CGFloat = 420
+
     var body: some View {
         @Bindable var preferences = preferences
 
@@ -78,12 +80,16 @@ struct GeneralSettingsView: View {
 
                     Divider()
 
-                    WallpaperCatalogContent(
-                        wallpapers: model.items,
-                        selection: $model.selectedWallpaperID,
-                        isLoading: model.isLoading
-                    )
-                    .padding(10)
+                    ScrollView(.vertical) {
+                        WallpaperCatalogContent(
+                            wallpapers: model.items,
+                            selection: $model.selectedWallpaperID,
+                            isLoading: model.isLoading
+                        )
+                        .padding(10)
+                    }
+                    .scrollIndicators(.automatic)
+                    .frame(maxHeight: wallpaperCatalogMaxHeight)
                 }
 
                 SettingsSection("Apply Wallpaper") {

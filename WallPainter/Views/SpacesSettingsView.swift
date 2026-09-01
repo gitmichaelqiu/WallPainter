@@ -76,6 +76,7 @@ struct SpacesSettingsView: View {
                 if let group = selectedDisplayGroup {
                     SpaceSwitcher(
                         spaces: group.spaces,
+                        activeSpaceIDs: activeSpaceIDs,
                         selection: $selectedSpaceID
                     )
                 }
@@ -201,6 +202,7 @@ struct SpacesSettingsView: View {
 
 private struct SpaceSwitcher: View {
     let spaces: [SpaceDescriptor]
+    let activeSpaceIDs: Set<String>
     @Binding var selection: String?
 
     var body: some View {
@@ -237,8 +239,11 @@ private struct SpaceSwitcher: View {
     @ViewBuilder
     private var spacePickerOptions: some View {
         ForEach(spaces) { space in
-            Text(space.name)
+            let isActive = activeSpaceIDs.contains(space.id)
+
+            Text(isActive ? "○ \(space.name)" : space.name)
                 .lineLimit(1)
+                .accessibilityLabel(isActive ? "\(space.name), active" : space.name)
                 .tag(Optional(space.id))
         }
     }
