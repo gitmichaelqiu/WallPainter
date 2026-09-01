@@ -65,6 +65,17 @@ struct SpacesSettingsView: View {
         return group.spaces.first
     }
 
+    private var selectedSpaceSelection: Binding<String> {
+        Binding(
+            get: {
+                selectedSpaceID
+                    ?? selectedDisplayGroup?.spaces.first?.id
+                    ?? ""
+            },
+            set: { selectedSpaceID = $0 }
+        )
+    }
+
     private var activeSpaceIDs: Set<String> {
         let regularSpaceIDs = Set(regularSpaces.map(\.id))
         return Set(snapshot?.currentSpaceIDs ?? []).intersection(regularSpaceIDs)
@@ -77,7 +88,7 @@ struct SpacesSettingsView: View {
                     SpaceSwitcher(
                         spaces: group.spaces,
                         activeSpaceIDs: activeSpaceIDs,
-                        selection: $selectedSpaceID
+                        selection: selectedSpaceSelection
                     )
                 }
 
@@ -203,16 +214,22 @@ struct SpacesSettingsView: View {
 private struct SpaceSwitcher: View {
     let spaces: [SpaceDescriptor]
     let activeSpaceIDs: Set<String>
-    @Binding var selection: String?
+    @Binding var selection: String
 
     var body: some View {
-        ScrollView(.horizontal) {
+        ViewThatFits(in: .horizontal) {
             spacePicker
                 .fixedSize(horizontal: true, vertical: false)
-                .padding(.horizontal, 10)
+
+            ScrollView(.horizontal) {
+                spacePicker
+                    .fixedSize(horizontal: true, vertical: false)
+                    .padding(.horizontal, 10)
+            }
+            .scrollIndicators(.hidden)
+            .frame(maxWidth: .infinity)
         }
-        .scrollIndicators(.hidden)
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, alignment: .center)
         .padding(.vertical, 2)
     }
 
@@ -243,7 +260,7 @@ private struct SpaceSwitcher: View {
             Text(isActive ? "○ \(space.name)" : space.name)
                 .lineLimit(1)
                 .accessibilityLabel(isActive ? "\(space.name), active" : space.name)
-                .tag(Optional(space.id))
+                .tag(space.id)
         }
     }
 }
