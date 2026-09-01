@@ -76,6 +76,7 @@ struct SpacesSettingsView: View {
                 if let group = selectedDisplayGroup {
                     SpaceSwitcher(
                         spaces: group.spaces,
+                        activeSpaceIDs: activeSpaceIDs,
                         selection: $selectedSpaceID
                     )
                 }
@@ -113,9 +114,19 @@ struct SpacesSettingsView: View {
                                 .frame(minHeight: 24)
                         }
                     }
+                }
 
-                    Divider()
+                if let selectedSpace {
+                    SpaceRuleEditor(
+                        space: selectedSpace,
+                        model: model,
+                        existingRule: preferences.spaceRule(for: selectedSpace.id),
+                        defaultRule: preferences.automationDefaultRule
+                    )
+                    .id(selectedSpace.id)
+                }
 
+                SettingsSection(nil) {
                     SettingsRow(
                         "Reset space overrides",
                         helperText: "Every space will use the All Spaces rule again."
@@ -125,30 +136,6 @@ struct SpacesSettingsView: View {
                         }
                         .disabled(preferences.automationSpaceRules.isEmpty)
                     }
-                }
-
-                if let selectedSpace {
-                    HStack(spacing: 8) {
-                        Text(selectedSpace.name)
-                            .font(.headline)
-
-                        if activeSpaceIDs.contains(selectedSpace.id) {
-                            Text("Active")
-                                .font(.caption)
-                                .foregroundStyle(.tint)
-                        }
-
-                        Spacer()
-                    }
-                    .padding(.leading, 4)
-
-                    SpaceRuleEditor(
-                        space: selectedSpace,
-                        model: model,
-                        existingRule: preferences.spaceRule(for: selectedSpace.id),
-                        defaultRule: preferences.automationDefaultRule
-                    )
-                    .id(selectedSpace.id)
                 }
 
                 Spacer()
@@ -215,6 +202,7 @@ struct SpacesSettingsView: View {
 
 private struct SpaceSwitcher: View {
     let spaces: [SpaceDescriptor]
+    let activeSpaceIDs: Set<String>
     @Binding var selection: String?
 
     var body: some View {
@@ -253,6 +241,11 @@ private struct SpaceSwitcher: View {
         ForEach(spaces) { space in
             Text(space.name)
                 .lineLimit(1)
+                .foregroundStyle(
+                    activeSpaceIDs.contains(space.id)
+                        ? Color.accentColor
+                        : Color.primary
+                )
                 .tag(Optional(space.id))
         }
     }
