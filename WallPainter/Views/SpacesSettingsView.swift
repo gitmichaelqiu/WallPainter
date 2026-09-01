@@ -206,14 +206,13 @@ private struct SpaceSwitcher: View {
     @Binding var selection: String?
 
     var body: some View {
-        HStack {
-            Spacer(minLength: 0)
-
+        ScrollView(.horizontal) {
             spacePicker
-
-            Spacer(minLength: 0)
+                .fixedSize(horizontal: true, vertical: false)
+                .padding(.horizontal, 10)
         }
-        .padding(.horizontal, 10)
+        .scrollIndicators(.hidden)
+        .frame(maxWidth: .infinity)
         .padding(.vertical, 2)
     }
 
