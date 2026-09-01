@@ -39,6 +39,8 @@ struct SettingsView: View {
 
     @StateObject private var navigationState = SettingsNavigationState()
     @State private var selectedTab: SettingsTab?
+    @State private var selectedDisplayID: String?
+    @State private var selectedSpaceID: String?
     @State private var searchText = ""
     @State private var isIndexingSettings = true
 
@@ -75,7 +77,9 @@ struct SettingsView: View {
 
                     SpacesSettingsView(
                         model: wallpaperModel,
-                        spaceProvider: spaceProvider
+                        spaceProvider: spaceProvider,
+                        selectedDisplayID: $selectedDisplayID,
+                        selectedSpaceID: $selectedSpaceID
                     )
                     .environment(\.settingsTab, .spaces)
 
@@ -279,7 +283,9 @@ struct SettingsView: View {
                 case .spaces:
                     SpacesSettingsView(
                         model: wallpaperModel,
-                        spaceProvider: spaceProvider
+                        spaceProvider: spaceProvider,
+                        selectedDisplayID: $selectedDisplayID,
+                        selectedSpaceID: $selectedSpaceID
                     )
                 case .automation:
                     AutomationSettingsView(

@@ -7,8 +7,8 @@ struct SpacesSettingsView: View {
 
     @Environment(WallPainterPreferences.self) private var preferences
     @State private var snapshot: SpaceSnapshot?
-    @State private var selectedDisplayID: String?
-    @State private var selectedSpaceID: String?
+    @Binding var selectedDisplayID: String?
+    @Binding var selectedSpaceID: String?
 
     private var regularSpaces: [SpaceDescriptor] {
         snapshot?.spaces
@@ -76,13 +76,12 @@ struct SpacesSettingsView: View {
                 if let group = selectedDisplayGroup {
                     SpaceSwitcher(
                         spaces: group.spaces,
-                        activeSpaceIDs: activeSpaceIDs,
                         selection: $selectedSpaceID
                     )
                 }
 
-                SettingsSection("Space Arrangement") {
-                    if displayGroups.count > 1 {
+                if displayGroups.count > 1 {
+                    SettingsSection(nil) {
                         SettingsRow("Display") {
                             Picker("", selection: $selectedDisplayID) {
                                 ForEach(displayGroups) { group in
@@ -97,8 +96,8 @@ struct SpacesSettingsView: View {
 
                         Divider()
                     }
-
-                    if displayGroups.isEmpty {
+                } else if displayGroups.isEmpty {
+                    SettingsSection(nil) {
                         SettingsRow(
                             "SpaceAPI availability",
                             warningText: spaceProvider?.isAvailable == true
@@ -202,7 +201,6 @@ struct SpacesSettingsView: View {
 
 private struct SpaceSwitcher: View {
     let spaces: [SpaceDescriptor]
-    let activeSpaceIDs: Set<String>
     @Binding var selection: String?
 
     var body: some View {
@@ -241,11 +239,6 @@ private struct SpaceSwitcher: View {
         ForEach(spaces) { space in
             Text(space.name)
                 .lineLimit(1)
-                .foregroundStyle(
-                    activeSpaceIDs.contains(space.id)
-                        ? Color.accentColor
-                        : Color.primary
-                )
                 .tag(Optional(space.id))
         }
     }
