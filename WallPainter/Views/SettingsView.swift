@@ -40,7 +40,7 @@ struct SettingsView: View {
     @StateObject private var navigationState = SettingsNavigationState()
     @State private var selectedTab: SettingsTab?
     @State private var selectedDisplayID: String?
-    @State private var selectedSpaceID: String?
+    @State private var selectedSpaceID = ""
     @State private var searchText = ""
     @State private var isIndexingSettings = true
 

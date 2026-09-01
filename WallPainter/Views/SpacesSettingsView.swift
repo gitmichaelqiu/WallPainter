@@ -6,9 +6,10 @@ struct SpacesSettingsView: View {
     let spaceProvider: (any SpaceAPIProviding)?
 
     @Environment(WallPainterPreferences.self) private var preferences
+    @Environment(\.isSettingsPreRendering) private var isPreRendering
     @State private var snapshot: SpaceSnapshot?
     @Binding var selectedDisplayID: String?
-    @Binding var selectedSpaceID: String?
+    @Binding var selectedSpaceID: String
 
     private var regularSpaces: [SpaceDescriptor] {
         snapshot?.spaces
@@ -44,7 +45,7 @@ struct SpacesSettingsView: View {
             return group
         }
 
-        if let selectedSpaceID,
+        if !selectedSpaceID.isEmpty,
            let group = displayGroups.first(where: { group in
                group.spaces.contains { $0.id == selectedSpaceID }
            }) {
@@ -57,23 +58,12 @@ struct SpacesSettingsView: View {
     private var selectedSpace: SpaceDescriptor? {
         guard let group = selectedDisplayGroup else { return nil }
 
-        if let selectedSpaceID,
+        if !selectedSpaceID.isEmpty,
            let space = group.spaces.first(where: { $0.id == selectedSpaceID }) {
             return space
         }
 
         return group.spaces.first
-    }
-
-    private var selectedSpaceSelection: Binding<String> {
-        Binding(
-            get: {
-                selectedSpaceID
-                    ?? selectedDisplayGroup?.spaces.first?.id
-                    ?? ""
-            },
-            set: { selectedSpaceID = $0 }
-        )
     }
 
     private var activeSpaceIDs: Set<String> {
@@ -84,11 +74,11 @@ struct SpacesSettingsView: View {
     var body: some View {
         SettingsContainer(.spaces) {
             VStack(alignment: .leading, spacing: 20) {
-                if let group = selectedDisplayGroup {
+                if let group = selectedDisplayGroup, !isPreRendering {
                     SpaceSwitcher(
                         spaces: group.spaces,
                         activeSpaceIDs: activeSpaceIDs,
-                        selection: selectedSpaceSelection
+                        selection: $selectedSpaceID
                     )
                 }
 
@@ -169,7 +159,7 @@ struct SpacesSettingsView: View {
         }
         .onChange(of: selectedDisplayID) { _, newValue in
             guard let group = displayGroups.first(where: { $0.id == newValue }) else { return }
-            selectedSpaceID = preferredSpace(in: group)?.id
+            selectedSpaceID = preferredSpace(in: group)?.id ?? ""
         }
     }
 
@@ -181,7 +171,7 @@ struct SpacesSettingsView: View {
     private func reconcileSelection() {
         guard !displayGroups.isEmpty else {
             selectedDisplayID = nil
-            selectedSpaceID = nil
+            selectedSpaceID = ""
             return
         }
 
@@ -189,7 +179,7 @@ struct SpacesSettingsView: View {
         if let selectedDisplayID,
            let selectedGroup = displayGroups.first(where: { $0.id == selectedDisplayID }) {
             group = selectedGroup
-        } else if let selectedSpaceID,
+        } else if !selectedSpaceID.isEmpty,
                   let selectedGroup = displayGroups.first(where: { group in
                       group.spaces.contains { $0.id == selectedSpaceID }
                   }) {
@@ -201,7 +191,7 @@ struct SpacesSettingsView: View {
 
         selectedDisplayID = group.id
         if !group.spaces.contains(where: { $0.id == selectedSpaceID }) {
-            selectedSpaceID = preferredSpace(in: group)?.id
+            selectedSpaceID = preferredSpace(in: group)?.id ?? ""
         }
     }
 
@@ -219,7 +209,6 @@ private struct SpaceSwitcher: View {
     var body: some View {
         ViewThatFits(in: .horizontal) {
             spacePicker
-                .fixedSize(horizontal: true, vertical: false)
 
             ScrollView(.horizontal) {
                 spacePicker
