@@ -206,20 +206,63 @@ private struct SpaceSwitcher: View {
     let activeSpaceIDs: Set<String>
     @Binding var selection: String
 
-    var body: some View {
-        ViewThatFits(in: .horizontal) {
-            spacePicker
+    @State private var availableWidth: CGFloat = 0
+    @State private var pickerWidth: CGFloat = 0
 
-            ScrollView(.horizontal) {
-                spacePicker
-                    .fixedSize(horizontal: true, vertical: false)
-                    .padding(.horizontal, 10)
+    private var shouldScroll: Bool {
+        guard availableWidth > 0, pickerWidth > 0 else { return false }
+        return pickerWidth > max(availableWidth - 20, 0)
+    }
+
+    var body: some View {
+        Group {
+            if shouldScroll {
+                ScrollView(.horizontal) {
+                    measuredSpacePicker
+                        .fixedSize(horizontal: true, vertical: false)
+                        .padding(.horizontal, 10)
+                }
+                .scrollIndicators(.hidden)
+                .frame(maxWidth: .infinity)
+            } else {
+                HStack {
+                    Spacer(minLength: 0)
+                    measuredSpacePicker
+                    Spacer(minLength: 0)
+                }
+                .padding(.horizontal, 10)
             }
-            .scrollIndicators(.hidden)
-            .frame(maxWidth: .infinity)
         }
         .frame(maxWidth: .infinity, alignment: .center)
         .padding(.vertical, 2)
+        .background {
+            GeometryReader { proxy in
+                Color.clear.preference(
+                    key: SpaceSwitcherAvailableWidthKey.self,
+                    value: proxy.size.width
+                )
+            }
+        }
+        .onPreferenceChange(SpaceSwitcherAvailableWidthKey.self) { width in
+            guard abs(availableWidth - width) > 0.5 else { return }
+            availableWidth = width
+        }
+        .onPreferenceChange(SpacePickerWidthKey.self) { width in
+            guard abs(pickerWidth - width) > 0.5 else { return }
+            pickerWidth = width
+        }
+    }
+
+    private var measuredSpacePicker: some View {
+        spacePicker
+            .background {
+                GeometryReader { proxy in
+                    Color.clear.preference(
+                        key: SpacePickerWidthKey.self,
+                        value: proxy.size.width
+                    )
+                }
+            }
     }
 
     @ViewBuilder
@@ -251,6 +294,22 @@ private struct SpaceSwitcher: View {
                 .accessibilityLabel(isActive ? "\(space.name), active" : space.name)
                 .tag(space.id)
         }
+    }
+}
+
+private struct SpacePickerWidthKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
+private struct SpaceSwitcherAvailableWidthKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }
 
