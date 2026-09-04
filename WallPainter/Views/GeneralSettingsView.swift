@@ -53,22 +53,9 @@ struct GeneralSettingsView: View {
                             )
                             .frame(minHeight: 24)
                     }
-
-                    Divider()
-
-                    SettingsRow("Active spaces") {
-                        Text(activeSpaceSummary)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                            .frame(maxWidth: 240, alignment: .trailing)
-                            .frame(minHeight: 24)
-                    }
                 }
 
-                SettingsSection(
-                    "Installed Live Wallpapers",
-                    helperText: "Only Apple Aerial wallpapers already downloaded by macOS are shown here."
-                ) {
+                SettingsSection("Installed Live Wallpapers") {
                     SettingsRow("Refresh catalog") {
                         Button {
                             model.refresh()
@@ -92,7 +79,7 @@ struct GeneralSettingsView: View {
                     .frame(maxHeight: wallpaperCatalogMaxHeight)
                 }
 
-                SettingsSection("Apply Wallpaper") {
+                SettingsSection(nil) {
                     SettingsRow("Apply to current space(s)") {
                         Button {
                             applyToCurrentSpaces()
@@ -188,16 +175,6 @@ struct GeneralSettingsView: View {
         case .empty, .unavailable:
             return false
         }
-    }
-
-    private var activeSpaceSummary: String {
-        guard spaceProvider != nil else { return "Unavailable" }
-        guard snapshot != nil else { return "Unavailable" }
-        guard !currentSpaces.isEmpty else { return "None detected" }
-        if currentSpaces.count == 1 {
-            return currentSpaces[0].name
-        }
-        return "\(currentSpaces.count) active spaces"
     }
 
     private var canApplyToCurrentSpaces: Bool {
