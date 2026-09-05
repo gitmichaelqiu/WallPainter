@@ -156,6 +156,42 @@ final class WallpaperSpaceAutomationTests: XCTestCase {
         XCTAssertTrue(store.globalWrites.isEmpty)
     }
 
+    func testThemeChangeRetriesAWriteThatPreviouslyFailed() {
+        let wallpaper = makeWallpaper(id: "wallpaper")
+        let preferences = makePreferences()
+        preferences.defaultWallpaperRule = .fixed(wallpaper.id)
+
+        let store = SpaceAutomationTestStore(
+            currentIDs: ["space-a": "old-a"],
+            writeError: TestSpaceStoreError()
+        )
+        let monitor = SpaceAutomationTestAppearanceMonitor(initialAppearance: .light)
+        let model = makeModel(
+            items: [wallpaper],
+            store: store,
+            preferences: preferences
+        )
+        model.refresh()
+
+        let coordinator = WallpaperAutomationCoordinator(
+            model: model,
+            preferences: preferences,
+            appearanceMonitor: monitor,
+            spaceProvider: SpaceAutomationTestProvider(
+                snapshot: makeSnapshot(currentSpaceIDs: ["space-a"]),
+                isAvailable: true
+            )
+        )
+        coordinator.start()
+        XCTAssertEqual(store.scopedWrites.count, 1)
+
+        store.writeError = nil
+        monitor.emit(.dark)
+
+        XCTAssertEqual(store.scopedWrites.count, 2)
+        XCTAssertEqual(store.currentIDs["space-a"], wallpaper.id)
+    }
+
     func testInvalidSpaceOverrideIsSkippedWhileDefaultRuleContinues() {
         let wallpaper = makeWallpaper(id: "wallpaper")
         let preferences = makePreferences()
@@ -397,8 +433,11 @@ private final class SpaceAutomationTestStore: WallpaperStoring {
     private(set) var scopedWrites: [[String: String]] = []
     private(set) var globalWrites: [String] = []
 
-    init(currentIDs: [String: String]) {
+    var writeError: Error?
+
+    init(currentIDs: [String: String], writeError: Error? = nil) {
         self.currentIDs = currentIDs
+        self.writeError = writeError
     }
 
     func currentAerialID() throws -> String? {
@@ -424,10 +463,17 @@ private final class SpaceAutomationTestStore: WallpaperStoring {
         for targets: [WallpaperSpaceTarget]
     ) throws {
         scopedWrites.append(wallpaperIDsBySpaceID)
+        if let writeError {
+            throw writeError
+        }
         for target in targets {
             if let wallpaperID = wallpaperIDsBySpaceID[target.spaceID] {
                 currentIDs[target.spaceID] = wallpaperID
             }
         }
     }
+}
+
+private struct TestSpaceStoreError: LocalizedError {
+    var errorDescription: String? { "Test wallpaper write failed." }
 }

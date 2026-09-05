@@ -74,7 +74,7 @@ final class WallpaperAutomationCoordinator {
     @ObservationIgnored private var preferencesObserver: NSObjectProtocol?
     @ObservationIgnored private var spaceSnapshotObserver: NSObjectProtocol?
     @ObservationIgnored private var spaceAvailabilityObserver: NSObjectProtocol?
-    @ObservationIgnored private var lastAttemptedSpaceConfiguration: [String: String]?
+    @ObservationIgnored private var appearanceEvaluationWorkItem: DispatchWorkItem?
 
     init(
         model: WallpaperModel,
@@ -153,9 +153,6 @@ final class WallpaperAutomationCoordinator {
         appearanceMonitor.start { [weak self] appearance in
             self?.appearanceDidChange(appearance)
         }
-
-        synchronizeActiveSpaces()
-        evaluateCurrentAppearance()
     }
 
     func stop() {
@@ -163,6 +160,8 @@ final class WallpaperAutomationCoordinator {
 
         appearanceMonitor.stop()
         spaceProvider?.stop()
+        appearanceEvaluationWorkItem?.cancel()
+        appearanceEvaluationWorkItem = nil
 
         let notificationCenter = NotificationCenter.default
         if let catalogObserver {
@@ -233,8 +232,6 @@ final class WallpaperAutomationCoordinator {
         }
 
         guard !writableTargets.isEmpty else { return }
-        guard lastAttemptedSpaceConfiguration != wallpaperIDsBySpaceID else { return }
-        lastAttemptedSpaceConfiguration = wallpaperIDsBySpaceID
         _ = model.applyWallpapers(wallpaperIDsBySpaceID, to: writableTargets)
     }
 
@@ -260,23 +257,29 @@ final class WallpaperAutomationCoordinator {
     }
 
     private func appearanceDidChange(_ appearance: WallpaperAppearance) {
-        lastAttemptedSpaceConfiguration = nil
         currentAppearance = appearance
         evaluateCurrentAppearance()
+
+        appearanceEvaluationWorkItem?.cancel()
+        let workItem = DispatchWorkItem { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self, self.isRunning else { return }
+                self.evaluateCurrentAppearance()
+            }
+        }
+        appearanceEvaluationWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: workItem)
     }
 
     private func catalogDidChange() {
-        lastAttemptedSpaceConfiguration = nil
         evaluateCurrentAppearance()
     }
 
     private func preferencesDidChange() {
-        lastAttemptedSpaceConfiguration = nil
         evaluateCurrentAppearance()
     }
 
     private func spaceStateDidChange() {
-        lastAttemptedSpaceConfiguration = nil
         synchronizeActiveSpaces()
         evaluateCurrentAppearance()
     }
