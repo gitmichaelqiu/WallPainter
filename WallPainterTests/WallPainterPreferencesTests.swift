@@ -25,21 +25,26 @@ final class WallPainterPreferencesTests: XCTestCase {
         XCTAssertTrue(preferences.showStatusBarItem)
     }
 
-    func testExistingAppearancePreferencesMigrateToAllSpacesRule() throws {
-        let suiteName = "WallPainterPreferencesMigrationTests.\(UUID().uuidString)"
+    func testDefaultRulePersistsAsManualOrConfiguredValue() throws {
+        let suiteName = "WallPainterPreferencesDefaultRuleTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         defer { defaults.removePersistentDomain(forName: suiteName) }
 
-        defaults.set("light-wallpaper", forKey: WallPainterPreferences.automationLightWallpaperKey)
-        defaults.set("dark-wallpaper", forKey: WallPainterPreferences.automationDarkWallpaperKey)
-
         let preferences = WallPainterPreferences(defaults: defaults)
+        XCTAssertEqual(preferences.defaultWallpaperRule, .manual)
+
+        preferences.defaultWallpaperRule = .appearance(
+            lightWallpaperID: "light-wallpaper",
+            darkWallpaperID: "dark-wallpaper"
+        )
+
+        let reloaded = WallPainterPreferences(defaults: defaults)
 
         XCTAssertEqual(
-            preferences.automationDefaultRule,
+            reloaded.defaultWallpaperRule,
             .appearance(lightWallpaperID: "light-wallpaper", darkWallpaperID: "dark-wallpaper")
         )
-        XCTAssertNotNil(defaults.data(forKey: WallPainterPreferences.automationDefaultRuleKey))
+        XCTAssertNotNil(defaults.data(forKey: WallPainterPreferences.defaultWallpaperRuleKey))
     }
 
     func testSpaceRulesCanBeSavedAndReset() {
@@ -53,7 +58,7 @@ final class WallPainterPreferencesTests: XCTestCase {
         preferences.setSpaceRule(rule, for: "space-1")
         XCTAssertEqual(preferences.spaceRule(for: "space-1"), rule)
 
-        preferences.resetSpaceRules()
+        preferences.resetSpaceOverrides()
         XCTAssertNil(preferences.spaceRule(for: "space-1"))
     }
 }

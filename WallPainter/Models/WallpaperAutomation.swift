@@ -74,7 +74,6 @@ final class WallpaperAutomationCoordinator {
     @ObservationIgnored private var preferencesObserver: NSObjectProtocol?
     @ObservationIgnored private var spaceSnapshotObserver: NSObjectProtocol?
     @ObservationIgnored private var spaceAvailabilityObserver: NSObjectProtocol?
-    @ObservationIgnored private var lastAttemptedAutomaticID: String?
     @ObservationIgnored private var lastAttemptedSpaceConfiguration: [String: String]?
 
     init(
@@ -94,13 +93,13 @@ final class WallpaperAutomationCoordinator {
     }
 
     var hasValidMappings: Bool {
-        preferences.automationDefaultRule.isValid(
+        preferences.defaultWallpaperRule.isValid(
             installedWallpaperIDs: Set(model.items.map(\.id))
         )
     }
 
     func targetWallpaperID(for appearance: WallpaperAppearance) -> String? {
-        preferences.automationDefaultRule.resolvedWallpaperID(for: appearance)
+        preferences.defaultWallpaperRule.resolvedWallpaperID(for: appearance)
     }
 
     func start() {
@@ -186,19 +185,8 @@ final class WallpaperAutomationCoordinator {
     }
 
     func evaluateCurrentAppearance() {
-        guard preferences.automationEnabled else { return }
-
-        guard hasValidMappings else {
-            preferences.automationEnabled = false
-            return
-        }
-
-        guard let spaceProvider else {
-            evaluateLegacyGlobalWallpaper()
-            return
-        }
-
-        guard spaceProvider.isAvailable,
+        guard let spaceProvider,
+              spaceProvider.isAvailable,
               let snapshot = spaceProvider.snapshot
         else {
             // Space-aware automation never falls back to a global write. The
@@ -219,14 +207,15 @@ final class WallpaperAutomationCoordinator {
         var wallpaperIDsBySpaceID: [String: String] = [:]
         var writableTargets: [WallpaperSpaceTarget] = []
         let currentWallpaperIDs = model.wallpaperIDs(for: targets)
+        let installedWallpaperIDs = Set(model.items.map(\.id))
 
         for space in regularSpaces {
             let rule = preferences.spaceRule(for: space.id)
-                ?? preferences.automationDefaultRule
+                ?? preferences.defaultWallpaperRule
 
             // An invalid per-space override remains saved for repair, but does
             // not prevent valid spaces from being automated.
-            guard rule.isValid(installedWallpaperIDs: Set(model.items.map(\.id))) else {
+            guard rule.isValid(installedWallpaperIDs: installedWallpaperIDs) else {
                 continue
             }
             guard let wallpaperID = rule.resolvedWallpaperID(for: currentAppearance) else {
@@ -247,21 +236,6 @@ final class WallpaperAutomationCoordinator {
         guard lastAttemptedSpaceConfiguration != wallpaperIDsBySpaceID else { return }
         lastAttemptedSpaceConfiguration = wallpaperIDsBySpaceID
         _ = model.applyWallpapers(wallpaperIDsBySpaceID, to: writableTargets)
-    }
-
-    private func evaluateLegacyGlobalWallpaper() {
-        guard let targetID = targetWallpaperID(for: currentAppearance) else { return }
-
-        if model.currentWallpaperID == targetID {
-            if model.selectedWallpaperID != targetID {
-                model.selectedWallpaperID = targetID
-            }
-            return
-        }
-
-        guard lastAttemptedAutomaticID != targetID else { return }
-        lastAttemptedAutomaticID = targetID
-        _ = model.applyWallpaper(id: targetID)
     }
 
     private func synchronizeActiveSpaces() {
@@ -286,20 +260,17 @@ final class WallpaperAutomationCoordinator {
     }
 
     private func appearanceDidChange(_ appearance: WallpaperAppearance) {
-        lastAttemptedAutomaticID = nil
         lastAttemptedSpaceConfiguration = nil
         currentAppearance = appearance
         evaluateCurrentAppearance()
     }
 
     private func catalogDidChange() {
-        lastAttemptedAutomaticID = nil
         lastAttemptedSpaceConfiguration = nil
         evaluateCurrentAppearance()
     }
 
     private func preferencesDidChange() {
-        lastAttemptedAutomaticID = nil
         lastAttemptedSpaceConfiguration = nil
         evaluateCurrentAppearance()
     }

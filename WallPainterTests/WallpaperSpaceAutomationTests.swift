@@ -9,12 +9,11 @@ final class WallpaperSpaceAutomationTests: XCTestCase {
         let dark = makeWallpaper(id: "dark")
         let fixed = makeWallpaper(id: "fixed")
         let preferences = makePreferences()
-        preferences.automationDefaultRule = .appearance(
+        preferences.defaultWallpaperRule = .appearance(
             lightWallpaperID: light.id,
             darkWallpaperID: dark.id
         )
         preferences.setSpaceRule(.fixed(fixed.id), for: "space-b")
-        preferences.automationEnabled = true
 
         let store = SpaceAutomationTestStore(
             currentIDs: ["space-a": "old-a", "space-b": "old-b"]
@@ -59,12 +58,11 @@ final class WallpaperSpaceAutomationTests: XCTestCase {
         let dark = makeWallpaper(id: "dark")
         let fixed = makeWallpaper(id: "fixed")
         let preferences = makePreferences()
-        preferences.automationDefaultRule = .appearance(
+        preferences.defaultWallpaperRule = .appearance(
             lightWallpaperID: light.id,
             darkWallpaperID: dark.id
         )
         preferences.setSpaceRule(.fixed(fixed.id), for: "space-b")
-        preferences.automationEnabled = true
 
         let store = SpaceAutomationTestStore(
             currentIDs: ["space-a": "old-a", "space-b": "old-b"]
@@ -102,8 +100,7 @@ final class WallpaperSpaceAutomationTests: XCTestCase {
     func testAutomationDoesNotWriteWhenAllTargetsAlreadyMatch() {
         let wallpaper = makeWallpaper(id: "wallpaper")
         let preferences = makePreferences()
-        preferences.automationDefaultRule = .fixed(wallpaper.id)
-        preferences.automationEnabled = true
+        preferences.defaultWallpaperRule = .fixed(wallpaper.id)
 
         let store = SpaceAutomationTestStore(
             currentIDs: ["space-a": wallpaper.id, "space-b": wallpaper.id]
@@ -134,8 +131,7 @@ final class WallpaperSpaceAutomationTests: XCTestCase {
     func testUnavailableSpaceAPIPausesWithoutGlobalFallback() {
         let wallpaper = makeWallpaper(id: "wallpaper")
         let preferences = makePreferences()
-        preferences.automationDefaultRule = .fixed(wallpaper.id)
-        preferences.automationEnabled = true
+        preferences.defaultWallpaperRule = .fixed(wallpaper.id)
 
         let store = SpaceAutomationTestStore(currentIDs: ["space-a": "old"])
         let model = makeModel(
@@ -156,7 +152,6 @@ final class WallpaperSpaceAutomationTests: XCTestCase {
         )
         coordinator.start()
 
-        XCTAssertTrue(preferences.automationEnabled)
         XCTAssertTrue(store.scopedWrites.isEmpty)
         XCTAssertTrue(store.globalWrites.isEmpty)
     }
@@ -164,12 +159,11 @@ final class WallpaperSpaceAutomationTests: XCTestCase {
     func testInvalidSpaceOverrideIsSkippedWhileDefaultRuleContinues() {
         let wallpaper = makeWallpaper(id: "wallpaper")
         let preferences = makePreferences()
-        preferences.automationDefaultRule = .fixed(wallpaper.id)
+        preferences.defaultWallpaperRule = .fixed(wallpaper.id)
         preferences.setSpaceRule(.appearance(
             lightWallpaperID: "missing-light",
             darkWallpaperID: "missing-dark"
         ), for: "space-b")
-        preferences.automationEnabled = true
 
         let store = SpaceAutomationTestStore(
             currentIDs: ["space-a": "old-a", "space-b": "old-b"]
@@ -199,8 +193,7 @@ final class WallpaperSpaceAutomationTests: XCTestCase {
     func testSpaceChangeReconcilesNewlyActiveSpaces() async {
         let wallpaper = makeWallpaper(id: "wallpaper")
         let preferences = makePreferences()
-        preferences.automationDefaultRule = .fixed(wallpaper.id)
-        preferences.automationEnabled = true
+        preferences.defaultWallpaperRule = .fixed(wallpaper.id)
 
         let store = SpaceAutomationTestStore(
             currentIDs: ["space-a": "old-a", "space-b": "old-b"]
@@ -234,10 +227,9 @@ final class WallpaperSpaceAutomationTests: XCTestCase {
         XCTAssertEqual(store.scopedWrites, [["space-a": wallpaper.id, "space-b": wallpaper.id]])
     }
 
-    func testInvalidAllSpacesRuleDisablesAutomationAndRetainsRule() {
+    func testInvalidDefaultRuleSkipsAutomationAndRetainsRule() {
         let preferences = makePreferences()
-        preferences.automationDefaultRule = .fixed("missing")
-        preferences.automationEnabled = true
+        preferences.defaultWallpaperRule = .fixed("missing")
 
         let store = SpaceAutomationTestStore(currentIDs: ["space-a": "old"])
         let model = makeModel(
@@ -258,8 +250,7 @@ final class WallpaperSpaceAutomationTests: XCTestCase {
         )
         coordinator.start()
 
-        XCTAssertFalse(preferences.automationEnabled)
-        XCTAssertEqual(preferences.automationDefaultRule, .fixed("missing"))
+        XCTAssertEqual(preferences.defaultWallpaperRule, .fixed("missing"))
         XCTAssertTrue(store.scopedWrites.isEmpty)
     }
 

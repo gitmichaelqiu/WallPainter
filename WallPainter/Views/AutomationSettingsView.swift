@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct AutomationSettingsView: View {
+struct DefaultSettingsView: View {
     let model: WallpaperModel
     let coordinator: WallpaperAutomationCoordinator
     let spaceProvider: (any SpaceAPIProviding)?
@@ -8,41 +8,17 @@ struct AutomationSettingsView: View {
     @Environment(WallPainterPreferences.self) private var preferences
     @State private var isSpaceAPIAvailable = false
 
-    private var installedWallpaperIDs: Set<String> {
-        Set(model.items.map(\.id))
-    }
-
-    private var isDefaultRuleValid: Bool {
-        preferences.automationDefaultRule.isValid(
-            installedWallpaperIDs: installedWallpaperIDs
-        )
-    }
-
     var body: some View {
         @Bindable var preferences = preferences
 
-        SettingsContainer(.automation) {
+        SettingsContainer(.default) {
             VStack(alignment: .leading, spacing: 20) {
-                SettingsSection("Automation") {
-                    SettingsRow(
-                        "Enable Automatic Switching",
-                        warningText: isDefaultRuleValid
-                            ? nil
-                            : "Select a valid default wallpaper rule before enabling automation."
-                    ) {
-                        Toggle("", isOn: $preferences.automationEnabled)
-                            .labelsHidden()
-                            .toggleStyle(.switch)
-                            .disabled(!isDefaultRuleValid)
-                    }
-                }
-
                 SettingsSection(
-                    "Default for Every Space",
-                    helperText: "This rule is used unless a space has its own override."
+                    "Default Wallpaper",
+                    helperText: "Spaces use this behavior unless they have their own override."
                 ) {
                     SettingsRow("Rule") {
-                        Picker("", selection: $preferences.automationDefaultRule.mode) {
+                        Picker("", selection: $preferences.defaultWallpaperRule.mode) {
                             ForEach(WallpaperRuleMode.allCases) { mode in
                                 Text(mode.displayName)
                                     .tag(mode)
@@ -55,17 +31,23 @@ struct AutomationSettingsView: View {
 
                     Divider()
 
-                    if preferences.automationDefaultRule.mode == .fixed {
+                    if preferences.defaultWallpaperRule.mode == .manual {
+                        SettingsRow("Automatic changes") {
+                            Text("Off")
+                                .foregroundStyle(.secondary)
+                                .frame(minHeight: 24)
+                        }
+                    } else if preferences.defaultWallpaperRule.mode == .fixed {
                         SettingsRow("Fixed wallpaper") {
                             WallpaperPicker(
-                                selection: $preferences.automationDefaultRule.fixedWallpaperID,
+                                selection: $preferences.defaultWallpaperRule.fixedWallpaperID,
                                 wallpapers: model.items
                             )
                         }
                     } else {
                         SettingsRow("Light wallpaper") {
                             WallpaperPicker(
-                                selection: $preferences.automationDefaultRule.lightWallpaperID,
+                                selection: $preferences.defaultWallpaperRule.lightWallpaperID,
                                 wallpapers: model.items
                             )
                         }
@@ -74,14 +56,22 @@ struct AutomationSettingsView: View {
 
                         SettingsRow("Dark wallpaper") {
                             WallpaperPicker(
-                                selection: $preferences.automationDefaultRule.darkWallpaperID,
+                                selection: $preferences.defaultWallpaperRule.darkWallpaperID,
                                 wallpapers: model.items
                             )
                         }
                     }
+
+                    Divider()
+
+                    WallpaperRulePreview(
+                        rule: preferences.defaultWallpaperRule,
+                        wallpapers: model.items,
+                        title: "Preview"
+                    )
                 }
 
-                SettingsSection("Current Status") {
+                SettingsSection("Status") {
                     SettingsRow("Current system appearance") {
                         Text(coordinator.currentAppearance.displayName)
                             .frame(minHeight: 24)
@@ -119,11 +109,6 @@ struct AutomationSettingsView: View {
             for: .wallPainterSpaceSnapshotDidChange
         )) { _ in
             updateSpaceAPIAvailability()
-        }
-        .onChange(of: isDefaultRuleValid) { _, isValid in
-            if !isValid, preferences.automationEnabled {
-                preferences.automationEnabled = false
-            }
         }
     }
 

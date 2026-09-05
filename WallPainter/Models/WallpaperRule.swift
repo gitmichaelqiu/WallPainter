@@ -1,6 +1,7 @@
 import Foundation
 
 enum WallpaperRuleMode: String, CaseIterable, Codable, Identifiable, Sendable {
+    case manual
     case fixed
     case appearance
 
@@ -8,6 +9,8 @@ enum WallpaperRuleMode: String, CaseIterable, Codable, Identifiable, Sendable {
 
     var displayName: String {
         switch self {
+        case .manual:
+            return "Manual"
         case .fixed:
             return "Fixed wallpaper"
         case .appearance:
@@ -24,6 +27,13 @@ struct WallpaperRule: Codable, Equatable, Sendable {
 
     static let emptyAppearance = WallpaperRule(
         mode: .appearance,
+        fixedWallpaperID: nil,
+        lightWallpaperID: nil,
+        darkWallpaperID: nil
+    )
+
+    static let manual = WallpaperRule(
+        mode: .manual,
         fixedWallpaperID: nil,
         lightWallpaperID: nil,
         darkWallpaperID: nil
@@ -52,6 +62,8 @@ struct WallpaperRule: Codable, Equatable, Sendable {
 
     func isValid(installedWallpaperIDs: Set<String>) -> Bool {
         switch mode {
+        case .manual:
+            return true
         case .fixed:
             guard let fixedWallpaperID else { return false }
             return installedWallpaperIDs.contains(fixedWallpaperID)
@@ -64,6 +76,8 @@ struct WallpaperRule: Codable, Equatable, Sendable {
 
     func resolvedWallpaperID(for appearance: WallpaperAppearance) -> String? {
         switch mode {
+        case .manual:
+            return nil
         case .fixed:
             return fixedWallpaperID
         case .appearance:

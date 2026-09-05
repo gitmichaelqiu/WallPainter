@@ -122,7 +122,7 @@ struct SpacesSettingsView: View {
                         space: selectedSpace,
                         model: model,
                         existingRule: preferences.spaceRule(for: selectedSpace.id),
-                        defaultRule: preferences.automationDefaultRule
+                        defaultRule: preferences.defaultWallpaperRule
                     )
                     .id(selectedSpace.id)
                 }
@@ -133,9 +133,9 @@ struct SpacesSettingsView: View {
                         helperText: "Every space will use the default rule again."
                     ) {
                         Button("Reset") {
-                            preferences.resetSpaceRules()
+                            preferences.resetSpaceOverrides()
                         }
-                        .disabled(preferences.automationSpaceRules.isEmpty)
+                        .disabled(preferences.spaceOverrides.isEmpty)
                     }
                 }
 
@@ -364,15 +364,17 @@ private struct SpaceRuleEditor: View {
                 lightWallpaperID: lightWallpaperID,
                 darkWallpaperID: darkWallpaperID
             )
+        case .manual:
+            return .manual
         }
     }
 
     var body: some View {
         SettingsSection(
-            "Override for This Space",
+            "Space Behavior",
             helperText: "Use the default rule unless this space needs its own wallpaper."
         ) {
-            SettingsRow("Override") {
+            SettingsRow("Behavior") {
                 Picker("", selection: $selection) {
                     ForEach(SpaceRuleSelection.allCases) { option in
                         Text(option.title)
@@ -415,7 +417,7 @@ private struct SpaceRuleEditor: View {
 
             Divider()
 
-            SpaceWallpaperPreview(
+            WallpaperRulePreview(
                 rule: effectiveRule,
                 wallpapers: model.items,
                 title: selection == .allSpaces ? "Effective wallpaper" : "Preview"
@@ -459,6 +461,8 @@ private struct SpaceRuleEditor: View {
                 ),
                 for: space.id
             )
+        case .manual:
+            preferences.setSpaceRule(.manual, for: space.id)
         }
     }
 
@@ -470,7 +474,7 @@ private struct SpaceRuleEditor: View {
     }
 }
 
-private struct SpaceWallpaperPreview: View {
+struct WallpaperRulePreview: View {
     let rule: WallpaperRule
     let wallpapers: [WallpaperItem]
     let title: String
@@ -511,6 +515,10 @@ private struct SpaceWallpaperPreview: View {
                         label: "Dark"
                     )
                 }
+            case .manual:
+                Text("No automatic wallpaper changes")
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, minHeight: 120)
             }
         }
         .padding(10)
@@ -575,6 +583,7 @@ private struct SpaceWallpaperPreviewCard: View {
 
 private enum SpaceRuleSelection: String, CaseIterable, Identifiable {
     case allSpaces
+    case manual
     case fixed
     case appearance
 
@@ -584,6 +593,8 @@ private enum SpaceRuleSelection: String, CaseIterable, Identifiable {
         switch self {
         case .allSpaces:
             return "Use default rule"
+        case .manual:
+            return "Manual"
         case .fixed:
             return "Fixed wallpaper"
         case .appearance:
@@ -593,6 +604,8 @@ private enum SpaceRuleSelection: String, CaseIterable, Identifiable {
 
     init(mode: WallpaperRuleMode) {
         switch mode {
+        case .manual:
+            self = .manual
         case .fixed:
             self = .fixed
         case .appearance:

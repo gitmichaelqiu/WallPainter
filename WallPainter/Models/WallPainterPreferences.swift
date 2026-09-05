@@ -6,11 +6,8 @@ import Observation
 final class WallPainterPreferences {
     static let selectedWallpaperKey = "WallPainter.selectedWallpaperID"
     static let showStatusBarItemKey = "WallPainter.showStatusBarItem"
-    static let automationEnabledKey = "WallPainter.automation.enabled"
-    static let automationLightWallpaperKey = "WallPainter.automation.lightWallpaperID"
-    static let automationDarkWallpaperKey = "WallPainter.automation.darkWallpaperID"
-    static let automationDefaultRuleKey = "WallPainter.automation.defaultRule"
-    static let automationSpaceRulesKey = "WallPainter.automation.spaceRules"
+    static let defaultWallpaperRuleKey = "WallPainter.defaultWallpaperRule"
+    static let spaceOverridesKey = "WallPainter.spaceOverrides"
 
     @ObservationIgnored private let defaults: UserDefaults
 
@@ -33,96 +30,54 @@ final class WallPainterPreferences {
         set { showStatusBarItem = !newValue }
     }
 
-    var automationEnabled: Bool {
+    var defaultWallpaperRule: WallpaperRule {
         didSet {
-            defaults.set(automationEnabled, forKey: Self.automationEnabledKey)
+            persist(defaultWallpaperRule, forKey: Self.defaultWallpaperRuleKey)
             postChange()
         }
     }
 
-    var automationDefaultRule: WallpaperRule {
+    private(set) var spaceOverrides: [String: WallpaperRule] {
         didSet {
-            persist(automationDefaultRule, forKey: Self.automationDefaultRuleKey)
+            persist(spaceOverrides, forKey: Self.spaceOverridesKey)
             postChange()
         }
-    }
-
-    private(set) var automationSpaceRules: [String: WallpaperRule] {
-        didSet {
-            persist(automationSpaceRules, forKey: Self.automationSpaceRulesKey)
-            postChange()
-        }
-    }
-
-    /// Compatibility accessors for the original global Light/Dark preferences.
-    /// They now read and write the All Spaces appearance rule.
-    var automationLightWallpaperID: String? {
-        get { automationDefaultRule.lightWallpaperID }
-        set { updateDefaultLightWallpaperID(newValue) }
-    }
-
-    var automationDarkWallpaperID: String? {
-        get { automationDefaultRule.darkWallpaperID }
-        set { updateDefaultDarkWallpaperID(newValue) }
     }
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         selectedWallpaperID = defaults.string(forKey: Self.selectedWallpaperKey)
         showStatusBarItem = defaults.object(forKey: Self.showStatusBarItemKey) as? Bool ?? true
-        automationEnabled = defaults.bool(forKey: Self.automationEnabledKey)
+        defaultWallpaperRule = Self.decode(
+            WallpaperRule.self,
+            from: defaults,
+            key: Self.defaultWallpaperRuleKey
+        ) ?? .manual
 
-        if let storedRule = Self.decode(WallpaperRule.self, from: defaults, key: Self.automationDefaultRuleKey) {
-            automationDefaultRule = storedRule
-        } else {
-            let migratedRule = WallpaperRule.appearance(
-                lightWallpaperID: defaults.string(forKey: Self.automationLightWallpaperKey),
-                darkWallpaperID: defaults.string(forKey: Self.automationDarkWallpaperKey)
-            )
-            automationDefaultRule = migratedRule
-            if let data = try? JSONEncoder().encode(migratedRule) {
-                defaults.set(data, forKey: Self.automationDefaultRuleKey)
-            }
-        }
-
-        automationSpaceRules = Self.decode(
+        spaceOverrides = Self.decode(
             [String: WallpaperRule].self,
             from: defaults,
-            key: Self.automationSpaceRulesKey
+            key: Self.spaceOverridesKey
         ) ?? [:]
     }
 
     func spaceRule(for spaceID: String) -> WallpaperRule? {
-        automationSpaceRules[spaceID]
+        spaceOverrides[spaceID]
     }
 
     func setSpaceRule(_ rule: WallpaperRule?, for spaceID: String) {
         guard !spaceID.isEmpty else { return }
 
         if let rule {
-            automationSpaceRules[spaceID] = rule
+            spaceOverrides[spaceID] = rule
         } else {
-            automationSpaceRules.removeValue(forKey: spaceID)
+            spaceOverrides.removeValue(forKey: spaceID)
         }
     }
 
-    func resetSpaceRules() {
-        guard !automationSpaceRules.isEmpty else { return }
-        automationSpaceRules = [:]
-    }
-
-    private func updateDefaultLightWallpaperID(_ wallpaperID: String?) {
-        var rule = automationDefaultRule
-        rule.mode = .appearance
-        rule.lightWallpaperID = wallpaperID
-        automationDefaultRule = rule
-    }
-
-    private func updateDefaultDarkWallpaperID(_ wallpaperID: String?) {
-        var rule = automationDefaultRule
-        rule.mode = .appearance
-        rule.darkWallpaperID = wallpaperID
-        automationDefaultRule = rule
+    func resetSpaceOverrides() {
+        guard !spaceOverrides.isEmpty else { return }
+        spaceOverrides = [:]
     }
 
     private func persist(_ value: String?, forKey key: String) {

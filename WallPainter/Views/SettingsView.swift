@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum SettingsTab: String, CaseIterable, Identifiable {
-    case general, spaces, automation, about
+    case general, spaces, `default`, about
 
     var id: String { self.rawValue }
 
@@ -9,7 +9,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         switch self {
         case .general: return "General"
         case .spaces: return "Spaces"
-        case .automation: return "Automation"
+        case .default: return "Default"
         case .about: return "About"
         }
     }
@@ -18,7 +18,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         switch self {
         case .general: return "gearshape"
         case .spaces: return "macwindow"
-        case .automation: return "arrow.triangle.2.circlepath"
+        case .default: return "arrow.triangle.2.circlepath"
         case .about: return "info.circle"
         }
     }
@@ -83,12 +83,12 @@ struct SettingsView: View {
                     )
                     .environment(\.settingsTab, .spaces)
 
-                    AutomationSettingsView(
+                    DefaultSettingsView(
                         model: wallpaperModel,
                         coordinator: automationCoordinator,
                         spaceProvider: spaceProvider
                     )
-                    .environment(\.settingsTab, .automation)
+                    .environment(\.settingsTab, .default)
                     AboutView()
                         .environment(\.settingsTab, .about)
                 }
@@ -287,8 +287,8 @@ struct SettingsView: View {
                         selectedDisplayID: $selectedDisplayID,
                         selectedSpaceID: $selectedSpaceID
                     )
-                case .automation:
-                    AutomationSettingsView(
+                case .default:
+                    DefaultSettingsView(
                         model: wallpaperModel,
                         coordinator: automationCoordinator,
                         spaceProvider: spaceProvider

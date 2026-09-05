@@ -43,8 +43,8 @@ final class SettingsNavigationStateTests: XCTestCase {
         state.register(title: "Hide menubar icon", tab: .general)
         state.register(title: "Launch at login", tab: .general)
         state.register(title: "SpaceAPI availability", tab: .spaces)
-        state.register(title: "Enable Automatic Switching", tab: .automation)
-        state.register(title: "Light wallpaper", tab: .automation)
+        state.register(title: "Behavior", tab: .default)
+        state.register(title: "Light wallpaper", tab: .default)
         state.register(title: "GitHub / Support", tab: .about)
         await drainMainQueue()
 
