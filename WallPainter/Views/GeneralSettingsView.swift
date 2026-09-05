@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import SwiftUI
 
 struct GeneralSettingsView: View {
@@ -7,9 +8,11 @@ struct GeneralSettingsView: View {
     let spaceProvider: (any SpaceAPIProviding)?
 
     @Environment(WallPainterPreferences.self) private var preferences
+    @Environment(\.isSettingsPreRendering) private var isPreRendering
     @State private var launchAtLoginEnabled = false
     @State private var hasLoadedLaunchAtLogin = false
     @State private var snapshot: SpaceSnapshot?
+    @StateObject private var catalogScrollSession = CatalogScrollSession()
 
     private let wallpaperCatalogMaxHeight: CGFloat = 420
 
@@ -57,24 +60,26 @@ struct GeneralSettingsView: View {
 
                 SettingsSection("Installed Live Wallpapers") {
                     SettingsRow("Refresh catalog") {
-                        Button("Refresh") {
+                        Button {
                             model.refresh()
+                        } label: {
+                            Image(systemName: "arrow.clockwise")
+                                .frame(minWidth: 20, minHeight: 20)
                         }
+                        .accessibilityLabel("Refresh")
                         .disabled(model.isLoading)
                     }
 
                     Divider()
 
-                    ScrollView(.vertical) {
-                        WallpaperCatalogContent(
-                            wallpapers: model.items,
-                            selection: $model.selectedWallpaperID,
-                            isLoading: model.isLoading
-                        )
-                        .padding(10)
-                    }
-                    .scrollIndicators(.automatic)
-                    .frame(maxHeight: wallpaperCatalogMaxHeight)
+                    WallpaperCatalogScrollView(
+                        wallpapers: model.items,
+                        selection: $model.selectedWallpaperID,
+                        isLoading: model.isLoading,
+                        scrollSession: catalogScrollSession,
+                        isPreRendering: isPreRendering,
+                        maxHeight: wallpaperCatalogMaxHeight
+                    )
                 }
 
                 SettingsSection(nil) {
@@ -199,6 +204,144 @@ struct GeneralSettingsView: View {
             _ = model.applyWallpaper(id: wallpaperID, to: allSpaceTargets)
         } else {
             _ = model.applyWallpaperEverywhere(id: wallpaperID)
+        }
+    }
+}
+
+private enum CatalogScrollTarget {
+    case settings
+    case catalog
+}
+
+private final class CatalogScrollSession: ObservableObject {
+    @Published private(set) var target: CatalogScrollTarget?
+
+    private var monitor: Any?
+    private var resetWorkItem: DispatchWorkItem?
+    private weak var regionView: CatalogScrollRegionView?
+
+    func attach(regionView: CatalogScrollRegionView) {
+        self.regionView = regionView
+        startMonitoring()
+    }
+
+    func detach(regionView: CatalogScrollRegionView) {
+        guard self.regionView === regionView else { return }
+        self.regionView = nil
+        stopMonitoring()
+    }
+
+    private func startMonitoring() {
+        guard monitor == nil else { return }
+
+        monitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
+            self?.receive(event)
+            return event
+        }
+    }
+
+    private func stopMonitoring() {
+        if let monitor {
+            NSEvent.removeMonitor(monitor)
+            self.monitor = nil
+        }
+        resetWorkItem?.cancel()
+        resetWorkItem = nil
+        target = nil
+    }
+
+    private func receive(_ event: NSEvent) {
+        guard let regionView else { return }
+
+        if target == nil || event.phase.contains(.began) {
+            target = regionView.contains(event.locationInWindow) ? .catalog : .settings
+        }
+
+        resetWorkItem?.cancel()
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.target = nil
+        }
+        resetWorkItem = workItem
+
+        let delay: TimeInterval = event.phase.contains(.ended)
+            && event.momentumPhase.isEmpty
+            ? 0.05
+            : 0.18
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
+    }
+}
+
+private struct CatalogScrollRegion: NSViewRepresentable {
+    let session: CatalogScrollSession
+
+    func makeNSView(context: Context) -> CatalogScrollRegionView {
+        let view = CatalogScrollRegionView()
+        view.session = session
+        return view
+    }
+
+    func updateNSView(_ nsView: CatalogScrollRegionView, context: Context) {
+        nsView.session = session
+        if nsView.window != nil {
+            session.attach(regionView: nsView)
+        }
+    }
+
+    static func dismantleNSView(_ nsView: CatalogScrollRegionView, coordinator: ()) {
+        nsView.session?.detach(regionView: nsView)
+    }
+}
+
+private final class CatalogScrollRegionView: NSView {
+    weak var session: CatalogScrollSession?
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        if window != nil, let session {
+            session.attach(regionView: self)
+        }
+    }
+
+    override func viewWillMove(toWindow newWindow: NSWindow?) {
+        if newWindow == nil, let session {
+            session.detach(regionView: self)
+        }
+        super.viewWillMove(toWindow: newWindow)
+    }
+
+    func contains(_ pointInWindow: NSPoint) -> Bool {
+        bounds.contains(convert(pointInWindow, from: nil))
+    }
+
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        nil
+    }
+}
+
+private struct WallpaperCatalogScrollView: View {
+    let wallpapers: [WallpaperItem]
+    @Binding var selection: String?
+    let isLoading: Bool
+    @ObservedObject var scrollSession: CatalogScrollSession
+    let isPreRendering: Bool
+    let maxHeight: CGFloat
+
+    var body: some View {
+        ScrollView(.vertical) {
+            WallpaperCatalogContent(
+                wallpapers: wallpapers,
+                selection: $selection,
+                isLoading: isLoading
+            )
+            .padding(10)
+        }
+        .scrollIndicators(.automatic)
+        .frame(maxHeight: maxHeight)
+        .allowsHitTesting(scrollSession.target != .settings)
+        .background {
+            if !isPreRendering {
+                CatalogScrollRegion(session: scrollSession)
+            }
         }
     }
 }
