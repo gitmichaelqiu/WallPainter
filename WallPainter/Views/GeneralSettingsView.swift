@@ -57,10 +57,8 @@ struct GeneralSettingsView: View {
 
                 SettingsSection("Installed Live Wallpapers") {
                     SettingsRow("Refresh catalog") {
-                        Button {
+                        Button("Refresh") {
                             model.refresh()
-                        } label: {
-                            Label("Refresh", systemImage: "arrow.clockwise")
                         }
                         .disabled(model.isLoading)
                     }
@@ -85,11 +83,13 @@ struct GeneralSettingsView: View {
                             applyToCurrentSpaces()
                         } label: {
                             if model.isSwitching {
-                                ProgressView()
-                                    .controlSize(.small)
-                                Text("Switching…")
+                                HStack(spacing: 6) {
+                                    ProgressView()
+                                        .controlSize(.small)
+                                    Text("Switching…")
+                                }
                             } else {
-                                Label("Apply", systemImage: "checkmark.circle.fill")
+                                Text("Apply")
                             }
                         }
                         .disabled(!canApplyToCurrentSpaces || model.isSwitching)
@@ -98,10 +98,8 @@ struct GeneralSettingsView: View {
                     Divider()
 
                     SettingsRow("Apply Everywhere") {
-                        Button {
+                        Button("Apply") {
                             applyEverywhere()
-                        } label: {
-                            Label("Apply", systemImage: "square.grid.3x3.fill")
                         }
                         .disabled(model.selectedWallpaper == nil || model.isSwitching)
                     }
