@@ -28,7 +28,7 @@ struct AutomationSettingsView: View {
                         "Enable Automatic Switching",
                         warningText: isDefaultRuleValid
                             ? nil
-                            : "Select the wallpaper mapping for All Spaces before enabling automation."
+                            : "Select a valid default wallpaper rule before enabling automation."
                     ) {
                         Toggle("", isOn: $preferences.automationEnabled)
                             .labelsHidden()
@@ -37,8 +37,11 @@ struct AutomationSettingsView: View {
                     }
                 }
 
-                SettingsSection("All Spaces") {
-                    SettingsRow("Wallpaper behavior") {
+                SettingsSection(
+                    "Default for Every Space",
+                    helperText: "This rule is used unless a space has its own override."
+                ) {
+                    SettingsRow("Rule") {
                         Picker("", selection: $preferences.automationDefaultRule.mode) {
                             ForEach(WallpaperRuleMode.allCases) { mode in
                                 Text(mode.displayName)

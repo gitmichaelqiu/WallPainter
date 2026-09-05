@@ -129,8 +129,8 @@ struct SpacesSettingsView: View {
 
                 SettingsSection(nil) {
                     SettingsRow(
-                        "Reset space overrides",
-                        helperText: "Every space will use the All Spaces rule again."
+                        "Reset all space overrides",
+                        helperText: "Every space will use the default rule again."
                     ) {
                         Button("Reset") {
                             preferences.resetSpaceRules()
@@ -368,8 +368,11 @@ private struct SpaceRuleEditor: View {
     }
 
     var body: some View {
-        SettingsSection("Wallpaper Rule") {
-            SettingsRow("Rule") {
+        SettingsSection(
+            "Override for This Space",
+            helperText: "Use the default rule unless this space needs its own wallpaper."
+        ) {
+            SettingsRow("Override") {
                 Picker("", selection: $selection) {
                     ForEach(SpaceRuleSelection.allCases) { option in
                         Text(option.title)
@@ -415,7 +418,7 @@ private struct SpaceRuleEditor: View {
             SpaceWallpaperPreview(
                 rule: effectiveRule,
                 wallpapers: model.items,
-                title: selection == .allSpaces ? "All Spaces preview" : "Preview"
+                title: selection == .allSpaces ? "Effective wallpaper" : "Preview"
             )
         }
         .onChange(of: selection) { _, _ in
@@ -580,7 +583,7 @@ private enum SpaceRuleSelection: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .allSpaces:
-            return "Use All Spaces"
+            return "Use default rule"
         case .fixed:
             return "Fixed wallpaper"
         case .appearance:
