@@ -1,28 +1,61 @@
-# WallPainter
+<h1 align="center">
+  <img src="./WallPainter/Resources/WallPainterIcon_Default.png" width="25%" alt=""/>  
+  <p></p>
+  <p align="center">WallPainter</p>
+</h1>
+<h3>
+<p align="center"><i>Automate wallpaper switches</i></p>
+</h3>
 
-WallPainter is a native macOS menu-bar utility for choosing Apple’s installed live Aerial wallpapers and applying them globally or per Mission Control space.
+**WallPainter** is a macOS menubar app that changes macOS Aerial wallpapers based on your customized rules.
 
-## Controls
+## 📦 Installation
 
-WallPainter adds a `photo.tv` status bar item. Its `Switch` submenu lists every installed Aerial wallpaper. When DesktopRenamer SpaceAPI is available, the submenu marks a wallpaper as checked when every active regular space uses it and shows a mixed state when only some active spaces use it. Use `Settings…` to open the preferences window or `Quit WallPainter` to exit.
+### Direct Download
 
-The settings window has four tabs:
+You do **NOT** have to disable *SIP* or things like that. Your macOS must be at least **macOS 15.0 Ventura**. All you need to do is:
 
-- `General` shows the current wallpaper and active spaces, refreshes the installed Aerial catalog, applies a selected wallpaper to the current space(s) or everywhere, and controls the status bar item and launch-at-login behavior.
-- `Spaces` groups regular Mission Control spaces by display. Each space inherits the `All Spaces` rule by default, or can override it with a fixed wallpaper or a Light/Dark appearance rule. Full-screen app spaces are omitted because macOS recreates them.
-- `Automation` defines the `All Spaces` rule as either one fixed wallpaper or a Light/Dark pair. Automatic switching stays disabled until the default rule is valid. With SpaceAPI available, changes are applied independently to every known regular space; unavailable or invalid per-space overrides are left unchanged while other valid spaces continue.
-- `About` contains WallPainter metadata, project links, acknowledgements, and links to the other apps in this suite, including DesktopRenamer.
+1. Download the package from [Releases](https://github.com/gitmichaelqiu/WallPainter/releases/)
+2. Drag the app to the *Applications* folder
+3. All set!
 
-WallPainter stores its selections, the All Spaces rule, and per-space overrides in namespaced user defaults. The default state is automation off, no mappings, a visible status item, and launch at login off. Existing Light/Dark mappings are migrated into the All Spaces rule. If a mapped wallpaper is removed from the local Aerial catalog, WallPainter disables automation while retaining the saved IDs so the mapping can be repaired after the wallpaper is installed again.
 
-Space-aware automation uses DesktopRenamer’s structured SpaceAPI. If the API is unavailable, automatic switching pauses rather than applying a global wallpaper silently. The explicit `Apply Everywhere` action in `General` remains available as a manual fallback. Manual selections from the status-bar menu apply only to the currently active regular spaces and do not rewrite saved automation rules.
+### Open App
 
-## Running
+Because I do **NOT** have an Apple developer account for the app releases, you may receive alerts such as "Developer is not verified".
 
-Open `WallPainter.xcodeproj` in Xcode and run the `WallPainter` scheme on macOS. WallPainter starts as a menu-bar app. Launching it again while it is already running opens and focuses the settings window.
+To resolve this, go to System Settings → the bottom of Privacy & Security → Open WallPainter.
 
-WallPainter currently requires the macOS WallpaperAgent store used by recent macOS releases. The app target intentionally disables App Sandbox because applying an Aerial requires writing the per-user wallpaper store and asking WallpaperAgent to reload.
+## 🛜 SpaceAPI
 
-## Repository conventions
+To get the current space's information, an extra app DesktopRenamer is required. You can download it [here](https://github.com/gitmichaelqiu/DesktopRenamer/releases/).
 
-See `CONTRIBUTING.md` for commit-message and documentation standards.
+After downloading DesktopRenamer, you need to turn on SpaceAPI in Settings → General.
+
+## ⚠️ Issues
+
+You are welcome to create issues/suggestions in [GitHub Issues](https://github.com/gitmichaelqiu/WallPainter/issues).
+
+If you are curious what I am doing on the project, go to the Issues page. The pinned issues are what I am focusing.
+
+## 🙏 Acknowlegements
+
+This app uses the following packages:
+
+- [Sparkle by @sparkle-project](https://github.com/sparkle-project/Sparkle)
+
+Many thanks to all of these wonderful developers!
+
+See [Acknowledgements.pdf](https://github.com/gitmichaelqiu/WallPainter/blob/main/WallPainter/Resources/Acknowledgements/Acknowledgements.pdf) for licenses.
+
+## ⭐ Support This Project
+
+You can simply click on the **Star** to support this project for free. Thank you for your support!
+
+<a href="https://www.star-history.com/?type=date&legend=top-left&repos=gitmichaelqiu%2FWallPainter">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=gitmichaelqiu/WallPainter&type=date&theme=dark&legend=top-left&sealed_token=SlB6XMb-xB5ZOuVg9ffHN1FHBtXnXz1t6JNcX-1URygva-p2fIbnMbgA-HxOkgEk9xgjwidgyfFYFHyOv1G3KJ6Gswr_zuFvlomB2RMgNWLgKJiGxVw4mw" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=gitmichaelqiu/WallPainter&type=date&legend=top-left&sealed_token=SlB6XMb-xB5ZOuVg9ffHN1FHBtXnXz1t6JNcX-1URygva-p2fIbnMbgA-HxOkgEk9xgjwidgyfFYFHyOv1G3KJ6Gswr_zuFvlomB2RMgNWLgKJiGxVw4mw" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=gitmichaelqiu/WallPainter&type=date&legend=top-left&sealed_token=SlB6XMb-xB5ZOuVg9ffHN1FHBtXnXz1t6JNcX-1URygva-p2fIbnMbgA-HxOkgEk9xgjwidgyfFYFHyOv1G3KJ6Gswr_zuFvlomB2RMgNWLgKJiGxVw4mw" />
+ </picture>
+</a>
