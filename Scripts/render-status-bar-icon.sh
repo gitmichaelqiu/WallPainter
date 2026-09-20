@@ -43,11 +43,13 @@ rendered="$work_dir/wallpainter-status-bar-rendered.png"
 alpha="$work_dir/wallpainter-status-bar-alpha.png"
 
 print -r -- "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\">" > "$vector"
-print -r -- "  <g fill=\"none\" stroke=\"#fff\" stroke-width=\"12\" stroke-linecap=\"round\" stroke-linejoin=\"round\" vector-effect=\"non-scaling-stroke\">" >> "$vector"
-print -r -- "    <path d=\"$back_path\" transform=\"translate(-7 10) scale(.07)\"/>" >> "$vector"
-print -r -- "    <path d=\"$front_path\" transform=\"translate(8 21) scale(.055)\"/>" >> "$vector"
+print -r -- "  <g transform=\"translate(32 32) scale(1.1) translate(-32 -32)\">" >> "$vector"
+print -r -- "    <g fill=\"none\" stroke=\"#fff\" stroke-width=\"14\" stroke-linecap=\"round\" stroke-linejoin=\"round\" vector-effect=\"non-scaling-stroke\">" >> "$vector"
+print -r -- "      <path d=\"$back_path\" transform=\"translate(-7 10) scale(.07)\"/>" >> "$vector"
+print -r -- "      <path d=\"$front_path\" transform=\"translate(8 21) scale(.055)\"/>" >> "$vector"
+print -r -- "    </g>" >> "$vector"
+print -r -- "    <path d=\"$mark_path\" transform=\"translate(34.5 34.5) scale(.045)\" fill=\"#fff\"/>" >> "$vector"
 print -r -- "  </g>" >> "$vector"
-print -r -- "  <path d=\"$mark_path\" transform=\"translate(34.5 34.5) scale(.045)\" fill=\"#fff\"/>" >> "$vector"
 print -r -- "</svg>" >> "$vector"
 
 # Render oversized, then reduce with Lanczos so the 18-point menu-bar image
