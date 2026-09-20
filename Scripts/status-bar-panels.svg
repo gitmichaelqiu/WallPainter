@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!-- Adjusted from the previous status-bar panel SVG so the rear contour
+       joins the front panel rather than creating a doubled top stroke. -->
+  <g transform="translate(32 32) scale(1.1) translate(-32 -32)"
+     fill="none"
+     stroke="#ffffff"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     stroke-width="4.25">
+    <path d="M18 48
+             C14 47 11 43 10 39
+             L9 29
+             V17
+             c0-5 4-8 9-9
+             l29-3
+             c5-.5 9 3.5 9 9
+             C56 22 58 26 60 29"/>
+    <path d="M18 31
+             v-3
+             c0-5 4-9 10-9
+             h22
+             c6 0 10 4 10 10
+             v19
+             c0 6-4 10-10 10
+             H29
+             c-6 0-11-4-11-10z"/>
+  </g>
+</svg>
