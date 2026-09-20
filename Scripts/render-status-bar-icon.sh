@@ -38,25 +38,100 @@ trace_silhouette() {
 back_path="$(trace_silhouette "$asset_root/4_shape1.png" 1024x576 back)"
 front_path="$(trace_silhouette "$asset_root/6_shape2_rounded copy.png" 1024x576 front)"
 mark_path="$(trace_silhouette "$asset_root/ios-appearance-icon-transparent.png" 512x512 mark)"
-vector="$work_dir/wallpainter-status-bar.svg"
+back_vector="$work_dir/wallpainter-status-bar-back.svg"
+front_vector="$work_dir/wallpainter-status-bar-front.svg"
+mark_vector="$work_dir/wallpainter-status-bar-mark.svg"
+back_rendered="$work_dir/wallpainter-status-bar-back-rendered.png"
+front_rendered="$work_dir/wallpainter-status-bar-front-rendered.png"
+mark_rendered="$work_dir/wallpainter-status-bar-mark-rendered.png"
+connector_vector="$work_dir/wallpainter-status-bar-connector.svg"
+connector_rendered="$work_dir/wallpainter-status-bar-connector-rendered.png"
+back_alpha="$work_dir/wallpainter-status-bar-back-alpha.png"
+back_mask="$work_dir/wallpainter-status-bar-back-mask.png"
+back_masked_alpha="$work_dir/wallpainter-status-bar-back-masked-alpha.png"
+back_masked="$work_dir/wallpainter-status-bar-back-masked.png"
+panels="$work_dir/wallpainter-status-bar-panels.png"
+panels_joined="$work_dir/wallpainter-status-bar-panels-joined.png"
 rendered="$work_dir/wallpainter-status-bar-rendered.png"
 alpha="$work_dir/wallpainter-status-bar-alpha.png"
 
-print -r -- "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\">" > "$vector"
-print -r -- "  <g transform=\"translate(32 32) scale(1.1) translate(-32 -32)\">" >> "$vector"
-print -r -- "    <g fill=\"none\" stroke=\"#fff\" stroke-width=\"14\" stroke-linecap=\"round\" stroke-linejoin=\"round\" vector-effect=\"non-scaling-stroke\">" >> "$vector"
-print -r -- "      <path d=\"$back_path\" transform=\"translate(-7 10) scale(.07)\"/>" >> "$vector"
-print -r -- "      <path d=\"$front_path\" transform=\"translate(8 21) scale(.055)\"/>" >> "$vector"
-print -r -- "      <path d=\"M 52.5 18 C 54 20 56.5 22.5 58 24\" stroke-width=\"3\"/>" >> "$vector"
-print -r -- "    </g>" >> "$vector"
-print -r -- "    <path d=\"$mark_path\" transform=\"translate(34.5 34.5) scale(.045)\" fill=\"#fff\"/>" >> "$vector"
-print -r -- "  </g>" >> "$vector"
-print -r -- "</svg>" >> "$vector"
+print -r -- "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\">" > "$back_vector"
+print -r -- "  <g transform=\"translate(32 32) scale(1.1) translate(-32 -32)\">" >> "$back_vector"
+print -r -- "    <path d=\"$back_path\" transform=\"translate(-7 10) scale(.07)\" fill=\"none\" stroke=\"#fff\" stroke-width=\"14\" stroke-linecap=\"round\" stroke-linejoin=\"round\" vector-effect=\"non-scaling-stroke\"/>" >> "$back_vector"
+print -r -- "  </g>" >> "$back_vector"
+print -r -- "</svg>" >> "$back_vector"
 
-inkscape "$vector" \
-    --export-filename="$rendered" \
+print -r -- "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\">" > "$front_vector"
+print -r -- "  <g transform=\"translate(32 32) scale(1.1) translate(-32 -32)\">" >> "$front_vector"
+print -r -- "    <path d=\"$front_path\" transform=\"translate(8 21) scale(.055)\" fill=\"none\" stroke=\"#fff\" stroke-width=\"14\" stroke-linecap=\"round\" stroke-linejoin=\"round\" vector-effect=\"non-scaling-stroke\"/>" >> "$front_vector"
+print -r -- "  </g>" >> "$front_vector"
+print -r -- "</svg>" >> "$front_vector"
+
+print -r -- "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\">" > "$mark_vector"
+print -r -- "  <g transform=\"translate(32 32) scale(1.1) translate(-32 -32)\">" >> "$mark_vector"
+print -r -- "    <path d=\"$mark_path\" transform=\"translate(34.5 34.5) scale(.045)\" fill=\"#fff\"/>" >> "$mark_vector"
+print -r -- "  </g>" >> "$mark_vector"
+print -r -- "</svg>" >> "$mark_vector"
+
+print -r -- "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\">" > "$connector_vector"
+print -r -- "  <path d=\"M 52.5 18 C 52 18.7 51.5 19.4 51 20\" fill=\"none\" stroke=\"#fff\" stroke-width=\"6\" stroke-linecap=\"butt\" stroke-linejoin=\"round\"/>" >> "$connector_vector"
+print -r -- "</svg>" >> "$connector_vector"
+
+inkscape "$back_vector" \
+    --export-filename="$back_rendered" \
     --export-width=288 \
     >/dev/null 2>&1
+
+inkscape "$front_vector" \
+    --export-filename="$front_rendered" \
+    --export-width=288 \
+    >/dev/null 2>&1
+
+inkscape "$mark_vector" \
+    --export-filename="$mark_rendered" \
+    --export-width=288 \
+    >/dev/null 2>&1
+
+inkscape "$connector_vector" \
+    --export-filename="$connector_rendered" \
+    --export-width=288 \
+    >/dev/null 2>&1
+
+# The traced rear panel contains a short inner horizontal contour. It is the
+# same edge as the front panel's top edge at menu-bar scale, so composing both
+# traces directly makes that edge look heavier. Erase only that rear contour;
+# all other traced geometry remains unchanged.
+magick "$back_rendered" -alpha extract "$back_alpha"
+magick -size 288x288 xc:white \
+    -fill black \
+    -draw 'rectangle 67,72 256,95' \
+    "$back_mask"
+magick "$back_alpha" "$back_mask" \
+    -compose Multiply \
+    -composite \
+    "$back_masked_alpha"
+magick -size 288x288 xc:white \
+    -alpha off \
+    "$back_masked_alpha" \
+    -compose CopyOpacity \
+    -composite \
+    "$back_masked"
+
+magick "$back_masked" "$front_rendered" \
+    -compose over \
+    -composite \
+    "$panels"
+# Keep the original rear/front silhouettes and use only a short, narrow join
+# at their existing upper-right meeting point. This avoids redrawing either
+# panel while preventing another full-width stroke over the front edge.
+magick "$panels" "$connector_rendered" \
+    -compose over \
+    -composite \
+    "$panels_joined"
+magick "$panels_joined" "$mark_rendered" \
+    -compose over \
+    -composite \
+    "$rendered"
 
 # Render oversized, then reduce with Lanczos so the 18-point menu-bar image
 # keeps continuous antialiased contours instead of jagged bitmap edges.
