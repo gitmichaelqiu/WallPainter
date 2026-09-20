@@ -101,10 +101,10 @@ struct SpacesSettingsView: View {
                 } else if displayGroups.isEmpty {
                     SettingsSection(nil) {
                         SettingsRow(
-                            "SpaceAPI availability",
+                            "Available spaces",
                             warningText: spaceProvider?.isAvailable == true
                                 ? "No regular Mission Control spaces were reported."
-                                : "Enable DesktopRenamer SpaceAPI to manage wallpapers by space."
+                                : "Open Permissions to connect DesktopRenamer SpaceAPI."
                         ) {
                             Text(spaceProvider?.isAvailable == true ? "No spaces" : "Unavailable")
                                 .foregroundStyle(

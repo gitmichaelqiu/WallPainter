@@ -6,7 +6,6 @@ struct DefaultSettingsView: View {
     let spaceProvider: (any SpaceAPIProviding)?
 
     @Environment(WallPainterPreferences.self) private var preferences
-    @State private var isSpaceAPIAvailable = false
 
     var body: some View {
         @Bindable var preferences = preferences
@@ -76,44 +75,12 @@ struct DefaultSettingsView: View {
                         Text(coordinator.currentAppearance.displayName)
                             .frame(minHeight: 24)
                     }
-
-                    Divider()
-
-                    SettingsRow(
-                        "SpaceAPI availability",
-                        warningText: isSpaceAPIAvailable
-                            ? nil
-                            : "Space-aware automation pauses while DesktopRenamer SpaceAPI is unavailable."
-                    ) {
-                        Text(isSpaceAPIAvailable ? "Available" : "Unavailable")
-                            .foregroundStyle(
-                                isSpaceAPIAvailable ? Color.green : Color.secondary
-                            )
-                            .frame(minHeight: 24)
-                    }
                 }
 
                 Spacer()
             }
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }
-        .onAppear {
-            updateSpaceAPIAvailability()
-        }
-        .onReceive(NotificationCenter.default.publisher(
-            for: .wallPainterSpaceAvailabilityDidChange
-        )) { _ in
-            updateSpaceAPIAvailability()
-        }
-        .onReceive(NotificationCenter.default.publisher(
-            for: .wallPainterSpaceSnapshotDidChange
-        )) { _ in
-            updateSpaceAPIAvailability()
-        }
-    }
-
-    private func updateSpaceAPIAvailability() {
-        isSpaceAPIAvailable = spaceProvider?.isAvailable == true
     }
 }
 

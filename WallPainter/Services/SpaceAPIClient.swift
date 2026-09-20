@@ -23,6 +23,12 @@ struct SpaceAPIInfo: Codable, Equatable, Sendable {
     let supportedMethods: [String]
 }
 
+enum SpaceAPIAvailability: Equatable, Sendable {
+    case available
+    case disabled
+    case unavailable
+}
+
 struct SpaceAPIError: LocalizedError, Equatable, Sendable {
     let code: Int
     let message: String
@@ -257,9 +263,17 @@ final class SpaceAPIClient: SpaceAPIProviding {
     static let apiStateNotification = Notification.Name(
         "com.michaelqiu.DesktopRenamer.ReturnAPIState"
     )
+    static let desktopRenamerBundleIdentifiers = [
+        "dev.mqiu.DesktopRenamer",
+        "com.michaelqiu.DesktopRenamer"
+    ]
+    static let desktopRenamerDownloadURL = URL(
+        string: "https://github.com/gitmichaelqiu/DesktopRenamer/releases/latest"
+    )!
 
     private(set) var snapshot: SpaceSnapshot?
     private(set) var isAvailable = false
+    private(set) var apiAvailability: SpaceAPIAvailability = .unavailable
     private(set) var negotiatedAPIInfo: SpaceAPIInfo?
 
     @ObservationIgnored private let center: DistributedNotificationCenter
@@ -296,12 +310,36 @@ final class SpaceAPIClient: SpaceAPIProviding {
         isWaitingForSnapshot = false
         negotiatedAPIInfo = nil
         snapshot = nil
-        setAvailable(false)
+        markUnavailable()
     }
 
     func refresh() {
         guard isRunning else { return }
         requestAPIInfo()
+    }
+
+    var desktopRenamerApplicationURL: URL? {
+        Self.desktopRenamerBundleIdentifiers
+            .compactMap { NSWorkspace.shared.urlForApplication(withBundleIdentifier: $0) }
+            .first
+    }
+
+    func openDesktopRenamer() {
+        guard let applicationURL = desktopRenamerApplicationURL else { return }
+        NSWorkspace.shared.open(applicationURL)
+
+        // DesktopRenamer starts its API listener after launch. Retry the probe
+        // while it finishes initializing so the permission page updates without
+        // requiring the user to leave and reopen WallPainter.
+        for delay in [0.5, 1.5, 3.0, 5.0] {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                self?.refresh()
+            }
+        }
+    }
+
+    func openDesktopRenamerDownloadPage() {
+        NSWorkspace.shared.open(Self.desktopRenamerDownloadURL)
     }
 
     /// Feeds one structured payload through the same validation and revision path
@@ -348,7 +386,7 @@ final class SpaceAPIClient: SpaceAPIProviding {
                 if isEnabled {
                     self?.requestAPIInfo()
                 } else {
-                    self?.markUnavailable()
+                    self?.markUnavailable(as: .disabled)
                 }
             }
         }
@@ -454,8 +492,11 @@ final class SpaceAPIClient: SpaceAPIProviding {
 
         pendingTimeouts.removeValue(forKey: responseID)?.cancel()
 
-        if (try? SpaceAPICodec.responseError(from: payload)) != nil {
-            markUnavailable()
+        if let responseError = try? SpaceAPICodec.responseError(from: payload) {
+            let availability: SpaceAPIAvailability = responseError.code == -32001
+                ? .disabled
+                : .unavailable
+            markUnavailable(as: availability)
             if method == "getSpaceSnapshot" {
                 isWaitingForSnapshot = false
             }
@@ -520,15 +561,21 @@ final class SpaceAPIClient: SpaceAPIProviding {
         )
     }
 
-    private func markUnavailable() {
+    private func markUnavailable(
+        as availability: SpaceAPIAvailability = .unavailable
+    ) {
         snapshot = nil
         negotiatedAPIInfo = nil
         revisionTracker.reset()
         isWaitingForSnapshot = false
+        apiAvailability = availability
         setAvailable(false)
     }
 
     private func setAvailable(_ value: Bool) {
+        if value {
+            apiAvailability = .available
+        }
         guard isAvailable != value else { return }
         isAvailable = value
         NotificationCenter.default.post(

@@ -43,9 +43,10 @@ final class SettingsNavigationStateTests: XCTestCase {
         state.register(title: "Hide menubar icon", tab: .general)
         state.register(title: "Launch at login", tab: .general)
         state.register(title: "Wallpaper protection", tab: .general)
-        state.register(title: "SpaceAPI availability", tab: .spaces)
+        state.register(title: "Available spaces", tab: .spaces)
         state.register(title: "Behavior", tab: .default)
         state.register(title: "Light wallpaper", tab: .default)
+        state.register(title: "DesktopRenamer SpaceAPI", tab: .permissions)
         state.register(title: "GitHub / Support", tab: .about)
         await drainMainQueue()
 
@@ -55,8 +56,9 @@ final class SettingsNavigationStateTests: XCTestCase {
         )
         XCTAssertTrue(state.registeredItems.contains { $0.title == "Hide menubar icon" })
         XCTAssertTrue(state.registeredItems.contains { $0.title == "Wallpaper protection" })
-        XCTAssertTrue(state.registeredItems.contains { $0.title == "SpaceAPI availability" })
+        XCTAssertTrue(state.registeredItems.contains { $0.title == "Available spaces" })
         XCTAssertTrue(state.registeredItems.contains { $0.title == "Light wallpaper" })
+        XCTAssertTrue(state.registeredItems.contains { $0.title == "DesktopRenamer SpaceAPI" })
         XCTAssertTrue(state.registeredItems.contains { $0.title == "GitHub / Support" })
     }
 

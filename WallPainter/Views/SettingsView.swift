@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum SettingsTab: String, CaseIterable, Identifiable {
-    case general, spaces, `default`, about
+    case general, spaces, `default`, permissions, about
 
     var id: String { self.rawValue }
 
@@ -10,6 +10,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .general: return "General"
         case .spaces: return "Spaces"
         case .default: return "Default"
+        case .permissions: return "Permissions"
         case .about: return "About"
         }
     }
@@ -19,6 +20,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .general: return "gearshape"
         case .spaces: return "macwindow"
         case .default: return "arrow.triangle.2.circlepath"
+        case .permissions: return "lock.shield"
         case .about: return "info.circle"
         }
     }
@@ -89,6 +91,12 @@ struct SettingsView: View {
                         spaceProvider: spaceProvider
                     )
                     .environment(\.settingsTab, .default)
+
+                    PermissionsSettingsView(
+                        spaceManager: spaceProvider as? SpaceAPIClient
+                    )
+                    .environment(\.settingsTab, .permissions)
+
                     AboutView()
                         .environment(\.settingsTab, .about)
                 }
@@ -292,6 +300,10 @@ struct SettingsView: View {
                         model: wallpaperModel,
                         coordinator: automationCoordinator,
                         spaceProvider: spaceProvider
+                    )
+                case .permissions:
+                    PermissionsSettingsView(
+                        spaceManager: spaceProvider as? SpaceAPIClient
                     )
                 case .about:
                     AboutView()
