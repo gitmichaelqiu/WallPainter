@@ -26,17 +26,13 @@ Because I do **NOT** have an Apple developer account for the app releases, you m
 
 To resolve this, go to System Settings → the bottom of Privacy & Security → Open WallPainter.
 
-## 🛜 SpaceAPI
+## 🛜 SpaceAPI Prerequisite
 
-To get the current space's information, an extra app DesktopRenamer is required. You can download it [here](https://github.com/gitmichaelqiu/DesktopRenamer/releases/).
+<img src="https://github.com/gitmichaelqiu/DesktopRenamer/raw/main/DesktopRenamer/Resources/DesktopRenamerIcon_Default.png?raw=true" width="120"/>
 
-After downloading DesktopRenamer, turn on SpaceAPI in DesktopRenamer's Settings → General. WallPainter's Settings → Permissions tab shows the connection status and provides actions to open, launch, or install DesktopRenamer.
+To get the current space's information, [DesktopRenamer](https://github.com/gitmichaelqiu/DesktopRenamer/releases/) is required.
 
-## Wallpaper protection
-
-macOS may remove downloaded Aerial assets that have not been used recently. WallPainter automatically keeps a private backup of wallpapers referenced by the Default rule, space overrides, or the current manual selection, then restores them to the Aerial cache before applying a rule.
-
-This is best-effort because Apple does not provide a supported API for pinning live Aerial assets. If a wallpaper cannot be restored, open General → Wallpaper protection and choose Repair, or redownload the wallpaper in System Settings. Unreferenced Aerial wallpapers are never copied by WallPainter.
+After downloading DesktopRenamer, you need to turn on SpaceAPI in Settings → General.
 
 ## ⚠️ Issues
 
