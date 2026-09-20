@@ -146,7 +146,7 @@ final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
         guard let button = statusItem.button else { return }
 
         let image = Bundle.main.url(
-            forResource: "WallPainterStatusBarTemplate",
+            forResource: "WallPainterIcon_Default",
             withExtension: "png"
         )
         .flatMap { NSImage(contentsOf: $0) }
@@ -155,7 +155,7 @@ final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
                 accessibilityDescription: "WallPainter"
             )!
         image.size = NSSize(width: 18, height: 18)
-        image.isTemplate = true
+        image.isTemplate = false
         button.image = image
         button.toolTip = "WallPainter"
         button.setAccessibilityLabel("WallPainter")
