@@ -35,7 +35,6 @@ trace_silhouette() {
         "$trace"
 }
 
-back_path="$(trace_silhouette "$asset_root/4_shape1.png" 1024x576 back)"
 front_path="$(trace_silhouette "$asset_root/6_shape2_rounded copy.png" 1024x576 front)"
 mark_path="$(trace_silhouette "$asset_root/ios-appearance-icon-transparent.png" 512x512 mark)"
 vector="$work_dir/wallpainter-status-bar.svg"
@@ -45,7 +44,9 @@ alpha="$work_dir/wallpainter-status-bar-alpha.png"
 print -r -- "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\">" > "$vector"
 print -r -- "  <g transform=\"translate(32 32) scale(1.1) translate(-32 -32)\">" >> "$vector"
 print -r -- "    <g fill=\"none\" stroke=\"#fff\" stroke-width=\"14\" stroke-linecap=\"round\" stroke-linejoin=\"round\" vector-effect=\"non-scaling-stroke\">" >> "$vector"
-print -r -- "      <path d=\"$back_path\" transform=\"translate(-7 10) scale(.07)\"/>" >> "$vector"
+# The rear contour intentionally stays open and joins the traced front panel at
+# its lower-left and upper-right edges, following the requested icon sketch.
+print -r -- "      <path d=\"M 16.2 45.2 C 13.2 44.8 11.7 42.2 10.8 39.4 L 7.8 30.2 C 7 27.8 8.8 25.1 12 23.5 L 39.3 9.4 C 42.4 7.8 45.5 7.3 47 9.8 C 48.5 11.9 52 17.8 54.8 21\" stroke-width=\"3.5\"/>" >> "$vector"
 print -r -- "      <path d=\"$front_path\" transform=\"translate(8 21) scale(.055)\"/>" >> "$vector"
 print -r -- "    </g>" >> "$vector"
 print -r -- "    <path d=\"$mark_path\" transform=\"translate(34.5 34.5) scale(.045)\" fill=\"#fff\"/>" >> "$vector"
