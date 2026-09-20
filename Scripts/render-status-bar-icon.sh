@@ -35,30 +35,28 @@ trace_silhouette() {
         "$trace"
 }
 
+back_path="$(trace_silhouette "$asset_root/4_shape1.png" 1024x576 back)"
+front_path="$(trace_silhouette "$asset_root/6_shape2_rounded copy.png" 1024x576 front)"
 mark_path="$(trace_silhouette "$asset_root/ios-appearance-icon-transparent.png" 512x512 mark)"
-panel_source="$repo_root/Scripts/status-bar-panels.svg"
-panel_rendered="$work_dir/wallpainter-status-panels.png"
-mark_vector="$work_dir/wallpainter-status-mark.svg"
-mark_rendered="$work_dir/wallpainter-status-mark.png"
+vector="$work_dir/wallpainter-status-bar.svg"
 rendered="$work_dir/wallpainter-status-bar-rendered.png"
 alpha="$work_dir/wallpainter-status-bar-alpha.png"
 
-print -r -- "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\">" > "$mark_vector"
-print -r -- "  <path d=\"$mark_path\" transform=\"translate(32 32) scale(1.1) translate(-32 -32) translate(34.5 34.5) scale(.045)\" fill=\"#fff\"/>" >> "$mark_vector"
-print -r -- "</svg>" >> "$mark_vector"
+print -r -- "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\">" > "$vector"
+print -r -- "  <g transform=\"translate(32 32) scale(1.1) translate(-32 -32)\">" >> "$vector"
+print -r -- "    <g fill=\"none\" stroke=\"#fff\" stroke-width=\"14\" stroke-linecap=\"round\" stroke-linejoin=\"round\" vector-effect=\"non-scaling-stroke\">" >> "$vector"
+print -r -- "      <path d=\"$back_path\" transform=\"translate(-7 10) scale(.07)\"/>" >> "$vector"
+print -r -- "      <path d=\"$front_path\" transform=\"translate(8 21) scale(.055)\"/>" >> "$vector"
+print -r -- "      <path d=\"M 52.5 18 C 54 20 56.5 22.5 58 24\" stroke-width=\"3\"/>" >> "$vector"
+print -r -- "    </g>" >> "$vector"
+print -r -- "    <path d=\"$mark_path\" transform=\"translate(34.5 34.5) scale(.045)\" fill=\"#fff\"/>" >> "$vector"
+print -r -- "  </g>" >> "$vector"
+print -r -- "</svg>" >> "$vector"
 
-inkscape "$panel_source" \
-    --export-filename="$panel_rendered" \
+inkscape "$vector" \
+    --export-filename="$rendered" \
     --export-width=288 \
     >/dev/null 2>&1
-inkscape "$mark_vector" \
-    --export-filename="$mark_rendered" \
-    --export-width=288 \
-    >/dev/null 2>&1
-magick "$panel_rendered" "$mark_rendered" \
-    -compose over \
-    -composite \
-    "$rendered"
 
 # Render oversized, then reduce with Lanczos so the 18-point menu-bar image
 # keeps continuous antialiased contours instead of jagged bitmap edges.
