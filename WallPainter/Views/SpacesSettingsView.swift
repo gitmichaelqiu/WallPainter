@@ -99,7 +99,7 @@ struct SpacesSettingsView: View {
                         Divider()
                     }
                 } else if displayGroups.isEmpty {
-                    SettingsSection(nil) {
+                    SettingsSection("Spaces") {
                         SettingsRow(
                             "Available spaces",
                             warningText: spaceProvider?.isAvailable == true
