@@ -146,7 +146,7 @@ final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
         guard let button = statusItem.button else { return }
 
         let image = Bundle.main.url(
-            forResource: "WallPainterIcon_Default",
+            forResource: "WallPainterStatusBarTemplate",
             withExtension: "png"
         )
         .flatMap { NSImage(contentsOf: $0) }
