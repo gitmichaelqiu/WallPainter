@@ -8,54 +8,59 @@ output="$repo_root/WallPainter/Resources/WallPainterStatusBarTemplate.png"
 work_dir="$(mktemp -d)"
 trap 'rm -rf "$work_dir"' EXIT
 
-render_silhouette() {
+# Trace the actual alpha silhouettes from the icon package. This keeps the
+# status item tied to the app icon's real curves without shipping the colorful
+# application icon into the menu bar.
+trace_silhouette() {
     local source="$1"
     local size="$2"
-    local result="$work_dir/$3-silhouette.png"
+    local name="$3"
+    local mask="$work_dir/$name-mask.png"
+    local trace="$work_dir/$name-trace.svg"
 
-    magick -size "$size" xc:white \
-        -alpha off \
-        \( "$source" -alpha extract -resize "${size}!" \) \
-        -compose CopyOpacity \
-        -composite \
-        "$result"
+    magick "$source" \
+        -alpha extract \
+        -resize "$size" \
+        -threshold 50% \
+        "$mask"
 
-    print -r -- "$result"
+    inkscape "$mask" \
+        --actions="select-all;object-trace:2,true,false,false,2,1,0.2;export-filename:$trace;export-do" \
+        >/dev/null 2>&1
+
+    # object-trace writes the foreground contour before its background contour.
+    # Extract only that first path and discard Inkscape's embedded source image.
+    perl -0777 -ne \
+        '@paths = /<path\b.*?\bd="([^"]+)"/sg; print $paths[0] // ""' \
+        "$trace"
 }
 
-# These transforms mirror the visible layers in WallPainter.icon/icon.json. The
-# panel contours are redrawn as continuous vectors to avoid raster edge gaps;
-# the emblem itself remains the exact source asset from the icon package.
-panel_source="$repo_root/Scripts/status-bar-panels.svg"
-panel="$work_dir/panel.png"
-magick -background none "$panel_source" -resize 1024x1024 "$panel"
-wallpainter_mark="$(render_silhouette "$asset_root/ios-appearance-icon-transparent.png" 410x410 wallpainter-mark)"
-composited="$work_dir/composited.png"
-canvas="$work_dir/canvas.png"
-scaled="$work_dir/scaled.png"
-alpha="$work_dir/final-alpha.png"
+back_path="$(trace_silhouette "$asset_root/4_shape1.png" 1024x576 back)"
+front_path="$(trace_silhouette "$asset_root/6_shape2_rounded copy.png" 1024x576 front)"
+mark_path="$(trace_silhouette "$asset_root/ios-appearance-icon-transparent.png" 512x512 mark)"
+vector="$work_dir/wallpainter-status-bar.svg"
+rendered="$work_dir/wallpainter-status-bar-rendered.png"
+alpha="$work_dir/wallpainter-status-bar-alpha.png"
 
-magick -size 1024x1024 xc:none \
-    "$panel" -geometry +0+0 -composite \
-    "$canvas"
+print -r -- "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\">" > "$vector"
+print -r -- "  <g fill=\"none\" stroke=\"#fff\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" vector-effect=\"non-scaling-stroke\">" >> "$vector"
+print -r -- "    <path d=\"$back_path\" transform=\"translate(-7 9) scale(.08)\"/>" >> "$vector"
+print -r -- "    <path d=\"$front_path\" transform=\"translate(7 21) scale(.08)\"/>" >> "$vector"
+print -r -- "  </g>" >> "$vector"
+print -r -- "  <path d=\"$mark_path\" transform=\"translate(38 38) scale(.05)\" fill=\"#fff\"/>" >> "$vector"
+print -r -- "</svg>" >> "$vector"
 
-magick "$canvas" \
-    "$wallpainter_mark" -geometry +566+565 -composite \
+# Render oversized, then reduce with Lanczos so the 18-point menu-bar image
+# keeps continuous antialiased contours instead of jagged bitmap edges.
+inkscape "$vector" \
+    --export-filename="$rendered" \
+    --export-width=288 \
+    >/dev/null 2>&1
+
+magick "$rendered" \
     -resize 36x36 \
-    "$composited"
-
-magick "$composited" \
-    -trim \
-    +repage \
-    -resize 34x34 \
-    -background none \
-    -gravity center \
-    -extent 36x36 \
-    "$scaled"
-
-magick "$scaled" \
     -alpha extract \
-    -threshold 28% \
+    -level 0,35% \
     "$alpha"
 
 magick -size 36x36 xc:white \

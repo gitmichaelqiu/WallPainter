@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-  <!-- Clean vector reduction of the two visible panel layers in WallPainter.icon. -->
-  <g fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.25">
-    <path d="M9 29V17c0-5 4-8 9-9l29-3c5-.5 9 3.5 9 9v11"/>
-    <path d="M18 31v-3c0-5 4-9 10-9h22c6 0 10 4 10 10v19c0 6-4 10-10 10H29c-6 0-11-4-11-10z"/>
-  </g>
-</svg>
