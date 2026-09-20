@@ -324,8 +324,8 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = WallPainter/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = WallPainter;
 				INFOPLIST_KEY_ATSApplicationFontsPath = Fonts;
+				INFOPLIST_KEY_CFBundleDisplayName = WallPainter;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -361,8 +361,8 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = WallPainter/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = WallPainter;
 				INFOPLIST_KEY_ATSApplicationFontsPath = Fonts;
+				INFOPLIST_KEY_CFBundleDisplayName = WallPainter;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
