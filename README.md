@@ -30,7 +30,7 @@ To resolve this, go to System Settings → the bottom of Privacy & Security → 
 
 To get the current space's information, an extra app DesktopRenamer is required. You can download it [here](https://github.com/gitmichaelqiu/DesktopRenamer/releases/).
 
-After downloading DesktopRenamer, you need to turn on SpaceAPI in Settings → General.
+After downloading DesktopRenamer, turn on SpaceAPI in DesktopRenamer's Settings → General. WallPainter's Settings → Permissions tab shows the connection status and provides actions to open, launch, or install DesktopRenamer.
 
 ## Wallpaper protection
 
