@@ -184,6 +184,11 @@ final class WallpaperAutomationCoordinator {
     }
 
     func evaluateCurrentAppearance() {
+        // Reconcile the private Apple cache before resolving rules. A restored
+        // asset is discovered by the catalog here; an unrecoverable asset is
+        // removed from the installed set and its saved rule is left intact.
+        model.reconcileProtectedAssets()
+
         guard let spaceProvider,
               spaceProvider.isAvailable,
               let snapshot = spaceProvider.snapshot

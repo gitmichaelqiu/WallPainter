@@ -44,6 +44,17 @@ final class WallPainterPreferences {
         }
     }
 
+    var protectedWallpaperIDs: Set<String> {
+        var IDs = defaultWallpaperRule.referencedWallpaperIDs
+        for rule in spaceOverrides.values {
+            IDs.formUnion(rule.referencedWallpaperIDs)
+        }
+        if let selectedWallpaperID {
+            IDs.insert(selectedWallpaperID)
+        }
+        return IDs
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         selectedWallpaperID = defaults.string(forKey: Self.selectedWallpaperKey)

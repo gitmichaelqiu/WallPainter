@@ -47,6 +47,7 @@ final class WallpaperModel {
     var selectedWallpaperID: String? {
         didSet {
             preferences.selectedWallpaperID = selectedWallpaperID
+            retainConfiguredAssets()
         }
     }
 
@@ -57,20 +58,27 @@ final class WallpaperModel {
     var isLoading = false
     var isSwitching = false
     var operationStatus: WallpaperOperationStatus?
+    private(set) var assetProtectionStatus = WallpaperAssetProtectionStatus(
+        protectedIDs: [],
+        availableIDs: []
+    )
 
     @ObservationIgnored private let catalog: any WallpaperCatalogProviding
     @ObservationIgnored private let store: any WallpaperStoring
     @ObservationIgnored private let preferences: WallPainterPreferences
+    @ObservationIgnored private let assetProtector: any WallpaperAssetProtecting
 
     init(
         catalog: (any WallpaperCatalogProviding)? = nil,
         store: (any WallpaperStoring)? = nil,
-        preferences: WallPainterPreferences? = nil
+        preferences: WallPainterPreferences? = nil,
+        assetProtector: (any WallpaperAssetProtecting)? = nil
     ) {
         self.catalog = catalog ?? SystemWallpaperCatalog()
         self.store = store ?? WallpaperStore()
         let preferences = preferences ?? WallPainterPreferences()
         self.preferences = preferences
+        self.assetProtector = assetProtector ?? NoopWallpaperAssetProtector()
         selectedWallpaperID = preferences.selectedWallpaperID
     }
 
@@ -112,6 +120,10 @@ final class WallpaperModel {
         isLoading = true
         operationStatus = nil
 
+        _ = assetProtector.restore(
+            protectedIDs: preferences.protectedWallpaperIDs
+        )
+
         do {
             items = try catalog.installedAerials()
             if activeSpaceTargets.isEmpty {
@@ -122,12 +134,15 @@ final class WallpaperModel {
                 synchronizeCurrentWallpapers(for: activeSpaceTargets)
             }
             normalizeSelection()
+            retainConfiguredAssets()
         } catch {
             items = []
             currentWallpaperID = nil
             currentWallpaperIDsBySpaceID = [:]
             currentWallpaperState = .empty
-            selectedWallpaperID = nil
+            assetProtectionStatus = assetProtector.status(
+                for: preferences.protectedWallpaperIDs
+            )
             operationStatus = .failure(error.localizedDescription)
         }
 
@@ -137,6 +152,22 @@ final class WallpaperModel {
             name: .wallPainterWallpaperCatalogDidChange,
             object: self
         )
+    }
+
+    @discardableResult
+    func reconcileProtectedAssets() -> WallpaperAssetProtectionStatus {
+        _ = assetProtector.restore(
+            protectedIDs: preferences.protectedWallpaperIDs
+        )
+
+        if let refreshedItems = try? catalog.installedAerials() {
+            items = refreshedItems
+            normalizeSelection()
+        }
+
+        retainConfiguredAssets()
+        postChange()
+        return assetProtectionStatus
     }
 
     func setActiveSpaceTargets(_ targets: [WallpaperSpaceTarget]) {
@@ -339,6 +370,10 @@ final class WallpaperModel {
             return
         }
 
+        if selectedWallpaperID != nil {
+            return
+        }
+
         if let currentWallpaperID,
            items.contains(where: { $0.id == currentWallpaperID }) {
             selectedWallpaperID = currentWallpaperID
@@ -381,6 +416,13 @@ final class WallpaperModel {
             else { return false }
             return true
         }
+    }
+
+    private func retainConfiguredAssets() {
+        assetProtectionStatus = assetProtector.retain(
+            items: items,
+            for: preferences.protectedWallpaperIDs
+        )
     }
 
     private func postChange() {

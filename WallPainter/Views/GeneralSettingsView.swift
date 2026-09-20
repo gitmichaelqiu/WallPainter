@@ -82,6 +82,24 @@ struct GeneralSettingsView: View {
                     )
                 }
 
+                SettingsSection("Wallpaper Protection") {
+                    SettingsRow("Wallpaper protection") {
+                        HStack(spacing: 8) {
+                            if model.assetProtectionStatus.isHealthy {
+                                Text("\(model.assetProtectionStatus.protectedIDs.count) protected")
+                                    .foregroundStyle(.secondary)
+                            } else {
+                                Text("Repair needed")
+                                    .foregroundStyle(.orange)
+
+                                Button("Repair") {
+                                    model.reconcileProtectedAssets()
+                                }
+                            }
+                        }
+                    }
+                }
+
                 SettingsSection(nil) {
                     SettingsRow("Apply to current space(s)") {
                         Button {

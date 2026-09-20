@@ -60,6 +60,17 @@ struct WallpaperRule: Codable, Equatable, Sendable {
         )
     }
 
+    var referencedWallpaperIDs: Set<String> {
+        switch mode {
+        case .manual:
+            return []
+        case .fixed:
+            return fixedWallpaperID.map { Set([$0]) } ?? []
+        case .appearance:
+            return Set([lightWallpaperID, darkWallpaperID].compactMap { $0 })
+        }
+    }
+
     func isValid(installedWallpaperIDs: Set<String>) -> Bool {
         switch mode {
         case .manual:

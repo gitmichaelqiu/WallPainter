@@ -13,7 +13,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
 
         let preferences = WallPainterPreferences()
-        let wallpaperModel = WallpaperModel(preferences: preferences)
+        let wallpaperModel = WallpaperModel(
+            preferences: preferences,
+            assetProtector: SystemWallpaperAssetProtector()
+        )
         let spaceAPIClient = SpaceAPIClient()
         self.preferences = preferences
         self.wallpaperModel = wallpaperModel
