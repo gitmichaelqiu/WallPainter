@@ -32,6 +32,12 @@ To get the current space's information, an extra app DesktopRenamer is required.
 
 After downloading DesktopRenamer, you need to turn on SpaceAPI in Settings → General.
 
+## Wallpaper protection
+
+macOS may remove downloaded Aerial assets that have not been used recently. WallPainter automatically keeps a private backup of wallpapers referenced by the Default rule, space overrides, or the current manual selection, then restores them to the Aerial cache before applying a rule.
+
+This is best-effort because Apple does not provide a supported API for pinning live Aerial assets. If a wallpaper cannot be restored, open General → Wallpaper protection and choose Repair, or redownload the wallpaper in System Settings. Unreferenced Aerial wallpapers are never copied by WallPainter.
+
 ## ⚠️ Issues
 
 You are welcome to create issues/suggestions in [GitHub Issues](https://github.com/gitmichaelqiu/WallPainter/issues).
