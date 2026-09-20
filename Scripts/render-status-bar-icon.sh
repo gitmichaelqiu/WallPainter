@@ -19,7 +19,8 @@ render_outline() {
         -alpha extract \
         -resize "${size}!" \
         -threshold 50% \
-        -morphology EdgeOut Disk:28 \
+        -morphology EdgeOut Disk:40 \
+        -morphology Close Disk:6 \
         "$edge"
 
     magick -size "$size" xc:white \
@@ -51,10 +52,24 @@ render_silhouette() {
 back_panel="$(render_outline "$asset_root/4_shape1.png" 896x504 back-panel)"
 front_panel="$(render_outline "$asset_root/6_shape2_rounded copy.png" 768x432 front-panel)"
 wallpainter_mark="$(render_silhouette "$asset_root/ios-appearance-icon-transparent.png" 410x410 wallpainter-mark)"
+composited="$work_dir/composited.png"
+alpha="$work_dir/final-alpha.png"
 
 magick -size 1024x1024 xc:none \
     "$back_panel" -geometry +-2+223 -composite \
     "$front_panel" -geometry +205+362 -composite \
     "$wallpainter_mark" -geometry +566+565 -composite \
-    -resize 128x128 \
+    -resize 36x36 \
+    "$composited"
+
+magick "$composited" \
+    -alpha extract \
+    -threshold 28% \
+    "$alpha"
+
+magick -size 36x36 xc:white \
+    -alpha off \
+    "$alpha" \
+    -compose CopyOpacity \
+    -composite \
     "$output"
