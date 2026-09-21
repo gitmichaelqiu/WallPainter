@@ -158,7 +158,7 @@ final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
                 accessibilityDescription: "WallPainter"
             )!
         image.size = NSSize(width: 18, height: 18)
-        image.isTemplate = false
+        image.isTemplate = true
         button.image = image
         button.toolTip = "WallPainter"
         button.setAccessibilityLabel("WallPainter")
