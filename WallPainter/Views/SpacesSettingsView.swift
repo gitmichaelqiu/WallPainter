@@ -228,6 +228,7 @@ private struct SpaceSwitcher: View {
                 HStack {
                     Spacer(minLength: 0)
                     measuredSpacePicker
+                        .fixedSize(horizontal: true, vertical: false)
                     Spacer(minLength: 0)
                 }
                 .padding(.horizontal, 10)
