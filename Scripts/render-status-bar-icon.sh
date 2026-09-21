@@ -64,13 +64,13 @@ alpha="$work_dir/wallpainter-status-bar-alpha.png"
 
 print -r -- "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\">" > "$back_vector"
 print -r -- "  <g transform=\"translate(32 32) scale(1.1) translate(-32 -32)\">" >> "$back_vector"
-print -r -- "    <path d=\"$back_path\" transform=\"translate(-7 10) scale(.07)\" fill=\"none\" stroke=\"#fff\" stroke-width=\"32\" stroke-linecap=\"round\" stroke-linejoin=\"round\" vector-effect=\"non-scaling-stroke\"/>" >> "$back_vector"
+print -r -- "    <path d=\"$back_path\" transform=\"translate(-7 10) scale(.07)\" fill=\"none\" stroke=\"#fff\" stroke-width=\"48\" stroke-linecap=\"round\" stroke-linejoin=\"round\" vector-effect=\"non-scaling-stroke\"/>" >> "$back_vector"
 print -r -- "  </g>" >> "$back_vector"
 print -r -- "</svg>" >> "$back_vector"
 
 print -r -- "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\">" > "$front_vector"
 print -r -- "  <g transform=\"translate(32 32) scale(1.1) translate(-32 -32)\">" >> "$front_vector"
-print -r -- "    <path d=\"$front_path\" transform=\"translate(8 21) scale(.055)\" fill=\"none\" stroke=\"#fff\" stroke-width=\"32\" stroke-linecap=\"round\" stroke-linejoin=\"round\" vector-effect=\"non-scaling-stroke\"/>" >> "$front_vector"
+print -r -- "    <path d=\"$front_path\" transform=\"translate(8 21) scale(.055)\" fill=\"none\" stroke=\"#fff\" stroke-width=\"48\" stroke-linecap=\"round\" stroke-linejoin=\"round\" vector-effect=\"non-scaling-stroke\"/>" >> "$front_vector"
 print -r -- "  </g>" >> "$front_vector"
 print -r -- "</svg>" >> "$front_vector"
 
@@ -84,7 +84,7 @@ print -r -- "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\
 # Continue the traced rear contour into the front panel's upper-right corner.
 # Match the panels' non-scaling stroke so the join stays smooth and uniform at
 # every export resolution.
-print -r -- "  <path d=\"M 53.8 16.0 C 54.1 17.3 54.2 18.7 53.4 19.95\" fill=\"none\" stroke=\"#fff\" stroke-width=\"32\" stroke-linecap=\"round\" stroke-linejoin=\"round\" vector-effect=\"non-scaling-stroke\"/>" >> "$connector_vector"
+print -r -- "  <path d=\"M 53.8 16.0 C 54.1 17.3 54.2 18.7 53.4 19.95\" fill=\"none\" stroke=\"#fff\" stroke-width=\"48\" stroke-linecap=\"round\" stroke-linejoin=\"round\" vector-effect=\"non-scaling-stroke\"/>" >> "$connector_vector"
 print -r -- "</svg>" >> "$connector_vector"
 
 inkscape "$back_vector" \
