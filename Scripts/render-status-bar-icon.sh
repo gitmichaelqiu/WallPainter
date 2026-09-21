@@ -74,27 +74,27 @@ print -r -- "  </g>" >> "$mark_vector"
 print -r -- "</svg>" >> "$mark_vector"
 
 print -r -- "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\">" > "$connector_vector"
-print -r -- "  <path d=\"M 52.5 18 C 52.5 18.8 51.8 19.7 51 20\" fill=\"none\" stroke=\"#fff\" stroke-width=\"6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>" >> "$connector_vector"
+print -r -- "  <path d=\"M 52.5 18 C 52.2 18.9 51.7 19.8 50.5 20.4\" fill=\"none\" stroke=\"#fff\" stroke-width=\"6\" stroke-linecap=\"butt\" stroke-linejoin=\"round\"/>" >> "$connector_vector"
 print -r -- "</svg>" >> "$connector_vector"
 
 inkscape "$back_vector" \
     --export-filename="$back_rendered" \
-    --export-width=288 \
+    --export-width=576 \
     >/dev/null 2>&1
 
 inkscape "$front_vector" \
     --export-filename="$front_rendered" \
-    --export-width=288 \
+    --export-width=576 \
     >/dev/null 2>&1
 
 inkscape "$mark_vector" \
     --export-filename="$mark_rendered" \
-    --export-width=288 \
+    --export-width=576 \
     >/dev/null 2>&1
 
 inkscape "$connector_vector" \
     --export-filename="$connector_rendered" \
-    --export-width=288 \
+    --export-width=576 \
     >/dev/null 2>&1
 
 # The traced rear panel contains a short inner horizontal contour. It is the
@@ -102,15 +102,15 @@ inkscape "$connector_vector" \
 # traces directly makes that edge look heavier. Erase only that rear contour;
 # all other traced geometry remains unchanged.
 magick "$back_rendered" -alpha extract "$back_alpha"
-magick -size 288x288 xc:white \
+magick -size 576x576 xc:white \
     -fill black \
-    -draw 'rectangle 67,72 256,95' \
+    -draw 'rectangle 134,144 512,190' \
     "$back_mask"
 magick "$back_alpha" "$back_mask" \
     -compose Multiply \
     -composite \
     "$back_masked_alpha"
-magick -size 288x288 xc:white \
+magick -size 576x576 xc:white \
     -alpha off \
     "$back_masked_alpha" \
     -compose CopyOpacity \
@@ -138,7 +138,7 @@ magick "$panels_joined" "$mark_rendered" \
 magick "$rendered" \
     -resize 36x36 \
     -alpha extract \
-    -level 0,35% \
+    -level 0,25% \
     "$alpha"
 
 magick -size 36x36 xc:white \
