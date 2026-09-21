@@ -83,7 +83,7 @@ print -r -- "</svg>" >> "$front_vector"
 
 print -r -- "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\">" > "$mark_vector"
 print -r -- "  <g transform=\"translate(32 32) scale(1.1) translate(-32 -32)\">" >> "$mark_vector"
-print -r -- "    <path d=\"$mark_path\" transform=\"translate(34.5 34.5) scale(.045)\" fill=\"#fff\"/>" >> "$mark_vector"
+print -r -- "    <path d=\"$mark_path\" transform=\"translate(34.5 34.5) scale(.055)\" fill=\"#fff\"/>" >> "$mark_vector"
 print -r -- "  </g>" >> "$mark_vector"
 print -r -- "</svg>" >> "$mark_vector"
 
@@ -106,7 +106,7 @@ print -r -- "  </g>" >> "$template_vector"
 print -r -- "  <path d=\"M 53.8 16.0 C 54.1 17.3 54.2 18.7 53.4 19.95\" fill=\"none\" stroke=\"#fff\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>" >> "$template_vector"
 print -r -- "  <g transform=\"translate(32 32) scale(1.1) translate(-32 -32)\">" >> "$template_vector"
 print -r -- "    <path d=\"$front_path\" transform=\"translate(8 21) scale(.055)\" fill=\"none\" stroke=\"#fff\" stroke-width=\"50\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>" >> "$template_vector"
-print -r -- "    <path d=\"$mark_path\" transform=\"translate(34.5 34.5) scale(.045)\" fill=\"#fff\"/>" >> "$template_vector"
+print -r -- "    <path d=\"$mark_path\" transform=\"translate(34.5 34.5) scale(.055)\" fill=\"#fff\"/>" >> "$template_vector"
 print -r -- "  </g>" >> "$template_vector"
 print -r -- "</svg>" >> "$template_vector"
 
