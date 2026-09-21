@@ -74,7 +74,7 @@ print -r -- "  </g>" >> "$mark_vector"
 print -r -- "</svg>" >> "$mark_vector"
 
 print -r -- "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\">" > "$connector_vector"
-print -r -- "  <path d=\"M 52.5 18 C 52 18.7 51.5 19.4 51 20\" fill=\"none\" stroke=\"#fff\" stroke-width=\"6\" stroke-linecap=\"butt\" stroke-linejoin=\"round\"/>" >> "$connector_vector"
+print -r -- "  <path d=\"M 52.5 18 C 52.5 18.8 51.8 19.7 51 20\" fill=\"none\" stroke=\"#fff\" stroke-width=\"6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>" >> "$connector_vector"
 print -r -- "</svg>" >> "$connector_vector"
 
 inkscape "$back_vector" \
