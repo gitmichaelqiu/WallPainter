@@ -51,7 +51,7 @@ back_mask="$work_dir/wallpainter-status-bar-back-mask.png"
 back_masked_alpha="$work_dir/wallpainter-status-bar-back-masked-alpha.png"
 back_masked="$work_dir/wallpainter-status-bar-back-masked.png"
 panels="$work_dir/wallpainter-status-bar-panels.png"
-panels_joined="$work_dir/wallpainter-status-bar-panels-joined.png"
+back_joined="$work_dir/wallpainter-status-bar-back-joined.png"
 rendered="$work_dir/wallpainter-status-bar-rendered.png"
 alpha="$work_dir/wallpainter-status-bar-alpha.png"
 
@@ -117,18 +117,18 @@ magick -size 576x576 xc:white \
     -composite \
     "$back_masked"
 
-magick "$back_masked" "$front_rendered" \
+magick "$back_masked" "$connector_rendered" \
+    -compose over \
+    -composite \
+    "$back_joined"
+# Place the join behind the front panel. Its original top contour then masks
+# the connector endpoint, leaving a continuous rear line without a cap or a
+# second stroke over the front edge.
+magick "$back_joined" "$front_rendered" \
     -compose over \
     -composite \
     "$panels"
-# Keep the original rear/front silhouettes and use only a short, narrow join
-# at their existing upper-right meeting point. This avoids redrawing either
-# panel while preventing another full-width stroke over the front edge.
-magick "$panels" "$connector_rendered" \
-    -compose over \
-    -composite \
-    "$panels_joined"
-magick "$panels_joined" "$mark_rendered" \
+magick "$panels" "$mark_rendered" \
     -compose over \
     -composite \
     "$rendered"
