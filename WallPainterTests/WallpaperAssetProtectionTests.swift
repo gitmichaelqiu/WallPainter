@@ -71,6 +71,25 @@ final class WallpaperAssetProtectionTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: wallpaper.videoURL), Data("apple-cache".utf8))
     }
 
+    func testRemoveBackupsDeletesOnlyWallPainterAssets() throws {
+        let directories = try makeDirectories()
+        let wallpaper = makeWallpaper(id: "remove-me", directories: directories)
+        try writeData(
+            "backup-data",
+            to: backupVideoURL(for: wallpaper, directories: directories)
+        )
+        try writeData("apple-cache", to: wallpaper.videoURL)
+
+        let protector = makeProtector(directories: directories)
+        protector.removeBackups()
+
+        XCTAssertFalse(fileManager.fileExists(atPath: backupVideoURL(
+            for: wallpaper,
+            directories: directories
+        ).path))
+        XCTAssertTrue(fileManager.fileExists(atPath: wallpaper.videoURL.path))
+    }
+
     func testFailedRestoreLeavesNoPartialAsset() throws {
         let directories = try makeDirectories()
         let wallpaper = makeWallpaper(id: "atomic-failure", directories: directories)
@@ -162,6 +181,34 @@ final class WallpaperAssetProtectionTests: XCTestCase {
             for: wallpaper,
             directories: directories
         ).path))
+    }
+
+    func testDisablingProtectionRemovesBackupsCreatedByWallpaperModel() throws {
+        let directories = try makeDirectories()
+        let wallpaper = makeWallpaper(id: "toggle-protection", directories: directories)
+        try writeData("asset-data", to: wallpaper.videoURL)
+        let preferences = WallPainterPreferences(defaults: makeDefaults())
+        preferences.selectedWallpaperID = wallpaper.id
+        let model = WallpaperModel(
+            catalog: AssetProtectionTestCatalog(items: [wallpaper]),
+            store: AssetProtectionTestStore(),
+            preferences: preferences,
+            assetProtector: makeProtector(directories: directories)
+        )
+
+        model.refresh()
+        XCTAssertTrue(fileManager.fileExists(atPath: backupVideoURL(
+            for: wallpaper,
+            directories: directories
+        ).path))
+
+        model.setWallpaperProtectionEnabled(false)
+
+        XCTAssertFalse(fileManager.fileExists(atPath: backupVideoURL(
+            for: wallpaper,
+            directories: directories
+        ).path))
+        XCTAssertTrue(model.assetProtectionStatus.protectedIDs.isEmpty)
     }
 
     func testAutomationRestoresEvictedAppearanceAssetBeforeApplying() throws {

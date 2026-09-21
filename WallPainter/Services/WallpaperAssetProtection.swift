@@ -21,6 +21,7 @@ protocol WallpaperAssetProtecting {
         for protectedIDs: Set<String>
     ) -> WallpaperAssetProtectionStatus
     func status(for protectedIDs: Set<String>) -> WallpaperAssetProtectionStatus
+    func removeBackups()
 }
 
 protocol WallpaperAssetFileOperations {
@@ -64,6 +65,8 @@ struct NoopWallpaperAssetProtector: WallpaperAssetProtecting {
             availableIDs: protectedIDs
         )
     }
+
+    func removeBackups() { }
 }
 
 struct SystemWallpaperAssetProtector: WallpaperAssetProtecting {
@@ -185,6 +188,10 @@ struct SystemWallpaperAssetProtector: WallpaperAssetProtecting {
             protectedIDs: protectedIDs,
             availableIDs: availableIDs
         )
+    }
+
+    func removeBackups() {
+        try? fileManager.removeItem(at: backupDirectory)
     }
 
     private struct AssetPaths {

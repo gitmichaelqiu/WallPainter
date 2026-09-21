@@ -6,6 +6,7 @@ import Observation
 final class WallPainterPreferences {
     static let selectedWallpaperKey = "WallPainter.selectedWallpaperID"
     static let showStatusBarItemKey = "WallPainter.showStatusBarItem"
+    static let wallpaperProtectionEnabledKey = "WallPainter.wallpaperProtectionEnabled"
     static let defaultWallpaperRuleKey = "WallPainter.defaultWallpaperRule"
     static let spaceOverridesKey = "WallPainter.spaceOverrides"
 
@@ -21,6 +22,16 @@ final class WallPainterPreferences {
     var showStatusBarItem: Bool {
         didSet {
             defaults.set(showStatusBarItem, forKey: Self.showStatusBarItemKey)
+            postChange()
+        }
+    }
+
+    var wallpaperProtectionEnabled: Bool {
+        didSet {
+            defaults.set(
+                wallpaperProtectionEnabled,
+                forKey: Self.wallpaperProtectionEnabledKey
+            )
             postChange()
         }
     }
@@ -59,6 +70,9 @@ final class WallPainterPreferences {
         self.defaults = defaults
         selectedWallpaperID = defaults.string(forKey: Self.selectedWallpaperKey)
         showStatusBarItem = defaults.object(forKey: Self.showStatusBarItemKey) as? Bool ?? true
+        wallpaperProtectionEnabled = defaults.object(
+            forKey: Self.wallpaperProtectionEnabledKey
+        ) as? Bool ?? true
         defaultWallpaperRule = Self.decode(
             WallpaperRule.self,
             from: defaults,

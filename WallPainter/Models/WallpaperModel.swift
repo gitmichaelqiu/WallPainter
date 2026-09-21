@@ -120,9 +120,17 @@ final class WallpaperModel {
         isLoading = true
         operationStatus = nil
 
-        _ = assetProtector.restore(
-            protectedIDs: preferences.protectedWallpaperIDs
-        )
+        if preferences.wallpaperProtectionEnabled {
+            _ = assetProtector.restore(
+                protectedIDs: preferences.protectedWallpaperIDs
+            )
+        } else {
+            assetProtector.removeBackups()
+            assetProtectionStatus = WallpaperAssetProtectionStatus(
+                protectedIDs: [],
+                availableIDs: []
+            )
+        }
 
         do {
             items = try catalog.installedAerials()
@@ -140,9 +148,9 @@ final class WallpaperModel {
             currentWallpaperID = nil
             currentWallpaperIDsBySpaceID = [:]
             currentWallpaperState = .empty
-            assetProtectionStatus = assetProtector.status(
-                for: preferences.protectedWallpaperIDs
-            )
+            assetProtectionStatus = preferences.wallpaperProtectionEnabled
+                ? assetProtector.status(for: preferences.protectedWallpaperIDs)
+                : WallpaperAssetProtectionStatus(protectedIDs: [], availableIDs: [])
             operationStatus = .failure(error.localizedDescription)
         }
 
@@ -156,6 +164,16 @@ final class WallpaperModel {
 
     @discardableResult
     func reconcileProtectedAssets() -> WallpaperAssetProtectionStatus {
+        guard preferences.wallpaperProtectionEnabled else {
+            assetProtector.removeBackups()
+            assetProtectionStatus = WallpaperAssetProtectionStatus(
+                protectedIDs: [],
+                availableIDs: []
+            )
+            postChange()
+            return assetProtectionStatus
+        }
+
         _ = assetProtector.restore(
             protectedIDs: preferences.protectedWallpaperIDs
         )
@@ -168,6 +186,22 @@ final class WallpaperModel {
         retainConfiguredAssets()
         postChange()
         return assetProtectionStatus
+    }
+
+    func setWallpaperProtectionEnabled(_ enabled: Bool) {
+        guard preferences.wallpaperProtectionEnabled != enabled else { return }
+
+        preferences.wallpaperProtectionEnabled = enabled
+        if enabled {
+            _ = reconcileProtectedAssets()
+        } else {
+            assetProtector.removeBackups()
+            assetProtectionStatus = WallpaperAssetProtectionStatus(
+                protectedIDs: [],
+                availableIDs: []
+            )
+            postChange()
+        }
     }
 
     func setActiveSpaceTargets(_ targets: [WallpaperSpaceTarget]) {
@@ -419,6 +453,14 @@ final class WallpaperModel {
     }
 
     private func retainConfiguredAssets() {
+        guard preferences.wallpaperProtectionEnabled else {
+            assetProtectionStatus = WallpaperAssetProtectionStatus(
+                protectedIDs: [],
+                availableIDs: []
+            )
+            return
+        }
+
         assetProtectionStatus = assetProtector.retain(
             items: items,
             for: preferences.protectedWallpaperIDs

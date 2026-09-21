@@ -25,6 +25,21 @@ final class WallPainterPreferencesTests: XCTestCase {
         XCTAssertTrue(preferences.showStatusBarItem)
     }
 
+    func testWallpaperProtectionDefaultsToEnabledAndPersists() {
+        let suiteName = "WallPainterPreferencesProtectionTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let preferences = WallPainterPreferences(defaults: defaults)
+
+        XCTAssertTrue(preferences.wallpaperProtectionEnabled)
+
+        preferences.wallpaperProtectionEnabled = false
+
+        let reloaded = WallPainterPreferences(defaults: defaults)
+        XCTAssertFalse(reloaded.wallpaperProtectionEnabled)
+    }
+
     func testDefaultRulePersistsAsManualOrConfiguredValue() throws {
         let suiteName = "WallPainterPreferencesDefaultRuleTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!

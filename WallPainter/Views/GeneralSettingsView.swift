@@ -83,12 +83,34 @@ struct GeneralSettingsView: View {
                 }
 
                 SettingsSection("Wallpaper Protection") {
-                    SettingsRow("Wallpaper protection") {
-                        HStack(spacing: 8) {
-                            if model.assetProtectionStatus.isHealthy {
-                                Text("\(model.assetProtectionStatus.protectedIDs.count) protected")
-                                    .foregroundStyle(.secondary)
-                            } else {
+                    SettingsRow(
+                        "Wallpaper protection",
+                        helperText: "Keep backups of configured wallpapers and restore them if macOS removes them."
+                    ) {
+                        Toggle(
+                            "",
+                            isOn: Binding(
+                                get: { preferences.wallpaperProtectionEnabled },
+                                set: { model.setWallpaperProtectionEnabled($0) }
+                            )
+                        )
+                        .labelsHidden()
+                        .toggleStyle(.switch)
+                    }
+
+                    Divider()
+
+                    SettingsRow("Status") {
+                        if !preferences.wallpaperProtectionEnabled {
+                            Text("Off")
+                                .foregroundStyle(.secondary)
+                                .frame(minHeight: 24)
+                        } else if model.assetProtectionStatus.isHealthy {
+                            Text("\(model.assetProtectionStatus.protectedIDs.count) protected")
+                                .foregroundStyle(.secondary)
+                                .frame(minHeight: 24)
+                        } else {
+                            HStack(spacing: 8) {
                                 Text("Repair needed")
                                     .foregroundStyle(.orange)
 
@@ -96,6 +118,7 @@ struct GeneralSettingsView: View {
                                     model.reconcileProtectedAssets()
                                 }
                             }
+                            .frame(minHeight: 24)
                         }
                     }
                 }
