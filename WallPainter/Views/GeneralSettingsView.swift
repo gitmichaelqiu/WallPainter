@@ -46,16 +46,6 @@ struct GeneralSettingsView: View {
                             .frame(maxWidth: 220, alignment: .trailing)
                             .frame(minHeight: 24)
                     }
-
-                    Divider()
-
-                    SettingsRow("Status") {
-                        Text(currentWallpaperStatus)
-                            .foregroundStyle(
-                                isWallpaperActive ? Color.green : Color.secondary
-                            )
-                            .frame(minHeight: 24)
-                    }
                 }
 
                 SettingsSection(
@@ -203,24 +193,6 @@ struct GeneralSettingsView: View {
     private var allSpaceTargets: [WallpaperSpaceTarget] {
         regularSpaces.map {
             WallpaperSpaceTarget(spaceID: $0.id, displayID: $0.displayID)
-        }
-    }
-
-    private var currentWallpaperStatus: String {
-        switch model.currentWallpaperState {
-        case .empty, .unavailable:
-            return "Unavailable"
-        case .uniform, .mixed:
-            return "Active"
-        }
-    }
-
-    private var isWallpaperActive: Bool {
-        switch model.currentWallpaperState {
-        case .uniform, .mixed:
-            return true
-        case .empty, .unavailable:
-            return false
         }
     }
 
