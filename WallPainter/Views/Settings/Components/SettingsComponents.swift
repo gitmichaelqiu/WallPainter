@@ -16,7 +16,7 @@ struct AnimatedSettingsValue: View {
         Text(displayedText)
             .monospacedDigit()
             .contentTransition(.numericText())
-            .onChange(of: text) { newText in
+            .onChange(of: text) { _, newText in
                 withSettingsAnimation {
                     displayedText = newText
                 }
@@ -289,7 +289,7 @@ struct SettingsContainer<Content: View>: View {
                     .padding(16)
             }
             .environment(\.settingsTab, tab)
-            .onChange(of: navigationState.scrollToItemID) { id in
+            .onChange(of: navigationState.scrollToItemID) { _, id in
                 if let id = id {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                         withAnimation {
