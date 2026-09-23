@@ -64,6 +64,7 @@ struct AboutView: View {
                     
                     VStack(alignment: .leading, spacing: 8) {
                         AboutLinkRow(title: NSLocalizedString("Report an issue", comment: ""), url: "https://github.com/gitmichaelqiu/WallPainter/issues")
+                        AboutLinkRow(title: NSLocalizedString("WallPainter's website", comment: ""), url: "https://wallpainter.mqiu.dev")
                         AboutLinkRow(title: NSLocalizedString("WallPainter's GitHub", comment: ""), url: "https://github.com/gitmichaelqiu/WallPainter")
                         AboutLinkRow(title: NSLocalizedString("My website", comment: ""), url: "https://mqiu.dev")
                         AboutLinkRow(title: NSLocalizedString("My GitHub", comment: ""), url: "https://github.com/gitmichaelqiu")
