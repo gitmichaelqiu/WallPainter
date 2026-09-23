@@ -8,6 +8,7 @@ struct SpacesSettingsView: View {
     @Environment(WallPainterPreferences.self) private var preferences
     @Environment(\.isSettingsPreRendering) private var isPreRendering
     @State private var snapshot: SpaceSnapshot?
+    @State private var isShowingResetConfirmation = false
     @Binding var selectedDisplayID: String?
     @Binding var selectedSpaceID: String
 
@@ -133,7 +134,7 @@ struct SpacesSettingsView: View {
                         helperText: "Every space will use the default rule again."
                     ) {
                         Button("Reset") {
-                            preferences.resetSpaceOverrides()
+                            isShowingResetConfirmation = true
                         }
                         .disabled(preferences.spaceOverrides.isEmpty)
                     }
@@ -142,6 +143,18 @@ struct SpacesSettingsView: View {
                 Spacer()
             }
             .frame(maxWidth: .infinity, alignment: .topLeading)
+        }
+        .confirmationDialog(
+            "Reset all space overrides?",
+            isPresented: $isShowingResetConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Reset Overrides", role: .destructive) {
+                preferences.resetSpaceOverrides()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("All spaces will use the Default rule again.")
         }
         .onAppear {
             updateSnapshot()
