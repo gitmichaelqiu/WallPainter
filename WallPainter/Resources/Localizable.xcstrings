@@ -385,6 +385,9 @@
     "WallPainter's GitHub" : {
       "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "WallPainter 的 GitHub" } } }
     },
+    "WallPainter's website" : {
+      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "WallPainter 的网站" } } }
+    },
     "Wallpaper protection" : {
       "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "壁纸保护" } } }
     },
