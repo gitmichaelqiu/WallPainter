@@ -13,7 +13,7 @@ scaled_square_stroke() {
     awk -v base="$1" -v scale="$square_stroke_scale" \
         'BEGIN { printf "%.3f", base * scale }'
 }
-png_square_stroke="$(scaled_square_stroke 54)"
+png_square_stroke="$(scaled_square_stroke 80)"
 back_template_stroke="$(scaled_square_stroke 44)"
 front_template_stroke="$(scaled_square_stroke 56)"
 connector_template_stroke="$(scaled_square_stroke 3.4)"
