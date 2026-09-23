@@ -6,6 +6,17 @@ repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 asset_root="$repo_root/WallPainter/WallPainter.icon/Assets"
 output="$repo_root/WallPainter/Resources/WallPainterStatusBarTemplate.png"
 pdf_output="$repo_root/WallPainter/Resources/WallPainterStatusBarTemplate.pdf"
+# Tune all square outlines and their connector together. The theme-switch mark
+# is filled geometry and is intentionally not affected by this scale.
+square_stroke_scale="${WALLPAINTER_SQUARE_STROKE_SCALE:-1.4}"
+scaled_square_stroke() {
+    awk -v base="$1" -v scale="$square_stroke_scale" \
+        'BEGIN { printf "%.3f", base * scale }'
+}
+png_square_stroke="$(scaled_square_stroke 54)"
+back_template_stroke="$(scaled_square_stroke 44)"
+front_template_stroke="$(scaled_square_stroke 56)"
+connector_template_stroke="$(scaled_square_stroke 3.4)"
 work_dir="$(mktemp -d)"
 trap 'rm -rf "$work_dir"' EXIT
 
@@ -44,11 +55,14 @@ trace_silhouette() {
 }
 
 back_path="$(trace_silhouette "$asset_root/4_shape1.png" 1024x576 back true)"
-if [[ "$back_path" != *" -123.1492,"* ]]; then
+if [[ "$back_path" != *" 830.02172,102.5 c 16.00888,29.75418"* ]]; then
     print -u2 "Unexpected traced rear-panel path format"
     exit 1
 fi
-back_outer_path="${back_path%% -123.1492,*}"
+# Stop at the end of the rear panel's upper-right turn. The connector below
+# continues from this exact point, with a matching tangent, into the front
+# panel's top edge.
+back_outer_path="${back_path%% c 16.00888,29.75418*}"
 front_path="$(trace_silhouette "$asset_root/6_shape2_rounded copy.png" 1024x576 front true)"
 mark_path="$(trace_silhouette "$asset_root/ios-appearance-icon-transparent.png" 512x512 mark false)"
 back_vector="$work_dir/wallpainter-status-bar-back.svg"
@@ -71,13 +85,13 @@ template_vector="$work_dir/wallpainter-status-bar-template.svg"
 
 print -r -- "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\">" > "$back_vector"
 print -r -- "  <g transform=\"translate(32 32) scale(1.1) translate(-32 -32)\">" >> "$back_vector"
-print -r -- "    <path d=\"$back_path\" transform=\"translate(-7 10) scale(.07)\" fill=\"none\" stroke=\"#fff\" stroke-width=\"48\" stroke-linecap=\"round\" stroke-linejoin=\"round\" vector-effect=\"non-scaling-stroke\"/>" >> "$back_vector"
+print -r -- "    <path d=\"$back_path\" transform=\"translate(-7 10) scale(.07)\" fill=\"none\" stroke=\"#fff\" stroke-width=\"$png_square_stroke\" stroke-linecap=\"round\" stroke-linejoin=\"round\" vector-effect=\"non-scaling-stroke\"/>" >> "$back_vector"
 print -r -- "  </g>" >> "$back_vector"
 print -r -- "</svg>" >> "$back_vector"
 
 print -r -- "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\">" > "$front_vector"
 print -r -- "  <g transform=\"translate(32 32) scale(1.1) translate(-32 -32)\">" >> "$front_vector"
-print -r -- "    <path d=\"$front_path\" transform=\"translate(8 21) scale(.055)\" fill=\"none\" stroke=\"#fff\" stroke-width=\"48\" stroke-linecap=\"round\" stroke-linejoin=\"round\" vector-effect=\"non-scaling-stroke\"/>" >> "$front_vector"
+print -r -- "    <path d=\"$front_path\" transform=\"translate(8 21) scale(.055)\" fill=\"none\" stroke=\"#fff\" stroke-width=\"$png_square_stroke\" stroke-linecap=\"round\" stroke-linejoin=\"round\" vector-effect=\"non-scaling-stroke\"/>" >> "$front_vector"
 print -r -- "  </g>" >> "$front_vector"
 print -r -- "</svg>" >> "$front_vector"
 
@@ -89,9 +103,9 @@ print -r -- "</svg>" >> "$mark_vector"
 
 print -r -- "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\">" > "$connector_vector"
 # Continue the traced rear contour into the front panel's upper-right corner.
-# Match the panels' non-scaling stroke so the join stays smooth and uniform at
-# every export resolution.
-print -r -- "  <path d=\"M 53.8 16.0 C 54.1 17.3 54.2 18.7 53.4 19.95\" fill=\"none\" stroke=\"#fff\" stroke-width=\"48\" stroke-linecap=\"round\" stroke-linejoin=\"round\" vector-effect=\"non-scaling-stroke\"/>" >> "$connector_vector"
+# Its start point and handle are the transformed end point and tangent of the
+# traced rear contour, avoiding a separately capped line sitting beside it.
+print -r -- "  <path d=\"M 53.01167244 15.6925 C 53.15 17.1 53.15 19.95 53.4 19.95\" fill=\"none\" stroke=\"#fff\" stroke-width=\"$png_square_stroke\" stroke-linecap=\"round\" stroke-linejoin=\"round\" vector-effect=\"non-scaling-stroke\"/>" >> "$connector_vector"
 print -r -- "</svg>" >> "$connector_vector"
 
 # Keep a vector copy for AppKit to rasterize at the status-item's actual size.
@@ -100,12 +114,12 @@ print -r -- "</svg>" >> "$connector_vector"
 print -r -- "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\">" > "$template_vector"
 print -r -- "  <g>" >> "$template_vector"
 print -r -- "    <g transform=\"translate(32 32) scale(1.1) translate(-32 -32)\">" >> "$template_vector"
-print -r -- "      <path d=\"$back_outer_path\" transform=\"translate(-7 10) scale(.07)\" fill=\"none\" stroke=\"#fff\" stroke-width=\"40\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>" >> "$template_vector"
+print -r -- "      <path d=\"$back_outer_path\" transform=\"translate(-7 10) scale(.07)\" fill=\"none\" stroke=\"#fff\" stroke-width=\"$back_template_stroke\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>" >> "$template_vector"
 print -r -- "    </g>" >> "$template_vector"
 print -r -- "  </g>" >> "$template_vector"
-print -r -- "  <path d=\"M 53.8 16.0 C 54.1 17.3 54.2 18.7 53.4 19.95\" fill=\"none\" stroke=\"#fff\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>" >> "$template_vector"
+print -r -- "  <path d=\"M 53.01167244 15.6925 C 53.15 17.1 53.15 19.95 53.4 19.95\" fill=\"none\" stroke=\"#fff\" stroke-width=\"$connector_template_stroke\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>" >> "$template_vector"
 print -r -- "  <g transform=\"translate(32 32) scale(1.1) translate(-32 -32)\">" >> "$template_vector"
-print -r -- "    <path d=\"$front_path\" transform=\"translate(8 21) scale(.055)\" fill=\"none\" stroke=\"#fff\" stroke-width=\"50\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>" >> "$template_vector"
+print -r -- "    <path d=\"$front_path\" transform=\"translate(8 21) scale(.055)\" fill=\"none\" stroke=\"#fff\" stroke-width=\"$front_template_stroke\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>" >> "$template_vector"
 print -r -- "    <path d=\"$mark_path\" transform=\"translate(34.5 34.5) scale(.055)\" fill=\"#fff\"/>" >> "$template_vector"
 print -r -- "  </g>" >> "$template_vector"
 print -r -- "</svg>" >> "$template_vector"
@@ -134,14 +148,12 @@ inkscape "$connector_vector" \
     --export-width=2048 \
     >/dev/null 2>&1
 
-# The traced rear panel contains a short inner horizontal contour. It is the
-# same edge as the front panel's top edge at menu-bar scale, so composing both
-# traces directly makes that edge look heavier. Erase only that rear contour;
-# all other traced geometry remains unchanged.
+# The traced PNG path contains the old rear-corner segment and inner horizontal
+# contour. Erase both before placing the corrected connector over the rear.
 magick "$back_rendered" -alpha extract "$back_alpha"
 magick -size 2048x2048 xc:white \
     -fill black \
-    -draw 'rectangle 477,512 1820,677' \
+    -draw 'rectangle 477,500 1820,677' \
     "$back_mask"
 magick "$back_alpha" "$back_mask" \
     -compose Multiply \
