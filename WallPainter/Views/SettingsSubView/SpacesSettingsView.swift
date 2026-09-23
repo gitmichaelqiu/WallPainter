@@ -105,7 +105,7 @@ struct SpacesSettingsView: View {
                             "Available spaces",
                             warningText: spaceProvider?.isAvailable == true
                                 ? "No regular Mission Control spaces were reported."
-                                : "Open Permissions to connect DesktopRenamer SpaceAPI."
+                                : "Automatic space-based wallpaper changes are paused. Reconnect DesktopRenamer SpaceAPI in Permissions."
                         ) {
                             Text(spaceProvider?.isAvailable == true ? "No spaces" : "Unavailable")
                                 .foregroundStyle(

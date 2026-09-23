@@ -6,6 +6,10 @@
 	objectVersion = 110;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		46C9DAE4306425790076A3C1 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 46C9DAE3306425790076A3C1 /* Sparkle */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		A0F100000000000000000007 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -51,6 +55,7 @@
 		460A8DE6304432E100EBF8C5 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				46C9DAE4306425790076A3C1 /* Sparkle in Frameworks */,
 			);
 		};
 		A0F100000000000000000005 /* Frameworks */ = {
@@ -96,6 +101,9 @@
 				460A8DEB304432E100EBF8C5 /* WallPainter */,
 			);
 			name = WallPainter;
+			packageProductDependencies = (
+				46C9DAE3306425790076A3C1 /* Sparkle */,
+			);
 			productName = WallPainter;
 			productReference = 460A8DE9304432E100EBF8C5 /* WallPainter.app */;
 			productType = "com.apple.product-type.application";
@@ -148,6 +156,9 @@
 			);
 			mainGroup = 460A8DE0304432E100EBF8C5;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				46C9DAE2306425790076A3C1 /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 460A8DEA304432E100EBF8C5 /* Products */;
 			projectDirPath = "";
@@ -445,6 +456,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		46C9DAE2306425790076A3C1 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.10.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		46C9DAE3306425790076A3C1 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 46C9DAE2306425790076A3C1 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 460A8DE1304432E100EBF8C5 /* Project object */;
 	validationLevel = 1;

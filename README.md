@@ -13,7 +13,7 @@
 
 ### Direct Download
 
-You do **NOT** have to disable *SIP* or things like that. Your macOS must be at least **macOS 15.0 Ventura**. All you need to do is:
+You do **NOT** have to disable *SIP* or things like that. Your macOS must be at least **macOS 15.0 Sequoia**. All you need to do is:
 
 1. Download the package from [Releases](https://github.com/gitmichaelqiu/WallPainter/releases/)
 2. Drag the app to the *Applications* folder

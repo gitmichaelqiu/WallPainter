@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DefaultSettingsView: View {
     let model: WallpaperModel
+    let spaceProvider: (any SpaceAPIProviding)?
 
     @Environment(WallPainterPreferences.self) private var preferences
 
@@ -24,6 +25,23 @@ struct DefaultSettingsView: View {
                         .labelsHidden()
                         .pickerStyle(.menu)
                         .frame(minWidth: 190, alignment: .trailing)
+                    }
+
+                    if hasAutomaticRules {
+                        Divider()
+
+                        SettingsRow(
+                            "SpaceAPI",
+                            helperText: "Required for applying automatic wallpaper rules to spaces. Reconnect it in Permissions if unavailable."
+                        ) {
+                            Text(spaceProvider?.isAvailable == true ? "Connected" : "Paused")
+                                .foregroundStyle(
+                                    spaceProvider?.isAvailable == true
+                                        ? Color.secondary
+                                        : Color.orange
+                                )
+                                .frame(minHeight: 24)
+                        }
                     }
 
                     if preferences.defaultWallpaperRule.mode != .manual {
@@ -68,6 +86,11 @@ struct DefaultSettingsView: View {
             }
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }
+    }
+
+    private var hasAutomaticRules: Bool {
+        preferences.defaultWallpaperRule.mode != .manual
+            || preferences.spaceOverrides.values.contains { $0.mode != .manual }
     }
 }
 

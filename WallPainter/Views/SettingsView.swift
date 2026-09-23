@@ -86,7 +86,8 @@ struct SettingsView: View {
                     .environment(\.settingsTab, .spaces)
 
                     DefaultSettingsView(
-                        model: wallpaperModel
+                        model: wallpaperModel,
+                        spaceProvider: spaceProvider
                     )
                     .environment(\.settingsTab, .default)
 
@@ -295,7 +296,8 @@ struct SettingsView: View {
                     )
                 case .default:
                     DefaultSettingsView(
-                        model: wallpaperModel
+                        model: wallpaperModel,
+                        spaceProvider: spaceProvider
                     )
                 case .permissions:
                     PermissionsSettingsView(

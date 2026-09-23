@@ -220,6 +220,7 @@ final class WallpaperAssetProtectionTests: XCTestCase {
             for: wallpaper,
             directories: directories
         ).path))
+        XCTAssertFalse(fileManager.fileExists(atPath: directories.backupDirectory.path))
         XCTAssertTrue(model.assetProtectionStatus.protectedIDs.isEmpty)
     }
 
