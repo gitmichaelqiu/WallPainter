@@ -58,7 +58,10 @@ struct GeneralSettingsView: View {
                     }
                 }
 
-                SettingsSection("Installed Live Wallpapers") {
+                SettingsSection(
+                    "Manual Wallpaper",
+                    helperText: "Select a wallpaper and apply it once. This does not change Default or per-space rules; automation may later replace it."
+                ) {
                     SettingsRow("Refresh catalog") {
                         Button {
                             model.refresh()
@@ -80,6 +83,34 @@ struct GeneralSettingsView: View {
                         isPreRendering: isPreRendering,
                         maxHeight: wallpaperCatalogMaxHeight
                     )
+
+                    Divider()
+
+                    SettingsRow("Apply to current space(s)") {
+                        Button {
+                            applyToCurrentSpaces()
+                        } label: {
+                            if model.isSwitching {
+                                HStack(spacing: 6) {
+                                    ProgressView()
+                                        .controlSize(.small)
+                                    Text("Switching…")
+                                }
+                            } else {
+                                Text("Apply")
+                            }
+                        }
+                        .disabled(!canApplyToCurrentSpaces || model.isSwitching)
+                    }
+
+                    Divider()
+
+                    SettingsRow("Apply Everywhere") {
+                        Button("Apply") {
+                            applyEverywhere()
+                        }
+                        .disabled(model.selectedWallpaper == nil || model.isSwitching)
+                    }
                 }
 
                 SettingsSection("Wallpaper Protection") {
@@ -120,34 +151,6 @@ struct GeneralSettingsView: View {
                             }
                             .frame(minHeight: 24)
                         }
-                    }
-                }
-
-                SettingsSection(nil) {
-                    SettingsRow("Apply to current space(s)") {
-                        Button {
-                            applyToCurrentSpaces()
-                        } label: {
-                            if model.isSwitching {
-                                HStack(spacing: 6) {
-                                    ProgressView()
-                                        .controlSize(.small)
-                                    Text("Switching…")
-                                }
-                            } else {
-                                Text("Apply")
-                            }
-                        }
-                        .disabled(!canApplyToCurrentSpaces || model.isSwitching)
-                    }
-
-                    Divider()
-
-                    SettingsRow("Apply Everywhere") {
-                        Button("Apply") {
-                            applyEverywhere()
-                        }
-                        .disabled(model.selectedWallpaper == nil || model.isSwitching)
                     }
                 }
 

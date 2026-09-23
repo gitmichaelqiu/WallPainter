@@ -11,10 +11,10 @@ struct DefaultSettingsView: View {
         SettingsContainer(.default) {
             VStack(alignment: .leading, spacing: 20) {
                 SettingsSection(
-                    "Default Wallpaper",
-                    helperText: "Spaces use this behavior unless they have their own override."
+                    "Automatic Wallpaper Rule",
+                    helperText: "Automatically applies to spaces using Default. Manual changes do not edit this rule and may be replaced the next time it runs."
                 ) {
-                    SettingsRow("Rule") {
+                    SettingsRow("Behavior") {
                         Picker("", selection: $preferences.defaultWallpaperRule.mode) {
                             ForEach(WallpaperRuleMode.allCases) { mode in
                                 Text(mode.displayName)
