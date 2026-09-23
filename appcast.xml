@@ -4,7 +4,15 @@
         <title>WallPainter</title>
         <link>https://github.com/gitmichaelqiu/WallPainter/releases</link>
         <description>WallPainter software updates</description>
-        <!-- Add each published release with its build number, release notes URL,
-             signed enclosure URL, file length, and EdDSA signature. -->
+        <item>
+            <title>1.0.0</title>
+            <link>https://wallpainter.mqiu.dev</link>
+            <sparkle:version>1</sparkle:version>
+            <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.0.0</sparkle:minimumSystemVersion>
+            <sparkle:releaseNotesLink>https://github.com/gitmichaelqiu/WallPainter/releases/tag/v1.0.0</sparkle:releaseNotesLink>
+            <pubDate>Thu, 24 Sep 2026 00:48:44 +0800</pubDate>
+            <enclosure url="https://github.com/gitmichaelqiu/WallPainter/releases/download/v1.0.0/WallPainter%201.0.0.dmg" length="28573802" type="application/octet-stream" sparkle:edSignature="kXNOKtQYk6q0eHKm+r425x4Yq5aCs1ZZcFG2tcnTu0EOUWPnucS9ZRYEeLG02Yx9k37wXol4bbnQToF7KeRyDA=="/>
+        </item>
     </channel>
 </rss>
