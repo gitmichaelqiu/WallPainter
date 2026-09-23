@@ -27,6 +27,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.wallpaperModel = wallpaperModel
         self.spaceAPIClient = spaceAPIClient
 
+        _ = UpdateManager.shared
+
         wallpaperModel.refresh()
 
         let automationCoordinator = WallpaperAutomationCoordinator(

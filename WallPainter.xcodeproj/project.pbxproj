@@ -354,6 +354,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
+				WALLPAINTER_UPDATE_FEED_URL = "https://raw.githubusercontent.com/gitmichaelqiu/WallPainter/main/appcast.xml";
 			};
 			name = Debug;
 		};
@@ -391,6 +392,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
+				WALLPAINTER_UPDATE_FEED_URL = "https://raw.githubusercontent.com/gitmichaelqiu/WallPainter/main/appcast.xml";
 			};
 			name = Release;
 		};

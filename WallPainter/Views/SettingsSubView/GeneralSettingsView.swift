@@ -1,5 +1,6 @@
 import AppKit
 import Combine
+import Sparkle
 import SwiftUI
 
 struct GeneralSettingsView: View {
@@ -11,6 +12,8 @@ struct GeneralSettingsView: View {
     @Environment(\.isSettingsPreRendering) private var isPreRendering
     @State private var launchAtLoginEnabled = false
     @State private var hasLoadedLaunchAtLogin = false
+    @State private var automaticallyChecksForUpdates = false
+    @State private var automaticallyDownloadsUpdates = false
     @State private var snapshot: SpaceSnapshot?
     @StateObject private var catalogScrollSession = CatalogScrollSession()
 
@@ -35,6 +38,33 @@ struct GeneralSettingsView: View {
                             .labelsHidden()
                             .toggleStyle(.switch)
                             .disabled(!hasLoadedLaunchAtLogin)
+                    }
+                }
+
+                SettingsSection("Updates") {
+                    SettingsRow("Automatically check for updates") {
+                        Toggle("", isOn: $automaticallyChecksForUpdates)
+                            .labelsHidden()
+                            .toggleStyle(.switch)
+                    }
+
+                    if automaticallyChecksForUpdates {
+                        Divider()
+
+                        SettingsRow("Automatically download updates") {
+                            Toggle("", isOn: $automaticallyDownloadsUpdates)
+                                .labelsHidden()
+                                .toggleStyle(.switch)
+                                .disabled(!UpdateManager.shared.updaterController.updater.allowsAutomaticUpdates)
+                        }
+                    }
+
+                    Divider()
+
+                    SettingsRow("Check for Updates") {
+                        Button("Check Now") {
+                            UpdateManager.shared.updaterController.checkForUpdates(nil)
+                        }
                     }
                 }
 
@@ -162,6 +192,10 @@ struct GeneralSettingsView: View {
         .onAppear {
             launchAtLoginEnabled = launchAtLoginManager.isEnabled
             hasLoadedLaunchAtLogin = true
+            automaticallyChecksForUpdates = UpdateManager.shared
+                .updaterController.updater.automaticallyChecksForUpdates
+            automaticallyDownloadsUpdates = UpdateManager.shared
+                .updaterController.updater.automaticallyDownloadsUpdates
             updateSpaceState()
         }
         .onReceive(NotificationCenter.default.publisher(
@@ -182,6 +216,15 @@ struct GeneralSettingsView: View {
             } catch {
                 launchAtLoginEnabled = launchAtLoginManager.isEnabled
             }
+        }
+        .onChange(of: automaticallyChecksForUpdates) { _, newValue in
+            UpdateManager.shared.updaterController.updater.automaticallyChecksForUpdates = newValue
+            if !newValue {
+                automaticallyDownloadsUpdates = false
+            }
+        }
+        .onChange(of: automaticallyDownloadsUpdates) { _, newValue in
+            UpdateManager.shared.updaterController.updater.automaticallyDownloadsUpdates = newValue
         }
     }
 

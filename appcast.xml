@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>WallPainter</title>
+        <link>https://github.com/gitmichaelqiu/WallPainter/releases</link>
+        <description>WallPainter software updates</description>
+        <!-- Add each published release with its build number, release notes URL,
+             signed enclosure URL, file length, and EdDSA signature. -->
+    </channel>
+</rss>

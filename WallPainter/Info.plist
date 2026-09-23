@@ -4,5 +4,9 @@
 <dict>
 	<key>ATSApplicationFontsPath</key>
 	<string>Fonts</string>
+	<key>SUFeedURL</key>
+	<string>$(WALLPAINTER_UPDATE_FEED_URL)</string>
+	<key>SUPublicEDKey</key>
+	<string>e9YKamydRddgnYK6Kq41W0vPbwI4F9XJAhks/9rzT0w=</string>
 </dict>
 </plist>
