@@ -2,8 +2,6 @@ import SwiftUI
 
 struct DefaultSettingsView: View {
     let model: WallpaperModel
-    let coordinator: WallpaperAutomationCoordinator
-    let spaceProvider: (any SpaceAPIProviding)?
 
     @Environment(WallPainterPreferences.self) private var preferences
 
@@ -68,13 +66,6 @@ struct DefaultSettingsView: View {
                         wallpapers: model.items,
                         title: "Preview"
                     )
-                }
-
-                SettingsSection("Status") {
-                    SettingsRow("Current system appearance") {
-                        Text(coordinator.currentAppearance.displayName)
-                            .frame(minHeight: 24)
-                    }
                 }
 
                 Spacer()

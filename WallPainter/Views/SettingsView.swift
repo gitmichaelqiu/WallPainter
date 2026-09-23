@@ -86,9 +86,7 @@ struct SettingsView: View {
                     .environment(\.settingsTab, .spaces)
 
                     DefaultSettingsView(
-                        model: wallpaperModel,
-                        coordinator: automationCoordinator,
-                        spaceProvider: spaceProvider
+                        model: wallpaperModel
                     )
                     .environment(\.settingsTab, .default)
 
@@ -297,9 +295,7 @@ struct SettingsView: View {
                     )
                 case .default:
                     DefaultSettingsView(
-                        model: wallpaperModel,
-                        coordinator: automationCoordinator,
-                        spaceProvider: spaceProvider
+                        model: wallpaperModel
                     )
                 case .permissions:
                     PermissionsSettingsView(
