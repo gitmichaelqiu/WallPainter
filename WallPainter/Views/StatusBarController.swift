@@ -145,7 +145,7 @@ final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
         statusItem.isVisible = preferences.showStatusBarItem
         guard let button = statusItem.button else { return }
 
-        let image = ["pdf", "png"].compactMap { fileExtension in
+        let image = ["png", "pdf"].compactMap { fileExtension in
             Bundle.main.url(
                 forResource: "WallPainterStatusBarTemplate",
                 withExtension: fileExtension
