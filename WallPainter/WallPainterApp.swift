@@ -17,7 +17,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             preferences: preferences,
             assetProtector: SystemWallpaperAssetProtector()
         )
-        let spaceAPIClient = SpaceAPIClient()
+        let disconnectNotificationManager = SpaceAPIDisconnectNotificationManager(
+            preferences: preferences
+        )
+        let spaceAPIClient = SpaceAPIClient(
+            disconnectNotifications: disconnectNotificationManager
+        )
         self.preferences = preferences
         self.wallpaperModel = wallpaperModel
         self.spaceAPIClient = spaceAPIClient

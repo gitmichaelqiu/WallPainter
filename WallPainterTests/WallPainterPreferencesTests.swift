@@ -40,6 +40,21 @@ final class WallPainterPreferencesTests: XCTestCase {
         XCTAssertFalse(reloaded.wallpaperProtectionEnabled)
     }
 
+    func testSpaceAPIDisconnectNotificationsDefaultToOffAndPersist() {
+        let suiteName = "WallPainterPreferencesSpaceAPINotificationsTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let preferences = WallPainterPreferences(defaults: defaults)
+
+        XCTAssertFalse(preferences.notifyOnSpaceAPIDisconnect)
+
+        preferences.notifyOnSpaceAPIDisconnect = true
+
+        let reloaded = WallPainterPreferences(defaults: defaults)
+        XCTAssertTrue(reloaded.notifyOnSpaceAPIDisconnect)
+    }
+
     func testDefaultRulePersistsAsManualOrConfiguredValue() throws {
         let suiteName = "WallPainterPreferencesDefaultRuleTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!

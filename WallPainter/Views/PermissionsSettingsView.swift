@@ -3,7 +3,13 @@ import SwiftUI
 struct PermissionsSettingsView: View {
     let spaceManager: SpaceAPIClient?
 
+    @Environment(WallPainterPreferences.self) private var preferences
+    @State private var notificationPermissionMessage: String?
+    @State private var isRequestingNotificationPermission = false
+
     var body: some View {
+        @Bindable var preferences = preferences
+
         SettingsContainer(.permissions) {
             VStack(alignment: .leading, spacing: 20) {
                 SettingsSection(
@@ -23,6 +29,48 @@ struct PermissionsSettingsView: View {
                                     .foregroundStyle(.secondary)
                             }
                             .frame(height: 24)
+                        }
+                    }
+
+                    Divider()
+
+                    SettingsRow(
+                        "Notify on disconnect",
+                        helperText: "Send a macOS notification when a previously available SpaceAPI connection drops. Requires notification access."
+                    ) {
+                        Toggle(
+                            "",
+                            isOn: Binding(
+                                get: { preferences.notifyOnSpaceAPIDisconnect },
+                                set: { enabled in
+                                    guard let manager = spaceManager?
+                                        .disconnectNotificationManager
+                                    else {
+                                        return
+                                    }
+                                    isRequestingNotificationPermission = true
+                                    Task { @MainActor in
+                                        defer {
+                                            isRequestingNotificationPermission = false
+                                        }
+                                        await manager.setEnabled(enabled)
+                                        notificationPermissionMessage = manager.permissionMessage
+                                    }
+                                }
+                            )
+                        )
+                        .labelsHidden()
+                        .toggleStyle(.switch)
+                        .disabled(spaceManager == nil || isRequestingNotificationPermission)
+                    }
+
+                    if let notificationPermissionMessage {
+                        Divider()
+
+                        SettingsRow("Notification access") {
+                            Text(notificationPermissionMessage)
+                                .foregroundStyle(.orange)
+                                .frame(minHeight: 24)
                         }
                     }
                 }
