@@ -58,6 +58,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 struct WallPainterApp: App {
     @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
 
+    init() {
+        NSSplitViewItem.swizzle()
+    }
+
     var body: some Scene {
         Settings {
             EmptyView()
