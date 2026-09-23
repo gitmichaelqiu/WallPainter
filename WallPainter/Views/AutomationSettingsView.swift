@@ -26,46 +26,42 @@ struct DefaultSettingsView: View {
                         .frame(minWidth: 190, alignment: .trailing)
                     }
 
-                    Divider()
+                    if preferences.defaultWallpaperRule.mode != .manual {
+                        Divider()
 
-                    if preferences.defaultWallpaperRule.mode == .manual {
-                        SettingsRow("Automatic changes") {
-                            Text("Off")
-                                .foregroundStyle(.secondary)
-                                .frame(minHeight: 24)
-                        }
-                    } else if preferences.defaultWallpaperRule.mode == .fixed {
-                        SettingsRow("Fixed wallpaper") {
-                            WallpaperPicker(
-                                selection: $preferences.defaultWallpaperRule.fixedWallpaperID,
-                                wallpapers: model.items
-                            )
-                        }
-                    } else {
-                        SettingsRow("Light wallpaper") {
-                            WallpaperPicker(
-                                selection: $preferences.defaultWallpaperRule.lightWallpaperID,
-                                wallpapers: model.items
-                            )
+                        if preferences.defaultWallpaperRule.mode == .fixed {
+                            SettingsRow("Fixed wallpaper") {
+                                WallpaperPicker(
+                                    selection: $preferences.defaultWallpaperRule.fixedWallpaperID,
+                                    wallpapers: model.items
+                                )
+                            }
+                        } else {
+                            SettingsRow("Light wallpaper") {
+                                WallpaperPicker(
+                                    selection: $preferences.defaultWallpaperRule.lightWallpaperID,
+                                    wallpapers: model.items
+                                )
+                            }
+
+                            Divider()
+
+                            SettingsRow("Dark wallpaper") {
+                                WallpaperPicker(
+                                    selection: $preferences.defaultWallpaperRule.darkWallpaperID,
+                                    wallpapers: model.items
+                                )
+                            }
                         }
 
                         Divider()
 
-                        SettingsRow("Dark wallpaper") {
-                            WallpaperPicker(
-                                selection: $preferences.defaultWallpaperRule.darkWallpaperID,
-                                wallpapers: model.items
-                            )
-                        }
+                        WallpaperRulePreview(
+                            rule: preferences.defaultWallpaperRule,
+                            wallpapers: model.items,
+                            title: "Preview"
+                        )
                     }
-
-                    Divider()
-
-                    WallpaperRulePreview(
-                        rule: preferences.defaultWallpaperRule,
-                        wallpapers: model.items,
-                        title: "Preview"
-                    )
                 }
 
                 Spacer()
