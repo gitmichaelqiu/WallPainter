@@ -54,6 +54,27 @@ final class SystemWallpaperCatalogTests: XCTestCase {
                 "localizedNameKey": "GRAND_CANYON_TWO",
                 "preferredOrder": 4,
                 "shotID": "G007_C004"
+            ],
+            [
+                "id": "greenland-evening",
+                "accessibilityLabel": "Greenland",
+                "localizedNameKey": "GL_G010_C006_NAME",
+                "preferredOrder": 5,
+                "shotID": "GL_G010_C006"
+            ],
+            [
+                "id": "greenland-coast",
+                "accessibilityLabel": "Greenland",
+                "localizedNameKey": "GL_G002_C002_NAME",
+                "preferredOrder": 6,
+                "shotID": "GL_G002_C002"
+            ],
+            [
+                "id": "greenland-glacier",
+                "accessibilityLabel": "Greenland",
+                "localizedNameKey": "GL_G004_C010_NAME",
+                "preferredOrder": 7,
+                "shotID": "GL_G004_C010"
             ]
         ]
 
@@ -74,7 +95,10 @@ final class SystemWallpaperCatalogTests: XCTestCase {
             "DYNAMIC_LIGHT_KEY": "Light",
             "GG_A_DAY_NAME": "Golden Gate Day",
             "GRAND_CANYON_ONE": "Grand Canyon",
-            "GRAND_CANYON_TWO": "Grand Canyon"
+            "GRAND_CANYON_TWO": "Grand Canyon",
+            "GL_G010_C006_NAME": "Greenland Evening",
+            "GL_G002_C002_NAME": "Greenland Coast",
+            "GL_G004_C010_NAME": "Greenland Glacier"
         ])
         let catalog = SystemWallpaperCatalog(
             fileManager: fileManager,
@@ -91,9 +115,64 @@ final class SystemWallpaperCatalogTests: XCTestCase {
                 "dynamic-light-portrait": "macOS Light (Portrait)",
                 "golden-gate-day": "Golden Gate Day",
                 "grand-canyon-one": "Grand Canyon (1)",
-                "grand-canyon-two": "Grand Canyon (2)"
+                "grand-canyon-two": "Grand Canyon (2)",
+                "greenland-evening": "Greenland Evening",
+                "greenland-coast": "Greenland Coast",
+                "greenland-glacier": "Greenland Glacier"
             ]
         )
+    }
+
+    func testBundleWallpaperNameLocalizerReadsNoCacheTableAndMatchesPreferredLanguage() throws {
+        let tableURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("WallPainterNames-\(UUID().uuidString).loctable")
+        defer { try? FileManager.default.removeItem(at: tableURL) }
+
+        let translations = [
+            "en": ["GREENLAND_EVENING": "Greenland Evening"],
+            "fr": ["GREENLAND_EVENING": "Soir au Groenland"]
+        ]
+        let data = try PropertyListSerialization.data(
+            fromPropertyList: translations,
+            format: .binary,
+            options: 0
+        )
+        try data.write(to: tableURL)
+
+        let localizer = BundleWallpaperNameLocalizer(
+            localizationTableURL: tableURL,
+            languagePreferences: ["fr-CA", "en-US"]
+        )
+
+        XCTAssertEqual(
+            localizer.localizedString(forKey: "GREENLAND_EVENING"),
+            "Soir au Groenland"
+        )
+    }
+
+    func testSystemBundleResolvesDistinctGreenlandNamesWhenAvailable() throws {
+        let bundle = Bundle(
+            path: "/System/Library/ExtensionKit/Extensions/WallpaperAerialsExtension.appex/Contents/Resources/TVIdleScreenStrings.bundle"
+        )
+        guard let tableURL = bundle?.resourceURL?
+            .appendingPathComponent("Localizable.nocache.loctable"),
+              FileManager.default.fileExists(atPath: tableURL.path)
+        else {
+            throw XCTSkip("The system Aerial name table is unavailable on this macOS version.")
+        }
+
+        let localizer = BundleWallpaperNameLocalizer(
+            bundle: bundle,
+            languagePreferences: ["en-US"]
+        )
+        let names = [
+            "GL_G010_C006_NAME",
+            "GL_G002_C002_NAME",
+            "GL_G004_C010_NAME"
+        ].compactMap(localizer.localizedString(forKey:))
+
+        XCTAssertEqual(names.count, 3)
+        XCTAssertEqual(Set(names), ["Greenland Evening", "Greenland Coast", "Greenland Glacier"])
     }
 }
 

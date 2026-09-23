@@ -9,7 +9,8 @@ protocol WallpaperNameLocalizing {
 }
 
 struct BundleWallpaperNameLocalizer: WallpaperNameLocalizing {
-    let bundle: Bundle?
+    private let localizedNames: [String: [String: String]]
+    private let languagePreferences: [String]
 
     static let system = BundleWallpaperNameLocalizer(
         bundle: Bundle(
@@ -17,11 +18,51 @@ struct BundleWallpaperNameLocalizer: WallpaperNameLocalizing {
         )
     )
 
-    func localizedString(forKey key: String) -> String? {
-        guard let bundle else { return nil }
+    init(
+        bundle: Bundle?,
+        languagePreferences: [String] = Locale.preferredLanguages
+    ) {
+        let tableURL = bundle?.resourceURL?
+            .appendingPathComponent("Localizable.nocache.loctable")
+        self.init(
+            localizationTableURL: tableURL,
+            languagePreferences: languagePreferences
+        )
+    }
 
-        let value = bundle.localizedString(forKey: key, value: nil, table: nil)
-        return value == key ? nil : value
+    init(
+        localizationTableURL: URL?,
+        languagePreferences: [String] = Locale.preferredLanguages
+    ) {
+        self.languagePreferences = languagePreferences
+
+        guard let localizationTableURL,
+              let data = try? Data(contentsOf: localizationTableURL),
+              let propertyList = try? PropertyListSerialization.propertyList(
+                from: data,
+                options: [],
+                format: nil
+              ),
+              let localizationTable = propertyList as? [String: Any]
+        else {
+            self.localizedNames = [:]
+            return
+        }
+
+        self.localizedNames = localizationTable.reduce(into: [:]) { result, entry in
+            guard let strings = entry.value as? [String: String] else { return }
+            let localization = entry.key.replacingOccurrences(of: "_", with: "-")
+            result[localization] = strings
+        }
+    }
+
+    func localizedString(forKey key: String) -> String? {
+        let preferredLocalizations = Bundle.preferredLocalizations(
+            from: Array(localizedNames.keys),
+            forPreferences: languagePreferences
+        )
+
+        return preferredLocalizations.lazy.compactMap { localizedNames[$0]?[key] }.first
     }
 }
 
