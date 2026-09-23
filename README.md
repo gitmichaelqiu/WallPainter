@@ -7,6 +7,19 @@
 <p align="center"><i>Automate wallpaper switches</i></p>
 </h3>
 
+<table align="center" border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/2af76bd4-09ec-4bd9-b826-36af97d19497" width="300"/><br>
+      <i>View downloaded Aerial wallpapers</i>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/7ba9b995-b2bd-4d67-8e9d-f718726f0410" width="300"/><br>
+      <i>Automate wallpaper switches</i>
+    </td>
+  </tr>
+</table>
+
 **WallPainter** is a macOS menubar app that changes macOS Aerial wallpapers based on your customized rules.
 
 ## 📦 Installation
