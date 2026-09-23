@@ -95,7 +95,7 @@ struct GeneralSettingsView: View {
 
                     Divider()
 
-                    SettingsRow("Apply Everywhere") {
+                    SettingsRow("Apply everywhere") {
                         Button("Apply") {
                             applyEverywhere()
                         }
