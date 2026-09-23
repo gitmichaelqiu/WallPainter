@@ -4,377 +4,1191 @@
     "" : {
       "shouldTranslate" : false
     },
+    "%@ is already active on your desktop." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 已在当前桌面上使用。"
+          }
+        }
+      }
+    },
+    "%@ is now active everywhere." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 已应用到所有桌面。"
+          }
+        }
+      }
+    },
+    "%@ is now active on the selected spaces." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 已应用到所选桌面。"
+          }
+        }
+      }
+    },
     "%lld protected" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已保护 %lld 张壁纸" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已保护 %lld 张壁纸"
+          }
+        }
+      }
     },
     "© %@ Michael Yicheng Qiu" : {
       "shouldTranslate" : false
     },
     "About" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "关于" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关于"
+          }
+        }
+      }
     },
     "Acknowledgements" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "致谢" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "致谢"
+          }
+        }
+      }
+    },
+    "Acknowledgements.pdf" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "致谢.pdf"
+          }
+        }
+      }
     },
     "All spaces will use the Default rule again." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "所有桌面都将重新使用“默认”规则。" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有桌面都将重新使用“默认”规则。"
+          }
+        }
+      }
+    },
+    "Allow notifications for WallPainter in System Settings, then try again." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在系统设置中允许 WallPainter 发送通知，然后重试。"
+          }
+        }
+      }
+    },
+    "Apple Aerial %@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Aerial %@"
+          }
+        }
+      }
     },
     "Apply" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "应用" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用"
+          }
+        }
+      }
     },
     "Apply everywhere" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "应用到所有桌面" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用到所有桌面"
+          }
+        }
+      }
     },
     "Apply to current space(s)" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "应用到当前桌面" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用到当前桌面"
+          }
+        }
+      }
     },
     "Automatic space-based wallpaper changes are paused. Reconnect DesktopRenamer SpaceAPI in Permissions." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "基于桌面的自动壁纸更改已暂停。请前往“权限”重新连接 DesktopRenamer SpaceAPI。" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基于桌面的自动壁纸更改已暂停。请前往“权限”重新连接 DesktopRenamer SpaceAPI。"
+          }
+        }
+      }
     },
     "Automatic Wallpaper Rule" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "自动壁纸规则" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动壁纸规则"
+          }
+        }
+      }
     },
     "Automatically applies to spaces using Default. Manual changes do not edit this rule and may be replaced the next time it runs." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "自动应用于使用“默认”规则的桌面。手动更改不会修改此规则，并可能在下次自动运行时被替换。" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动应用于使用“默认”规则的桌面。手动更改不会修改此规则，并可能在下次自动运行时被替换。"
+          }
+        }
+      }
     },
     "Automatically check for updates" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "自动检查更新" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动检查更新"
+          }
+        }
+      }
     },
     "Automatically download updates" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "自动下载更新" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动下载更新"
+          }
+        }
+      }
     },
     "Available spaces" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "可用桌面" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可用桌面"
+          }
+        }
+      }
     },
     "Behavior" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "行为" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "行为"
+          }
+        }
+      }
     },
     "Cancel" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "取消" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消"
+          }
+        }
+      }
     },
     "Check for Updates" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "检查更新" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "检查更新"
+          }
+        }
+      }
     },
     "Check Now" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "立即检查" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "立即检查"
+          }
+        }
+      }
     },
     "Connected" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已连接" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已连接"
+          }
+        }
+      }
     },
     "Control which app and dock to show in each space." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "控制每个桌面显示哪些 App 和 Dock。" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "控制每个桌面显示哪些 App 和 Dock。"
+          }
+        }
+      }
+    },
+    "Could not request notification access: %@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法请求通知权限：%@"
+          }
+        }
+      }
     },
     "Couldn't remove backups" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "无法移除备份" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法移除备份"
+          }
+        }
+      }
     },
     "Current desktop wallpaper" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当前桌面壁纸" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前桌面壁纸"
+          }
+        }
+      }
     },
     "Current Wallpaper" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当前壁纸" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前壁纸"
+          }
+        }
+      }
+    },
+    "Dark" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "深色"
+          }
+        }
+      }
     },
     "Dark wallpaper" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "深色壁纸" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "深色壁纸"
+          }
+        }
+      }
     },
     "Default" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "默认" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "默认"
+          }
+        }
+      }
     },
     "Delete Tab" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "删除标签页" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除标签页"
+          }
+        }
+      }
     },
     "DesktopRenamer provides SpaceAPI. Enable it in DesktopRenamer's settings before using space-aware wallpaper rules." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "SpaceAPI 由 DesktopRenamer 提供。使用按桌面设置壁纸的规则前，请先在 DesktopRenamer 设置中启用 SpaceAPI。" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SpaceAPI 由 DesktopRenamer 提供。使用按桌面设置壁纸的规则前，请先在 DesktopRenamer 设置中启用 SpaceAPI。"
+          }
+        }
+      }
     },
     "DesktopRenamer SpaceAPI" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "DesktopRenamer SpaceAPI" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DesktopRenamer SpaceAPI"
+          }
+        }
+      }
     },
     "Display" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "显示器" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示器"
+          }
+        }
+      }
     },
     "Download an Apple Aerial in System Settings, then refresh this catalog." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "请先在系统设置中下载一款 Apple Aerial 壁纸，然后刷新此目录。" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先在系统设置中下载一款 Apple Aerial 壁纸，然后刷新此目录。"
+          }
+        }
+      }
+    },
+    "Effective wallpaper" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前生效的壁纸"
+          }
+        }
+      }
     },
     "Every space will use the default rule again." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "所有桌面都将重新使用默认规则。" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有桌面都将重新使用默认规则。"
+          }
+        }
+      }
+    },
+    "Fixed" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "固定"
+          }
+        }
+      }
     },
     "Fixed wallpaper" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "固定壁纸" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "固定壁纸"
+          }
+        }
+      }
+    },
+    "Follow system appearance" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "跟随系统外观"
+          }
+        }
+      }
     },
     "General" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "通用" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通用"
+          }
+        }
+      }
     },
     "Hide menubar icon" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "隐藏菜单栏图标" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐藏菜单栏图标"
+          }
+        }
+      }
     },
     "Install DesktopRenamer" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "安装 DesktopRenamer" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安装 DesktopRenamer"
+          }
+        }
+      }
     },
     "Keep backups of configured wallpapers and restore them if macOS removes them." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "为已配置的壁纸保留备份，并在 macOS 将其移除时恢复。" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "为已配置的壁纸保留备份，并在 macOS 将其移除时恢复。"
+          }
+        }
+      }
     },
     "Launch at login" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "登录时启动" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "登录时启动"
+          }
+        }
+      }
     },
     "Launch DesktopRenamer" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "启动 DesktopRenamer" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启动 DesktopRenamer"
+          }
+        }
+      }
     },
     "Let you right-click with the Option key." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "按住 Option 键即可执行右键单击。" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按住 Option 键即可执行右键单击。"
+          }
+        }
+      }
+    },
+    "Light" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "浅色"
+          }
+        }
+      }
     },
     "Light wallpaper" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "浅色壁纸" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "浅色壁纸"
+          }
+        }
+      }
     },
     "Links" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "链接" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "链接"
+          }
+        }
+      }
     },
     "Manage and rename your macOS desktop spaces." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "管理并重命名 macOS 桌面空间。" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理并重命名 macOS 桌面空间。"
+          }
+        }
+      }
+    },
+    "Manual" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手动"
+          }
+        }
+      }
     },
     "Manual Wallpaper" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "手动壁纸" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手动壁纸"
+          }
+        }
+      }
     },
     "More Apps" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "更多应用" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更多应用"
+          }
+        }
+      }
+    },
+    "Multiple wallpapers" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "多张壁纸"
+          }
+        }
+      }
     },
     "My GitHub" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "我的 GitHub" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我的 GitHub"
+          }
+        }
+      }
     },
     "My website" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "我的网站" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我的网站"
+          }
+        }
+      }
     },
     "New Tab" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "新建标签页" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新建标签页"
+          }
+        }
+      }
+    },
+    "No active regular spaces are available." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有可用的当前普通桌面。"
+          }
+        }
+      }
     },
     "No automatic wallpaper changes" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "不自动更改壁纸" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不自动更改壁纸"
+          }
+        }
+      }
     },
     "No installed Aerial wallpapers found" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未找到已安装的 Apple Aerial 壁纸" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到已安装的 Apple Aerial 壁纸"
+          }
+        }
+      }
+    },
+    "No installed Apple Aerial wallpaper choices were found." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到已安装的 Apple Aerial 壁纸选项。"
+          }
+        }
+      }
+    },
+    "No installed wallpapers" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有已安装的壁纸"
+          }
+        }
+      }
     },
     "No regular Mission Control spaces were reported." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未检测到普通的调度中心桌面。" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未检测到普通的调度中心桌面。"
+          }
+        }
+      }
+    },
+    "No regular spaces are available." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有可用的普通桌面。"
+          }
+        }
+      }
     },
     "No results" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "无结果" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无结果"
+          }
+        }
+      }
     },
     "No spaces" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "无桌面" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无桌面"
+          }
+        }
+      }
+    },
+    "Not detected" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未检测到"
+          }
+        }
+      }
     },
     "Not selected" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未选择" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未选择"
+          }
+        }
+      }
     },
     "Notification access" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "通知权限" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通知权限"
+          }
+        }
+      }
     },
     "Notify on disconnect" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "断开连接时通知" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "断开连接时通知"
+          }
+        }
+      }
     },
     "Off" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已关闭" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已关闭"
+          }
+        }
+      }
     },
     "Open DesktopRenamer" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "打开 DesktopRenamer" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开 DesktopRenamer"
+          }
+        }
+      }
     },
     "Painter" : {
       "shouldTranslate" : false
     },
     "Paused" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已暂停" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已暂停"
+          }
+        }
+      }
     },
     "Permissions" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "权限" } } }
-    },
-    "Real-time video enhancing player." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "实时视频增强播放器。" } } }
-    },
-    "Refresh" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "刷新" } } }
-    },
-    "Refresh catalog" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "刷新目录" } } }
-    },
-    "Repair" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "修复" } } }
-    },
-    "Repair needed" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "需要修复" } } }
-    },
-    "Report an issue" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "报告问题" } } }
-    },
-    "Required for applying automatic wallpaper rules to spaces. Reconnect it in Permissions if unavailable." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "将自动壁纸规则应用到桌面需要 SpaceAPI。若其不可用，请前往“权限”重新连接。" } } }
-    },
-    "Reset" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "重置" } } }
-    },
-    "Reset all space overrides" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "重置所有桌面覆盖规则" } } }
-    },
-    "Reset all space overrides?" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "要重置所有桌面覆盖规则吗？" } } }
-    },
-    "Reset Overrides" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "重置覆盖项" } } }
-    },
-    "Retry" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "重试" } } }
-    },
-    "Search" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "搜索" } } }
-    },
-    "Select a wallpaper and apply it once. This does not change Default or per-space rules; automation may later replace it." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "选择一张壁纸并立即应用一次。此操作不会更改“默认”规则或各桌面的规则；之后自动化可能会替换此壁纸。" } } }
-    },
-    "Select this installed live wallpaper" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "选择此已安装的动态壁纸" } } }
-    },
-    "Selected" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已选择" } } }
-    },
-    "Send a macOS notification when a previously available SpaceAPI connection drops. Requires notification access." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "SpaceAPI 从已连接变为断开时发送 macOS 通知。需要通知权限。" } } }
-    },
-    "Space" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "桌面" } } }
-    },
-    "Space Behavior" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "桌面行为" } } }
-    },
-    "SpaceAPI" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "SpaceAPI" } } }
-    },
-    "Spaces" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "桌面" } } }
-    },
-    "Status" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "状态" } } }
-    },
-    "Switching…" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正在切换…" } } }
-    },
-    "Tabs" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "标签页" } } }
-    },
-    "Unavailable" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "不可用" } } }
-    },
-    "Updates" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "更新" } } }
-    },
-    "Use Default inherits the Default tab's rule; other choices apply only to this space." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "“使用默认”会继承“默认”标签页中的规则；其他选项仅应用于此桌面。" } } }
-    },
-    "Acknowledgements.pdf" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "致谢.pdf" } } }
-    },
-    "Apple Aerial %@" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "Apple Aerial %@" } } }
-    },
-    "Could not request notification access: %@" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "无法请求通知权限：%@" } } }
-    },
-    "Dark" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "深色" } } }
-    },
-    "Effective wallpaper" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当前生效的壁纸" } } }
-    },
-    "Fixed" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "固定" } } }
-    },
-    "Follow system appearance" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "跟随系统外观" } } }
-    },
-    "Light" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "浅色" } } }
-    },
-    "Manual" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "手动" } } }
-    },
-    "Multiple wallpapers" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "多张壁纸" } } }
-    },
-    "No active regular spaces are available." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "没有可用的当前普通桌面。" } } }
-    },
-    "No installed Apple Aerial wallpaper choices were found." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未找到已安装的 Apple Aerial 壁纸选项。" } } }
-    },
-    "No installed wallpapers" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "没有已安装的壁纸" } } }
-    },
-    "No regular spaces are available." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "没有可用的普通桌面。" } } }
-    },
-    "Not detected" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未检测到" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "权限"
+          }
+        }
+      }
     },
     "Preview" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "预览" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "预览"
+          }
+        }
+      }
     },
     "Quit WallPainter" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "退出 WallPainter" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "退出 WallPainter"
+          }
+        }
+      }
+    },
+    "Real-time video enhancing player." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时视频增强播放器。"
+          }
+        }
+      }
+    },
+    "Refresh" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刷新"
+          }
+        }
+      }
+    },
+    "Refresh catalog" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刷新目录"
+          }
+        }
+      }
+    },
+    "Repair" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "修复"
+          }
+        }
+      }
+    },
+    "Repair needed" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要修复"
+          }
+        }
+      }
+    },
+    "Report an issue" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "报告问题"
+          }
+        }
+      }
+    },
+    "Required for applying automatic wallpaper rules to spaces. Reconnect it in Permissions if unavailable." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将自动壁纸规则应用到桌面需要 SpaceAPI。若其不可用，请前往“权限”重新连接。"
+          }
+        }
+      }
+    },
+    "Reset" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置"
+          }
+        }
+      }
+    },
+    "Reset all space overrides" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置所有桌面覆盖规则"
+          }
+        }
+      }
+    },
+    "Reset all space overrides?" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要重置所有桌面覆盖规则吗？"
+          }
+        }
+      }
+    },
+    "Reset Overrides" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置覆盖项"
+          }
+        }
+      }
+    },
+    "Retry" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重试"
+          }
+        }
+      }
+    },
+    "Search" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索"
+          }
+        }
+      }
+    },
+    "Select a wallpaper and apply it once. This does not change Default or per-space rules; automation may later replace it." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择一张壁纸并立即应用一次。此操作不会更改“默认”规则或各桌面的规则；之后自动化可能会替换此壁纸。"
+          }
+        }
+      }
+    },
+    "Select this installed live wallpaper" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择此已安装的动态壁纸"
+          }
+        }
+      }
+    },
+    "Selected" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已选择"
+          }
+        }
+      }
+    },
+    "Send a macOS notification when a previously available SpaceAPI connection drops. Requires notification access." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SpaceAPI 从已连接变为断开时发送 macOS 通知。需要通知权限。"
+          }
+        }
+      }
     },
     "Settings…" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "设置…" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设置…"
+          }
+        }
+      }
     },
-    "SpaceAPI disconnected" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "SpaceAPI 已断开连接" } } }
+    "Space" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "桌面"
+          }
+        }
+      }
+    },
+    "Space Behavior" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "桌面行为"
+          }
+        }
+      }
     },
     "Space-aware wallpaper changes are paused until DesktopRenamer reconnects." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "基于桌面的壁纸更改已暂停，等待 DesktopRenamer 重新连接。" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基于桌面的壁纸更改已暂停，等待 DesktopRenamer 重新连接。"
+          }
+        }
+      }
+    },
+    "SpaceAPI" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SpaceAPI"
+          }
+        }
+      }
+    },
+    "SpaceAPI disconnected" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SpaceAPI 已断开连接"
+          }
+        }
+      }
+    },
+    "Spaces" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "桌面"
+          }
+        }
+      }
+    },
+    "Status" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "状态"
+          }
+        }
+      }
     },
     "Switch" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "切换" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切换"
+          }
+        }
+      }
     },
-    "The macOS wallpaper store could not be found." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "找不到 macOS 壁纸存储。" } } }
+    "Switching…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在切换…"
+          }
+        }
+      }
     },
-    "The macOS wallpaper store has an unsupported format." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "macOS 壁纸存储格式不受支持。" } } }
-    },
-    "The selected wallpaper is already active." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "所选壁纸已在使用中。" } } }
-    },
-    "The selected wallpaper is not installed." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "所选壁纸未安装。" } } }
-    },
-    "The wallpaper store does not contain space %@." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "壁纸存储中不存在桌面 %@。" } } }
-    },
-    "This wallpaper store does not support a mixed space-scoped write." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "此壁纸存储不支持对多个桌面分别写入不同壁纸。" } } }
-    },
-    "Use default rule" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "使用默认规则" } } }
-    },
-    "Allow notifications for WallPainter in System Settings, then try again." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "请在系统设置中允许 WallPainter 发送通知，然后重试。" } } }
+    "Tabs" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "标签页"
+          }
+        }
+      }
     },
     "The copied wallpaper asset failed verification." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "复制的壁纸资源未通过验证。" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制的壁纸资源未通过验证。"
+          }
+        }
+      }
     },
-    "Wallpaper" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "壁纸" } } }
+    "The macOS wallpaper store could not be found." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找不到 macOS 壁纸存储。"
+          }
+        }
+      }
     },
-    "WallpaperAgent could not be reloaded (exit status %d)." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "无法重新加载 WallpaperAgent（退出状态：%d）。" } } }
+    "The macOS wallpaper store has an unsupported format." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS 壁纸存储格式不受支持。"
+          }
+        }
+      }
     },
-    "WallPainter's wallpaper backups still exist after removal." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "移除后 WallPainter 的壁纸备份仍然存在。" } } }
+    "The selected wallpaper is already active." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所选壁纸已在使用中。"
+          }
+        }
+      }
     },
-    "Wallpapers are now active on the selected spaces." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "壁纸已应用到所选桌面。" } } }
+    "The selected wallpaper is not installed." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所选壁纸未安装。"
+          }
+        }
+      }
     },
-    "%@ is already active on your desktop." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%@ 已在当前桌面上使用。" } } }
+    "The wallpaper store does not contain space %@." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "壁纸存储中不存在桌面 %@。"
+          }
+        }
+      }
     },
-    "%@ is now active everywhere." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%@ 已应用到所有桌面。" } } }
+    "This wallpaper store does not support a mixed space-scoped write." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此壁纸存储不支持对多个桌面分别写入不同壁纸。"
+          }
+        }
+      }
     },
-    "%@ is now active on the selected spaces." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%@ 已应用到所选桌面。" } } }
+    "Unavailable" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不可用"
+          }
+        }
+      }
+    },
+    "Updates" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新"
+          }
+        }
+      }
+    },
+    "Use Default inherits the Default tab's rule; other choices apply only to this space." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“使用默认”会继承“默认”标签页中的规则；其他选项仅应用于此桌面。"
+          }
+        }
+      }
+    },
+    "Use default rule" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用默认规则"
+          }
+        }
+      }
     },
     "v%@" : {
       "shouldTranslate" : false
@@ -382,20 +1196,98 @@
     "Wall" : {
       "shouldTranslate" : false
     },
+    "WallPainter" : {
+      "shouldTranslate" : false
+    },
     "WallPainter's GitHub" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "WallPainter 的 GitHub" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WallPainter 的 GitHub"
+          }
+        }
+      }
+    },
+    "WallPainter's wallpaper backups still exist after removal." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除后 WallPainter 的壁纸备份仍然存在。"
+          }
+        }
+      }
     },
     "WallPainter's website" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "WallPainter 的网站" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WallPainter 的网站"
+          }
+        }
+      }
+    },
+    "Wallpaper" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "壁纸"
+          }
+        }
+      }
     },
     "Wallpaper protection" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "壁纸保护" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "壁纸保护"
+          }
+        }
+      }
     },
     "Wallpaper Protection" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "壁纸保护" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "壁纸保护"
+          }
+        }
+      }
     },
     "Wallpaper unavailable" : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "壁纸不可用" } } }
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "壁纸不可用"
+          }
+        }
+      }
+    },
+    "WallpaperAgent could not be reloaded (exit status %d)." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法重新加载 WallpaperAgent（退出状态：%d）。"
+          }
+        }
+      }
+    },
+    "Wallpapers are now active on the selected spaces." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "壁纸已应用到所选桌面。"
+          }
+        }
+      }
     }
   },
   "version" : "1.3"
