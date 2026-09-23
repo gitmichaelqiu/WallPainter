@@ -302,7 +302,7 @@ private struct SpaceRuleEditor: View {
     var body: some View {
         SettingsSection(
             "Space Behavior",
-            helperText: "Use the default rule unless this space needs its own wallpaper."
+            helperText: "Use Default inherits the Default tab's rule; other choices apply only to this space."
         ) {
             SettingsRow("Behavior") {
                 Picker("", selection: $selection) {

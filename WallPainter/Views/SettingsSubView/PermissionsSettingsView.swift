@@ -17,8 +17,7 @@ struct PermissionsSettingsView: View {
                     helperText: "DesktopRenamer provides SpaceAPI. Enable it in DesktopRenamer's settings before using space-aware wallpaper rules."
                 ) {
                     SettingsRow(
-                        "DesktopRenamer SpaceAPI",
-                        helperText: "Required for reading desktop spaces and applying space-based wallpaper rules."
+                        "DesktopRenamer SpaceAPI"
                     ) {
                         if let spaceManager {
                             SpaceAPIStatusView(spaceManager: spaceManager)
