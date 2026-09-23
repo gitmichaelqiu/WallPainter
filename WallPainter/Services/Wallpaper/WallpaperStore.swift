@@ -10,15 +10,15 @@ enum WallpaperStoreError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .storeNotFound:
-            return "The macOS wallpaper store could not be found."
+            return String(localized: "The macOS wallpaper store could not be found.")
         case .invalidStore:
-            return "The macOS wallpaper store has an unsupported format."
+            return String(localized: "The macOS wallpaper store has an unsupported format.")
         case .noAerialChoices:
-            return "No installed Apple Aerial wallpaper choices were found."
+            return String(localized: "No installed Apple Aerial wallpaper choices were found.")
         case .spaceNotFound(let spaceID):
-            return "The wallpaper store does not contain space \(spaceID)."
+            return String(localized: "The wallpaper store does not contain space \(spaceID).")
         case .reloadFailed(let status):
-            return "WallpaperAgent could not be reloaded (exit status \(status))."
+            return String(localized: "WallpaperAgent could not be reloaded (exit status \(status)).")
         }
     }
 }

@@ -412,7 +412,7 @@ private enum SpaceRuleSelection: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    var title: String {
+    var title: LocalizedStringResource {
         switch self {
         case .allSpaces:
             return "Use default rule"

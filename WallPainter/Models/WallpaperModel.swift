@@ -61,14 +61,14 @@ final class WallpaperModel {
     var currentWallpaperName: String {
         switch currentWallpaperState {
         case .mixed:
-            return "Multiple wallpapers"
+            return String(localized: "Multiple wallpapers")
         case .unavailable:
-            return "Not detected"
+            return String(localized: "Not detected")
         case .empty:
             if let currentWallpaperID {
                 return name(for: currentWallpaperID)
             }
-            return "Not detected"
+            return String(localized: "Not detected")
         case .uniform(let wallpaperID):
             return name(for: wallpaperID)
         }
@@ -77,11 +77,11 @@ final class WallpaperModel {
     var currentWallpaperSummary: String {
         switch currentWallpaperState {
         case .mixed:
-            return "Multiple wallpapers"
+            return String(localized: "Multiple wallpapers")
         case .unavailable:
-            return "Unavailable"
+            return String(localized: "Unavailable")
         case .empty:
-            return "Not detected"
+            return String(localized: "Not detected")
         case .uniform:
             return currentWallpaperName
         }
@@ -275,7 +275,7 @@ final class WallpaperModel {
     func applyWallpaperEverywhere(id: String) -> Bool {
         guard !isSwitching else { return false }
         guard let wallpaper = items.first(where: { $0.id == id }) else {
-            operationStatus = .failure("The selected wallpaper is not installed.")
+            operationStatus = .failure(String(localized: "The selected wallpaper is not installed."))
             postChange()
             return false
         }
@@ -289,7 +289,7 @@ final class WallpaperModel {
 
         if activeSpaceTargets.isEmpty, currentWallpaperID == wallpaper.id {
             selectedWallpaperID = wallpaper.id
-            operationStatus = .success("\(wallpaper.name) is already active on your desktop.")
+            operationStatus = .success(String(localized: "\(wallpaper.name) is already active on your desktop."))
             return true
         }
 
@@ -301,7 +301,7 @@ final class WallpaperModel {
             currentWallpaperID = wallpaper.id
             currentWallpaperState = .uniform(wallpaper.id)
             selectedWallpaperID = wallpaper.id
-            operationStatus = .success("\(wallpaper.name) is now active everywhere.")
+            operationStatus = .success(String(localized: "\(wallpaper.name) is now active everywhere."))
             return true
         } catch {
             operationStatus = .failure(error.localizedDescription)
@@ -313,7 +313,7 @@ final class WallpaperModel {
     func applyWallpaper(id: String, to targets: [WallpaperSpaceTarget]) -> Bool {
         let normalizedTargets = uniqueTargets(targets)
         guard !normalizedTargets.isEmpty else {
-            operationStatus = .failure("No active regular spaces are available.")
+            operationStatus = .failure(String(localized: "No active regular spaces are available."))
             postChange()
             return false
         }
@@ -329,7 +329,7 @@ final class WallpaperModel {
         let normalizedTargets = uniqueTargets(targets)
         guard !isSwitching else { return false }
         guard !normalizedTargets.isEmpty else {
-            operationStatus = .failure("No regular spaces are available.")
+            operationStatus = .failure(String(localized: "No regular spaces are available."))
             postChange()
             return false
         }
@@ -338,7 +338,7 @@ final class WallpaperModel {
             guard let wallpaperID = wallpaperIDsBySpaceID[target.spaceID],
                   items.contains(where: { $0.id == wallpaperID })
             else {
-                operationStatus = .failure("The selected wallpaper is not installed.")
+                operationStatus = .failure(String(localized: "The selected wallpaper is not installed."))
                 postChange()
                 return false
             }
@@ -350,7 +350,7 @@ final class WallpaperModel {
                 selectedWallpaperID = firstID
             }
             updateCurrentWallpaperState()
-            operationStatus = .success("The selected wallpaper is already active.")
+            operationStatus = .success(String(localized: "The selected wallpaper is already active."))
             postChange()
             return true
         }
@@ -374,8 +374,8 @@ final class WallpaperModel {
                     items.first(where: { $0.id == id })?.name
                 })
                 operationStatus = .success(names.count == 1
-                    ? "\(names.first ?? "Wallpaper") is now active on the selected spaces."
-                    : "Wallpapers are now active on the selected spaces.")
+                    ? String(localized: "\(names.first ?? String(localized: "Wallpaper")) is now active on the selected spaces.")
+                    : String(localized: "Wallpapers are now active on the selected spaces."))
             }
             return true
         } catch {
@@ -412,7 +412,7 @@ final class WallpaperModel {
         if let item = items.first(where: { $0.id == wallpaperID }) {
             return item.name
         }
-        return "Apple Aerial \(wallpaperID.prefix(8))"
+        return String(localized: "Apple Aerial \(wallpaperID.prefix(8))")
     }
 
     private func updateCurrentWallpaperState() {

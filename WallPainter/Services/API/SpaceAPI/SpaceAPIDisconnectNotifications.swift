@@ -22,9 +22,8 @@ struct SystemSpaceAPIDisconnectNotificationScheduler:
 
     func scheduleDisconnectNotification() {
         let content = UNMutableNotificationContent()
-        content.title = "SpaceAPI disconnected"
-        content.body = "Space-aware wallpaper changes are paused until "
-            + "DesktopRenamer reconnects."
+        content.title = String(localized: "SpaceAPI disconnected")
+        content.body = String(localized: "Space-aware wallpaper changes are paused until DesktopRenamer reconnects.")
         content.sound = .default
 
         let request = UNNotificationRequest(
@@ -61,15 +60,13 @@ final class SpaceAPIDisconnectNotificationManager {
 
         do {
             guard try await scheduler.requestAuthorization() else {
-                permissionMessage = "Allow notifications for WallPainter in System Settings, "
-                    + "then try again."
+                permissionMessage = String(localized: "Allow notifications for WallPainter in System Settings, then try again.")
                 return
             }
 
             preferences.notifyOnSpaceAPIDisconnect = true
         } catch {
-            permissionMessage = "Could not request notification access: "
-                + error.localizedDescription
+            permissionMessage = String(localized: "Could not request notification access: \(error.localizedDescription)")
         }
     }
 

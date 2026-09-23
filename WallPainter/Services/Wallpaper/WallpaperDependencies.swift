@@ -24,7 +24,7 @@ enum WallpaperScopedStoreError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .unsupportedMixedWrite:
-            return "This wallpaper store does not support a mixed space-scoped write."
+            return String(localized: "This wallpaper store does not support a mixed space-scoped write.")
         }
     }
 }

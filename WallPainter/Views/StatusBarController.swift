@@ -155,7 +155,7 @@ final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
         .first
             ?? NSImage(
                 systemSymbolName: "photo.tv",
-                accessibilityDescription: "WallPainter"
+                accessibilityDescription: String(localized: "WallPainter")
             )!
         image.size = NSSize(width: 18, height: 18)
         image.isTemplate = true
@@ -169,8 +169,9 @@ final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
         menu.autoenablesItems = false
         menu.delegate = self
 
-        let switchItem = NSMenuItem(title: "Switch", action: nil, keyEquivalent: "")
-        let switchMenu = NSMenu(title: "Switch")
+        let switchTitle = String(localized: "Switch")
+        let switchItem = NSMenuItem(title: switchTitle, action: nil, keyEquivalent: "")
+        let switchMenu = NSMenu(title: switchTitle)
         switchMenu.autoenablesItems = false
 
         let entries: [WallpaperMenuEntry]
@@ -190,7 +191,7 @@ final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
 
         if entries.isEmpty {
             let emptyItem = NSMenuItem(
-                title: "No installed wallpapers",
+                title: String(localized: "No installed wallpapers"),
                 action: nil,
                 keyEquivalent: ""
             )
@@ -216,7 +217,7 @@ final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
         menu.addItem(.separator())
 
         let settingsItem = NSMenuItem(
-            title: "Settings…",
+            title: String(localized: "Settings…"),
             action: #selector(openSettingsWindow),
             keyEquivalent: ","
         )
@@ -227,7 +228,7 @@ final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
         menu.addItem(.separator())
 
         let quitItem = NSMenuItem(
-            title: "Quit WallPainter",
+            title: String(localized: "Quit WallPainter"),
             action: #selector(quitApp),
             keyEquivalent: "q"
         )

@@ -3,7 +3,7 @@ import SwiftUI
 struct WallpaperRulePreview: View {
     let rule: WallpaperRule
     let wallpapers: [WallpaperItem]
-    let title: String
+    let title: LocalizedStringResource
 
     private var fixedWallpaper: WallpaperItem? {
         wallpaper(withID: rule.fixedWallpaperID)
@@ -58,7 +58,7 @@ struct WallpaperRulePreview: View {
 
 private struct SpaceWallpaperPreviewCard: View {
     let wallpaper: WallpaperItem?
-    let label: String
+    let label: LocalizedStringResource
 
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {

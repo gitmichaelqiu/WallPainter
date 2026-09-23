@@ -114,7 +114,7 @@ struct AboutView: View {
                         .font(.headline)
                         .foregroundColor(.primary)
                     
-                    AboutButtonRow(title: "Acknowledgements.pdf", action: openAcknowledgements)
+                    AboutButtonRow(title: String(localized: "Acknowledgements.pdf"), action: openAcknowledgements)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

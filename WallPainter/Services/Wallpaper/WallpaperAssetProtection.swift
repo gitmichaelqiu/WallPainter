@@ -87,9 +87,9 @@ struct SystemWallpaperAssetProtector: WallpaperAssetProtecting {
         var errorDescription: String? {
             switch self {
             case .invalidCopiedAsset:
-                return "The copied wallpaper asset failed verification."
+                return String(localized: "The copied wallpaper asset failed verification.")
             case .backupsStillExist:
-                return "WallPainter's wallpaper backups still exist after removal."
+                return String(localized: "WallPainter's wallpaper backups still exist after removal.")
             }
         }
     }

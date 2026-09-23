@@ -7,7 +7,7 @@ enum WallpaperRuleMode: String, CaseIterable, Codable, Identifiable, Sendable {
 
     var id: String { rawValue }
 
-    var displayName: String {
+    var displayName: LocalizedStringResource {
         switch self {
         case .manual:
             return "Manual"
