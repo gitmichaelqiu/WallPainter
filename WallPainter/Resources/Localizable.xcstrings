@@ -358,8 +358,8 @@
     "Wallpaper" : {
       "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "壁纸" } } }
     },
-    "WallpaperAgent could not be reloaded (exit status %lld)." : {
-      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "无法重新加载 WallpaperAgent（退出状态：%lld）。" } } }
+    "WallpaperAgent could not be reloaded (exit status %d)." : {
+      "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "无法重新加载 WallpaperAgent（退出状态：%d）。" } } }
     },
     "WallPainter's wallpaper backups still exist after removal." : {
       "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "移除后 WallPainter 的壁纸备份仍然存在。" } } }
