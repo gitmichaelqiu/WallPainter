@@ -81,13 +81,25 @@ final class WallpaperAssetProtectionTests: XCTestCase {
         try writeData("apple-cache", to: wallpaper.videoURL)
 
         let protector = makeProtector(directories: directories)
-        protector.removeBackups()
+        try protector.removeBackups()
 
         XCTAssertFalse(fileManager.fileExists(atPath: backupVideoURL(
             for: wallpaper,
             directories: directories
         ).path))
         XCTAssertTrue(fileManager.fileExists(atPath: wallpaper.videoURL.path))
+    }
+
+    func testRemoveBackupsVerifiesTheBackupDirectoryIsGone() throws {
+        let directories = try makeDirectories()
+        let operations = TestAssetFileOperations(mode: .copy, preserveBackupDirectory: true)
+        let protector = makeProtector(
+            directories: directories,
+            fileOperations: operations
+        )
+
+        XCTAssertThrowsError(try protector.removeBackups())
+        XCTAssertTrue(fileManager.fileExists(atPath: directories.backupDirectory.path))
     }
 
     func testFailedRestoreLeavesNoPartialAsset() throws {
@@ -209,6 +221,39 @@ final class WallpaperAssetProtectionTests: XCTestCase {
             directories: directories
         ).path))
         XCTAssertTrue(model.assetProtectionStatus.protectedIDs.isEmpty)
+    }
+
+    func testFailedProtectionDisableKeepsProtectionOnUntilBackupRemovalSucceeds() throws {
+        let directories = try makeDirectories()
+        let wallpaper = makeWallpaper(id: "retry-protection-disable", directories: directories)
+        try writeData("asset-data", to: wallpaper.videoURL)
+        let preferences = WallPainterPreferences(defaults: makeDefaults())
+        preferences.selectedWallpaperID = wallpaper.id
+        let operations = TestAssetFileOperations(mode: .copy, failRemoval: true)
+        let model = WallpaperModel(
+            catalog: AssetProtectionTestCatalog(items: [wallpaper]),
+            store: AssetProtectionTestStore(),
+            preferences: preferences,
+            assetProtector: makeProtector(
+                directories: directories,
+                fileOperations: operations
+            )
+        )
+        let backupURL = backupVideoURL(for: wallpaper, directories: directories)
+
+        model.refresh()
+        model.setWallpaperProtectionEnabled(false)
+
+        XCTAssertTrue(preferences.wallpaperProtectionEnabled)
+        XCTAssertTrue(fileManager.fileExists(atPath: backupURL.path))
+        XCTAssertNotNil(model.protectionBackupRemovalError)
+
+        operations.failRemoval = false
+        model.retryWallpaperProtectionCleanup()
+
+        XCTAssertFalse(preferences.wallpaperProtectionEnabled)
+        XCTAssertFalse(fileManager.fileExists(atPath: directories.backupDirectory.path))
+        XCTAssertNil(model.protectionBackupRemovalError)
     }
 
     func testAutomationRestoresEvictedAppearanceAssetBeforeApplying() throws {
@@ -394,10 +439,18 @@ private final class TestAssetFileOperations: WallpaperAssetFileOperations {
 
     let mode: Mode
     private let fileManager = FileManager.default
+    var failRemoval: Bool
+    private let preserveBackupDirectory: Bool
     private(set) var callCount = 0
 
-    init(mode: Mode) {
+    init(
+        mode: Mode,
+        failRemoval: Bool = false,
+        preserveBackupDirectory: Bool = false
+    ) {
         self.mode = mode
+        self.failRemoval = failRemoval
+        self.preserveBackupDirectory = preserveBackupDirectory
     }
 
     func cloneOrCopyItem(at sourceURL: URL, to destinationURL: URL) throws {
@@ -406,6 +459,18 @@ private final class TestAssetFileOperations: WallpaperAssetFileOperations {
             throw TestAssetFileOperationError.failed
         }
         try fileManager.copyItem(at: sourceURL, to: destinationURL)
+    }
+
+    func removeItem(at url: URL) throws {
+        if failRemoval {
+            throw TestAssetFileOperationError.failed
+        }
+        guard !preserveBackupDirectory else { return }
+        try fileManager.removeItem(at: url)
+    }
+
+    func fileExists(at url: URL) -> Bool {
+        fileManager.fileExists(atPath: url.path)
     }
 }
 

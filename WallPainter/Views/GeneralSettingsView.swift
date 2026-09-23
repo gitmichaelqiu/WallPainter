@@ -122,7 +122,18 @@ struct GeneralSettingsView: View {
                     Divider()
 
                     SettingsRow("Status") {
-                        if !preferences.wallpaperProtectionEnabled {
+                        if let removalError = model.protectionBackupRemovalError {
+                            HStack(spacing: 8) {
+                                Text("Couldn't remove backups")
+                                    .foregroundStyle(.orange)
+
+                                Button("Retry") {
+                                    model.retryWallpaperProtectionCleanup()
+                                }
+                                .help(removalError)
+                            }
+                            .frame(minHeight: 24)
+                        } else if !preferences.wallpaperProtectionEnabled {
                             Text("Off")
                                 .foregroundStyle(.secondary)
                                 .frame(minHeight: 24)

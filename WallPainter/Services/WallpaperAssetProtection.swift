@@ -21,11 +21,13 @@ protocol WallpaperAssetProtecting {
         for protectedIDs: Set<String>
     ) -> WallpaperAssetProtectionStatus
     func status(for protectedIDs: Set<String>) -> WallpaperAssetProtectionStatus
-    func removeBackups()
+    func removeBackups() throws
 }
 
 protocol WallpaperAssetFileOperations {
     func cloneOrCopyItem(at sourceURL: URL, to destinationURL: URL) throws
+    func removeItem(at url: URL) throws
+    func fileExists(at url: URL) -> Bool
 }
 
 struct DefaultWallpaperAssetFileOperations: WallpaperAssetFileOperations {
@@ -44,6 +46,14 @@ struct DefaultWallpaperAssetFileOperations: WallpaperAssetFileOperations {
             try fileManager.removeItem(at: destinationURL)
         }
         try fileManager.copyItem(at: sourceURL, to: destinationURL)
+    }
+
+    func removeItem(at url: URL) throws {
+        try fileManager.removeItem(at: url)
+    }
+
+    func fileExists(at url: URL) -> Bool {
+        fileManager.fileExists(atPath: url.path)
     }
 }
 
@@ -66,12 +76,22 @@ struct NoopWallpaperAssetProtector: WallpaperAssetProtecting {
         )
     }
 
-    func removeBackups() { }
+    func removeBackups() throws { }
 }
 
 struct SystemWallpaperAssetProtector: WallpaperAssetProtecting {
-    private enum AssetProtectionError: Error {
+    private enum AssetProtectionError: LocalizedError {
         case invalidCopiedAsset
+        case backupsStillExist
+
+        var errorDescription: String? {
+            switch self {
+            case .invalidCopiedAsset:
+                return "The copied wallpaper asset failed verification."
+            case .backupsStillExist:
+                return "WallPainter's wallpaper backups still exist after removal."
+            }
+        }
     }
 
     private static let thumbnailExtensions = ["png", "jpg", "jpeg", "heic"]
@@ -190,8 +210,12 @@ struct SystemWallpaperAssetProtector: WallpaperAssetProtecting {
         )
     }
 
-    func removeBackups() {
-        try? fileManager.removeItem(at: backupDirectory)
+    func removeBackups() throws {
+        guard fileOperations.fileExists(at: backupDirectory) else { return }
+        try fileOperations.removeItem(at: backupDirectory)
+        guard !fileOperations.fileExists(at: backupDirectory) else {
+            throw AssetProtectionError.backupsStillExist
+        }
     }
 
     private struct AssetPaths {

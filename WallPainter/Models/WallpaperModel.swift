@@ -58,6 +58,7 @@ final class WallpaperModel {
     var isLoading = false
     var isSwitching = false
     var operationStatus: WallpaperOperationStatus?
+    private(set) var protectionBackupRemovalError: String?
     private(set) var assetProtectionStatus = WallpaperAssetProtectionStatus(
         protectedIDs: [],
         availableIDs: []
@@ -121,11 +122,12 @@ final class WallpaperModel {
         operationStatus = nil
 
         if preferences.wallpaperProtectionEnabled {
+            protectionBackupRemovalError = nil
             _ = assetProtector.restore(
                 protectedIDs: preferences.protectedWallpaperIDs
             )
         } else {
-            assetProtector.removeBackups()
+            _ = removeProtectionBackups()
             assetProtectionStatus = WallpaperAssetProtectionStatus(
                 protectedIDs: [],
                 availableIDs: []
@@ -165,7 +167,7 @@ final class WallpaperModel {
     @discardableResult
     func reconcileProtectedAssets() -> WallpaperAssetProtectionStatus {
         guard preferences.wallpaperProtectionEnabled else {
-            assetProtector.removeBackups()
+            _ = removeProtectionBackups()
             assetProtectionStatus = WallpaperAssetProtectionStatus(
                 protectedIDs: [],
                 availableIDs: []
@@ -191,17 +193,37 @@ final class WallpaperModel {
     func setWallpaperProtectionEnabled(_ enabled: Bool) {
         guard preferences.wallpaperProtectionEnabled != enabled else { return }
 
-        preferences.wallpaperProtectionEnabled = enabled
         if enabled {
+            protectionBackupRemovalError = nil
+            preferences.wallpaperProtectionEnabled = true
             _ = reconcileProtectedAssets()
         } else {
-            assetProtector.removeBackups()
+            guard removeProtectionBackups() else {
+                postChange()
+                return
+            }
+
+            preferences.wallpaperProtectionEnabled = false
             assetProtectionStatus = WallpaperAssetProtectionStatus(
                 protectedIDs: [],
                 availableIDs: []
             )
             postChange()
         }
+    }
+
+    func retryWallpaperProtectionCleanup() {
+        if preferences.wallpaperProtectionEnabled {
+            setWallpaperProtectionEnabled(false)
+            return
+        }
+
+        _ = removeProtectionBackups()
+        assetProtectionStatus = WallpaperAssetProtectionStatus(
+            protectedIDs: [],
+            availableIDs: []
+        )
+        postChange()
     }
 
     func setActiveSpaceTargets(_ targets: [WallpaperSpaceTarget]) {
@@ -465,6 +487,18 @@ final class WallpaperModel {
             items: items,
             for: preferences.protectedWallpaperIDs
         )
+    }
+
+    @discardableResult
+    private func removeProtectionBackups() -> Bool {
+        do {
+            try assetProtector.removeBackups()
+            protectionBackupRemovalError = nil
+            return true
+        } catch {
+            protectionBackupRemovalError = error.localizedDescription
+            return false
+        }
     }
 
     private func postChange() {
