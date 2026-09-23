@@ -17,6 +17,8 @@ png_square_stroke="$(scaled_square_stroke 54)"
 back_template_stroke="$(scaled_square_stroke 44)"
 front_template_stroke="$(scaled_square_stroke 56)"
 connector_template_stroke="$(scaled_square_stroke 3.4)"
+theme_mark_transform="translate(30.5585 30.5585) scale(.066)"
+theme_clearance_radius=14.2
 work_dir="$(mktemp -d)"
 trap 'rm -rf "$work_dir"' EXIT
 
@@ -77,6 +79,10 @@ back_alpha="$work_dir/wallpainter-status-bar-back-alpha.png"
 back_mask="$work_dir/wallpainter-status-bar-back-mask.png"
 back_masked_alpha="$work_dir/wallpainter-status-bar-back-masked-alpha.png"
 back_masked="$work_dir/wallpainter-status-bar-back-masked.png"
+theme_clearance_mask="$work_dir/wallpainter-status-bar-theme-clearance-mask.png"
+panels_alpha="$work_dir/wallpainter-status-bar-panels-alpha.png"
+panels_cleared_alpha="$work_dir/wallpainter-status-bar-panels-cleared-alpha.png"
+panels_cleared="$work_dir/wallpainter-status-bar-panels-cleared.png"
 panels="$work_dir/wallpainter-status-bar-panels.png"
 back_joined="$work_dir/wallpainter-status-bar-back-joined.png"
 rendered="$work_dir/wallpainter-status-bar-rendered.png"
@@ -97,7 +103,7 @@ print -r -- "</svg>" >> "$front_vector"
 
 print -r -- "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\">" > "$mark_vector"
 print -r -- "  <g transform=\"translate(32 32) scale(1.1) translate(-32 -32)\">" >> "$mark_vector"
-print -r -- "    <path d=\"$mark_path\" transform=\"translate(34.5 34.5) scale(.055)\" fill=\"#fff\"/>" >> "$mark_vector"
+print -r -- "    <path d=\"$mark_path\" transform=\"$theme_mark_transform\" fill=\"#fff\"/>" >> "$mark_vector"
 print -r -- "  </g>" >> "$mark_vector"
 print -r -- "</svg>" >> "$mark_vector"
 
@@ -112,15 +118,22 @@ print -r -- "</svg>" >> "$connector_vector"
 # The local stroke widths compensate for each traced panel's source transform;
 # unlike the PNG pipeline, this path is never reduced before AppKit displays it.
 print -r -- "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\">" > "$template_vector"
-print -r -- "  <g>" >> "$template_vector"
+print -r -- "  <defs>" >> "$template_vector"
+print -r -- "    <clipPath id=\"theme-clearance\" clipPathUnits=\"userSpaceOnUse\">" >> "$template_vector"
+print -r -- "      <path d=\"M 0 0 H 64 V 64 H 0 Z M 63.2 49 A $theme_clearance_radius $theme_clearance_radius 0 1 1 34.8 49 A $theme_clearance_radius $theme_clearance_radius 0 1 1 63.2 49 Z\" clip-rule=\"evenodd\"/>" >> "$template_vector"
+print -r -- "    </clipPath>" >> "$template_vector"
+print -r -- "  </defs>" >> "$template_vector"
+print -r -- "  <g clip-path=\"url(#theme-clearance)\">" >> "$template_vector"
 print -r -- "    <g transform=\"translate(32 32) scale(1.1) translate(-32 -32)\">" >> "$template_vector"
 print -r -- "      <path d=\"$back_outer_path\" transform=\"translate(-7 10) scale(.07)\" fill=\"none\" stroke=\"#fff\" stroke-width=\"$back_template_stroke\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>" >> "$template_vector"
 print -r -- "    </g>" >> "$template_vector"
-print -r -- "  </g>" >> "$template_vector"
 print -r -- "  <path d=\"M 53.01167244 15.6925 C 53.15 17.1 53.15 19.95 53.4 19.95\" fill=\"none\" stroke=\"#fff\" stroke-width=\"$connector_template_stroke\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>" >> "$template_vector"
 print -r -- "  <g transform=\"translate(32 32) scale(1.1) translate(-32 -32)\">" >> "$template_vector"
 print -r -- "    <path d=\"$front_path\" transform=\"translate(8 21) scale(.055)\" fill=\"none\" stroke=\"#fff\" stroke-width=\"$front_template_stroke\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>" >> "$template_vector"
-print -r -- "    <path d=\"$mark_path\" transform=\"translate(34.5 34.5) scale(.055)\" fill=\"#fff\"/>" >> "$template_vector"
+print -r -- "  </g>" >> "$template_vector"
+print -r -- "  </g>" >> "$template_vector"
+print -r -- "  <g transform=\"translate(32 32) scale(1.1) translate(-32 -32)\">" >> "$template_vector"
+print -r -- "    <path d=\"$mark_path\" transform=\"$theme_mark_transform\" fill=\"#fff\"/>" >> "$template_vector"
 print -r -- "  </g>" >> "$template_vector"
 print -r -- "</svg>" >> "$template_vector"
 
@@ -177,7 +190,23 @@ magick "$back_joined" "$front_rendered" \
     -compose over \
     -composite \
     "$panels"
-magick "$panels" "$mark_rendered" \
+theme_clearance_edge="$(awk -v radius="$theme_clearance_radius" 'BEGIN { printf "%.1f", 1568 + radius * 32 }')"
+magick -size 2048x2048 xc:white \
+    -fill black \
+    -draw "circle 1568,1568 $theme_clearance_edge,1568" \
+    "$theme_clearance_mask"
+magick "$panels" -alpha extract "$panels_alpha"
+magick "$panels_alpha" "$theme_clearance_mask" \
+    -compose Multiply \
+    -composite \
+    "$panels_cleared_alpha"
+magick -size 2048x2048 xc:white \
+    -alpha off \
+    "$panels_cleared_alpha" \
+    -compose CopyOpacity \
+    -composite \
+    "$panels_cleared"
+magick "$panels_cleared" "$mark_rendered" \
     -compose over \
     -composite \
     "$rendered"
