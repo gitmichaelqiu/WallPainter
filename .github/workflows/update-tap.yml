@@ -51,21 +51,22 @@ jobs:
             exit 1
           fi
 
-          EXPECTED_ASSET="WallPainter ${VERSION}.dmg"
           ASSET_NAME=""
-          for candidate in "${ASSETS[@]}"; do
-            if [[ "$candidate" == "$EXPECTED_ASSET" ]]; then
-              ASSET_NAME="$candidate"
-              break
-            fi
+          for expected_asset in "WallPainter.${VERSION}.dmg" "WallPainter ${VERSION}.dmg"; do
+            for candidate in "${ASSETS[@]}"; do
+              if [[ "$candidate" == "$expected_asset" ]]; then
+                ASSET_NAME="$candidate"
+                break 2
+              fi
+            done
           done
 
           if [[ -z "$ASSET_NAME" ]]; then
             if ((${#ASSETS[@]} == 1)); then
               ASSET_NAME="${ASSETS[0]}"
             else
-              printf 'Release %s has multiple WallPainter DMGs and none is named %s:\n' \
-                "$TAG" "$EXPECTED_ASSET" >&2
+              printf 'Release %s has multiple WallPainter DMGs and none has the expected versioned name:\n' \
+                "$TAG" >&2
               printf '  %s\n' "${ASSETS[@]}" >&2
               exit 1
             fi
