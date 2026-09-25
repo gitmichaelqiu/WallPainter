@@ -32,6 +32,13 @@ You do **NOT** have to disable *SIP* or things like that. Your macOS must be at 
 2. Drag the app to the *Applications* folder
 3. All set!
 
+### Homebrew
+
+You can also choose to download it from Homebrew:
+
+```bash
+brew install --cask gitmichaelqiu/tap/wallpainter
+```
 
 ### Open App
 
