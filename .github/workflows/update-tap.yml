@@ -1,72 +1,193 @@
 name: Update Homebrew Tap
+
 on:
   release:
     types: [published]
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Tag to update (leave empty to fetch latest)'
+        description: Tag to update (leave empty to use the latest release)
+        type: string
         required: false
         default: ''
+
+permissions:
+  contents: read
 
 jobs:
   update-cask:
     runs-on: ubuntu-latest
     steps:
-      - name: Get Release Info and Calculate Hash
-        id: info
+      - name: Resolve release asset and calculate checksum
+        id: release
         env:
           GH_TOKEN: ${{ github.token }}
+          INPUT_TAG: ${{ github.event.inputs.tag_name }}
+          EVENT_TAG: ${{ github.event.release.tag_name }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
         run: |
-          # 1. Determine the Tag
-          # Check manual input first, then release event
-          TAG="${{ github.event.inputs.tag_name }}${{ github.event.release.tag_name }}"
-          
-          # If both are empty, fetch the latest from GitHub API
-          if [ -z "$TAG" ]; then
-            echo "No tag provided. Fetching latest release tag from GitHub..."
-            # Added --repo flag so it doesn't need a local .git folder
-            TAG=$(gh release view --repo ${{ github.repository }} --json tagName --jq .tagName)
+          set -euo pipefail
+
+          TAG="${INPUT_TAG:-${EVENT_TAG:-}}"
+          if [[ -z "$TAG" ]]; then
+            echo "No tag provided; using the latest published release."
+            TAG="$(gh release view --repo "$REPOSITORY" --json tagName --jq .tagName)"
           fi
 
-          echo "Using Tag: $TAG"
-          VERSION=$(echo $TAG | sed 's/^v//')
-          
-          # 2. Construct the URL
-          URL="https://github.com/gitmichaelqiu/wallpainter/releases/download/$TAG/wallpainter.$VERSION.dmg"
-          
-          # 3. Download and Hash
-          # -f makes curl fail on 404 so the workflow stops if the URL is wrong
-          curl -Lf -o release.dmg "$URL"
-          SHA=$(shasum -a 256 release.dmg | awk '{print $1}')
-          
-          # 4. Export variables
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "sha=$SHA" >> $GITHUB_OUTPUT
-          echo "url=$URL" >> $GITHUB_OUTPUT
+          VERSION="${TAG#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Unsupported release tag/version: $TAG" >&2
+            exit 1
+          fi
 
-      - name: Checkout Tap Repo
+          mapfile -t ASSETS < <(
+            gh release view "$TAG" --repo "$REPOSITORY" --json assets \
+              --jq '.assets[].name | select(test("^WallPainter.*\\.dmg$"; "i"))'
+          )
+
+          if ((${#ASSETS[@]} == 0)); then
+            echo "Release $TAG has no WallPainter DMG asset." >&2
+            exit 1
+          fi
+
+          EXPECTED_ASSET="WallPainter ${VERSION}.dmg"
+          ASSET_NAME=""
+          for candidate in "${ASSETS[@]}"; do
+            if [[ "$candidate" == "$EXPECTED_ASSET" ]]; then
+              ASSET_NAME="$candidate"
+              break
+            fi
+          done
+
+          if [[ -z "$ASSET_NAME" ]]; then
+            if ((${#ASSETS[@]} == 1)); then
+              ASSET_NAME="${ASSETS[0]}"
+            else
+              printf 'Release %s has multiple WallPainter DMGs and none is named %s:\n' \
+                "$TAG" "$EXPECTED_ASSET" >&2
+              printf '  %s\n' "${ASSETS[@]}" >&2
+              exit 1
+            fi
+          fi
+
+          DOWNLOAD_DIR="$RUNNER_TEMP/wallpainter-release"
+          mkdir -p "$DOWNLOAD_DIR"
+          gh release download "$TAG" --repo "$REPOSITORY" \
+            --pattern "$ASSET_NAME" --dir "$DOWNLOAD_DIR"
+
+          RELEASE_URL="https://github.com/${REPOSITORY}/releases/download/$(jq -rn --arg value "$TAG" '$value | @uri')/$(jq -rn --arg value "$ASSET_NAME" '$value | @uri')"
+          SHA256="$(sha256sum "$DOWNLOAD_DIR/$ASSET_NAME" | cut -d ' ' -f 1)"
+
+          {
+            echo "tag=$TAG"
+            echo "version=$VERSION"
+            echo "asset_name=$ASSET_NAME"
+            echo "url=$RELEASE_URL"
+            echo "sha256=$SHA256"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "Resolved $ASSET_NAME for $TAG (SHA-256: $SHA256)."
+
+      - name: Check out Homebrew tap
         uses: actions/checkout@v4
         with:
           repository: gitmichaelqiu/homebrew-tap
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tap
 
-      - name: Update Cask File
+      - name: Create or update cask
+        env:
+          CASK_VERSION: ${{ steps.release.outputs.version }}
+          CASK_URL: ${{ steps.release.outputs.url }}
+          CASK_SHA256: ${{ steps.release.outputs.sha256 }}
+        shell: bash
         run: |
+          set -euo pipefail
+
+          cd homebrew-tap
           CASK_PATH="Casks/wallpainter.rb"
-          sed -i "s/version \".*\"/version \"${{ steps.info.outputs.version }}\"/" $CASK_PATH
-          sed -i "s/sha256 \".*\"/sha256 \"${{ steps.info.outputs.sha }}\"/" $CASK_PATH
+          mkdir -p "$(dirname "$CASK_PATH")"
 
-      - name: Commit and Push to Tap
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          path = Path("Casks/wallpainter.rb")
+          version = os.environ["CASK_VERSION"]
+          url = os.environ["CASK_URL"]
+          sha256 = os.environ["CASK_SHA256"]
+
+          if not re.fullmatch(r"[0-9a-f]{64}", sha256):
+              raise SystemExit("Release checksum is not a SHA-256 hex digest.")
+
+          def ruby_string(value):
+              return json.dumps(value, ensure_ascii=False)
+
+          if path.exists():
+              contents = path.read_text()
+              if not re.search(r'^cask "wallpainter" do$', contents, re.MULTILINE):
+                  raise SystemExit(f"Unexpected cask file at {path}; refusing to rewrite it.")
+
+              fields = [
+                  ("version", version),
+                  ("sha256", sha256),
+                  ("url", url),
+              ]
+              for field, value in fields:
+                  pattern = re.compile(rf'^(  {field} )"[^"]*"$', re.MULTILINE)
+                  contents, count = pattern.subn(
+                      lambda match: match.group(1) + ruby_string(value), contents
+                  )
+                  if count != 1:
+                      raise SystemExit(
+                          f"Expected exactly one two-space-indented {field} field in {path}; found {count}."
+                      )
+          else:
+              contents = f'''cask "wallpainter" do
+            version {ruby_string(version)}
+            sha256 {ruby_string(sha256)}
+
+            url {ruby_string(url)}
+            name "WallPainter"
+            desc "Automate macOS Aerial wallpapers by appearance and space"
+            homepage "https://wallpainter.mqiu.dev"
+
+            livecheck do
+              url :url
+              strategy :github_latest
+            end
+
+            auto_updates true
+            depends_on macos: ">= :sequoia"
+
+            app "WallPainter.app"
+          end
+          '''
+
+          path.write_text(contents)
+          PY
+
+          ruby -c "$CASK_PATH"
+
+      - name: Commit and push cask
+        env:
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
+        shell: bash
         run: |
+          set -euo pipefail
+
+          cd homebrew-tap
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Casks/wallpainter.rb
-          
-          # Avoid failing if the version is already up to date
-          if git diff --staged --quiet; then
-            echo "No changes detected. Cask is already at version ${{ steps.info.outputs.version }}."
-          else
-            git commit -m "chore: update wallpainter to ${{ steps.info.outputs.version }}"
-            git push
+
+          if git diff --cached --quiet; then
+            echo "Cask is already up to date for version $RELEASE_VERSION."
+            exit 0
           fi
+
+          git commit -m "chore: update wallpainter to $RELEASE_VERSION"
+          git push
