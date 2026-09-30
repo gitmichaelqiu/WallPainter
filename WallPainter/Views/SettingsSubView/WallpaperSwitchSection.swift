@@ -27,7 +27,6 @@ struct WallpaperSwitchSection: View {
                         .lineLimit(1)
                         .truncationMode(.middle)
                         .frame(maxWidth: 220, alignment: .trailing)
-                        .frame(minHeight: 24)
                 }
 
                 Divider()

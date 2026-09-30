@@ -3,7 +3,9 @@ import AVKit
 import AVFoundation
 import Combine
 
-private let minimumSettingsRowHeight: CGFloat = 32
+// Simple rows use a 20-point content area and 6-point vertical insets; larger content can grow.
+private let standardSettingsRowHeight: CGFloat = 32
+private let settingsRowVerticalInset: CGFloat = 6
 
 struct AnimatedSettingsValue: View {
     let text: String
@@ -335,7 +337,7 @@ struct SettingsRow<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
+            HStack(alignment: .center) {
                 HStack(spacing: 4) {
                     Text(highlightedText(text: String(localized: title), query: navigationState.searchText))
                         .frame(alignment: .leading)
@@ -351,8 +353,10 @@ struct SettingsRow<Content: View>: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
                 content
+                    .controlSize(.small)
                     .frame(alignment: .trailing)
             }
+            .frame(minHeight: standardSettingsRowHeight - settingsRowVerticalInset * 2)
 
             if showDemoVideos,
                let videoName = demoVideoName,
@@ -368,9 +372,9 @@ struct SettingsRow<Content: View>: View {
                     .padding(.bottom, 6)
             }
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, settingsRowVerticalInset)
         .padding(.horizontal, 10)
-        .frame(minHeight: minimumSettingsRowHeight)
+        .frame(minHeight: standardSettingsRowHeight)
         .id(title.key)
         .onAppear {
             navigationState.register(title: title.key, tab: currentTab)

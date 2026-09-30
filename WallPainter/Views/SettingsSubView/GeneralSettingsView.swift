@@ -101,15 +101,12 @@ struct GeneralSettingsView: View {
                                 }
                                 .help(removalError)
                             }
-                            .frame(minHeight: 24)
                         } else if !preferences.wallpaperProtectionEnabled {
                             Text("Off")
                                 .foregroundStyle(.secondary)
-                                .frame(minHeight: 24)
                         } else if model.assetProtectionStatus.isHealthy {
                             Text("\(model.assetProtectionStatus.protectedIDs.count) wallpapers backed up")
                                 .foregroundStyle(.secondary)
-                                .frame(minHeight: 24)
                         } else {
                             HStack(spacing: 8) {
                                 Text("Repair needed")
@@ -119,7 +116,6 @@ struct GeneralSettingsView: View {
                                     model.reconcileProtectedAssets()
                                 }
                             }
-                            .frame(minHeight: 24)
                         }
                     }
                 }

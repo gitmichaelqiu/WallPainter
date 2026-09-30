@@ -113,7 +113,6 @@ struct SpacesSettingsView: View {
                                         ? Color.secondary
                                         : Color.orange
                                 )
-                                .frame(minHeight: 24)
                         }
                     }
                 }
