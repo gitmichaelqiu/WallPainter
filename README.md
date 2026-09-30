@@ -54,6 +54,10 @@ To get the current space's information, [DesktopRenamer](https://github.com/gitm
 
 After downloading DesktopRenamer, you need to turn on SpaceAPI in Settings → General.
 
+## Switch Once or Set a Rule
+
+Use the menu bar **Switch** menu or Settings → **Wallpaper** → **Switch Once** for a one-time wallpaper change. This does not edit automatic rules, and a rule may change the wallpaper again later. Configure the automatic default behavior in Settings → **Wallpaper**, or set an override for a particular desktop in **Spaces**.
+
 ## ⚠️ Issues
 
 You are welcome to create issues/suggestions in [GitHub Issues](https://github.com/gitmichaelqiu/WallPainter/issues).

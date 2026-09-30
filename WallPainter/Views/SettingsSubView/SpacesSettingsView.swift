@@ -302,7 +302,7 @@ private struct SpaceRuleEditor: View {
     var body: some View {
         SettingsSection(
             "Space Behavior",
-            helperText: "Use Default inherits the Default tab's rule; other choices apply only to this space."
+            helperText: "Use Default inherits the automatic wallpaper rule; other choices apply only to this space."
         ) {
             SettingsRow("Behavior") {
                 Picker("", selection: $selection) {
@@ -350,7 +350,7 @@ private struct SpaceRuleEditor: View {
             WallpaperRulePreview(
                 rule: effectiveRule,
                 wallpapers: model.items,
-                title: selection == .allSpaces ? "Effective wallpaper" : "Preview"
+                title: selection == .allSpaces ? "Effective wallpaper" : "Rule preview"
             )
         }
         .onChange(of: selection) { _, _ in

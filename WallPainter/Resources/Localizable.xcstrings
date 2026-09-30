@@ -35,6 +35,7 @@
       }
     },
     "%lld protected" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -44,8 +45,29 @@
         }
       }
     },
+    "%lld wallpapers backed up" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 张壁纸已备份"
+          }
+        }
+      }
+    },
     "© %@ Michael Yicheng Qiu" : {
       "shouldTranslate" : false
+    },
+    "A one-time change to the selected spaces. This does not edit Default or per-space rules; automation may change the wallpaper again later." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅切换一次所选桌面空间中的壁纸。此操作不会修改“默认”或各桌面空间规则；自动化可能稍后再次更改壁纸。"
+          }
+        }
+      }
     },
     "About" : {
       "localizations" : {
@@ -77,6 +99,56 @@
         }
       }
     },
+    "Active spaces" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前桌面空间"
+          }
+        }
+      }
+    },
+    "Active spaces (%lld)" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前桌面空间（%lld 个）"
+          }
+        }
+      }
+    },
+    "Active-space switching is unavailable" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法切换当前桌面空间"
+          }
+        }
+      }
+    },
+    "All spaces" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有桌面空间"
+          }
+        }
+      }
+    },
+    "All spaces (%lld)" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有桌面空间（%lld 个）"
+          }
+        }
+      }
+    },
     "All spaces will use the Default rule again." : {
       "localizations" : {
         "zh-Hans" : {
@@ -97,6 +169,16 @@
         }
       }
     },
+    "App behavior" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用行为"
+          }
+        }
+      }
+    },
     "Apple Aerial %@" : {
       "localizations" : {
         "zh-Hans" : {
@@ -108,6 +190,7 @@
       }
     },
     "Apply" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -118,6 +201,7 @@
       }
     },
     "Apply everywhere" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -128,6 +212,7 @@
       }
     },
     "Apply to current space" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -237,7 +322,28 @@
         }
       }
     },
+    "Choose Wallpaper" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择壁纸"
+          }
+        }
+      }
+    },
+    "Connect DesktopRenamer SpaceAPI in Permissions to switch only active spaces. All Spaces switching is still available." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在“权限”中连接 DesktopRenamer SpaceAPI 后，即可仅切换当前桌面空间。仍可切换所有空间。"
+          }
+        }
+      }
+    },
     "Connected" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -278,6 +384,7 @@
       }
     },
     "Current desktop wallpaper" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -288,6 +395,17 @@
       }
     },
     "Current Wallpaper" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前壁纸"
+          }
+        }
+      }
+    },
+    "Currently active" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -438,6 +556,7 @@
       }
     },
     "Hide menubar icon" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -548,6 +667,7 @@
       }
     },
     "Manual Wallpaper" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -617,6 +737,16 @@
         }
       }
     },
+    "No active spaces are available" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有可用的当前桌面空间"
+          }
+        }
+      }
+    },
     "No automatic wallpaper changes" : {
       "localizations" : {
         "zh-Hans" : {
@@ -663,6 +793,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "未检测到普通的调度中心桌面。"
+          }
+        }
+      }
+    },
+    "No regular Mission Control spaces were reported. All Spaces switching is still available." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未检测到常规 Mission Control 桌面空间。仍可切换所有空间。"
           }
         }
       }
@@ -757,10 +897,21 @@
         }
       }
     },
+    "Open Permissions" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开权限设置"
+          }
+        }
+      }
+    },
     "Painter" : {
       "shouldTranslate" : false
     },
     "Paused" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -781,6 +932,7 @@
       }
     },
     "Preview" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -811,6 +963,7 @@
       }
     },
     "Refresh" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -861,6 +1014,7 @@
       }
     },
     "Required for applying automatic wallpaper rules to spaces. Reconnect it in Permissions if unavailable." : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -920,6 +1074,16 @@
         }
       }
     },
+    "Rule preview" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "规则预览"
+          }
+        }
+      }
+    },
     "Search" : {
       "localizations" : {
         "zh-Hans" : {
@@ -931,6 +1095,7 @@
       }
     },
     "Select a wallpaper and apply it once. This does not change Default or per-space rules; automation may later replace it." : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -941,6 +1106,7 @@
       }
     },
     "Select this installed live wallpaper" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -950,12 +1116,33 @@
         }
       }
     },
+    "Select this wallpaper for a one-time switch" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择此壁纸以进行一次性切换"
+          }
+        }
+      }
+    },
     "Selected" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "已选择"
+          }
+        }
+      }
+    },
+    "Selected to switch" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已选中用于切换"
           }
         }
       }
@@ -976,6 +1163,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "设置…"
+          }
+        }
+      }
+    },
+    "Show menu bar icon" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示菜单栏图标"
           }
         }
       }
@@ -1011,6 +1208,7 @@
       }
     },
     "SpaceAPI" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -1060,7 +1258,58 @@
         }
       }
     },
+    "Switch Once" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切换一次"
+          }
+        }
+      }
+    },
+    "This changes the wallpaper once and leaves the automatic default and per-space rules unchanged. Those rules may change it again when they run." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这里只切换一次壁纸，不会更改默认自动规则或按桌面设置的规则。规则运行时可能会再次更改壁纸。"
+          }
+        }
+      }
+    },
+    "Switch wallpaper" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切换壁纸"
+          }
+        }
+      }
+    },
+    "Switch wallpaper on active spaces" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在当前桌面空间切换壁纸"
+          }
+        }
+      }
+    },
+    "Switch wallpaper on all spaces" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在所有桌面空间切换壁纸"
+          }
+        }
+      }
+    },
     "Switching…" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -1170,12 +1419,12 @@
         }
       }
     },
-    "Use Default inherits the Default tab's rule; other choices apply only to this space." : {
+    "Use Default inherits the automatic wallpaper rule; other choices apply only to this space." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“使用默认”会继承“默认”标签页中的规则；其他选项仅应用于此桌面。"
+            "value" : "“使用默认”会继承自动壁纸规则；其他选项仅应用于此桌面。"
           }
         }
       }

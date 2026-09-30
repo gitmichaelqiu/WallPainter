@@ -1,15 +1,16 @@
 import SwiftUI
 
-struct DefaultSettingsView: View {
+struct WallpaperSettingsView: View {
     let model: WallpaperModel
     let spaceProvider: (any SpaceAPIProviding)?
+    let onOpenPermissions: () -> Void
 
     @Environment(WallPainterPreferences.self) private var preferences
 
     var body: some View {
         @Bindable var preferences = preferences
 
-        SettingsContainer(.default) {
+        SettingsContainer(.wallpaper) {
             VStack(alignment: .leading, spacing: 20) {
                 SettingsSection(
                     "Automatic Wallpaper Rule",
@@ -60,20 +61,21 @@ struct DefaultSettingsView: View {
                         WallpaperRulePreview(
                             rule: preferences.defaultWallpaperRule,
                             wallpapers: model.items,
-                            title: "Preview"
+                            title: "Rule preview"
                         )
                     }
                 }
+
+                WallpaperSwitchSection(
+                    model: model,
+                    spaceProvider: spaceProvider,
+                    onOpenPermissions: onOpenPermissions
+                )
 
                 Spacer()
             }
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }
-    }
-
-    private var hasAutomaticRules: Bool {
-        preferences.defaultWallpaperRule.mode != .manual
-            || preferences.spaceOverrides.values.contains { $0.mode != .manual }
     }
 }
 

@@ -3,6 +3,8 @@ import AVKit
 import AVFoundation
 import Combine
 
+private let minimumSettingsRowHeight: CGFloat = 32
+
 struct AnimatedSettingsValue: View {
     let text: String
     @State private var displayedText: String
@@ -368,6 +370,7 @@ struct SettingsRow<Content: View>: View {
         }
         .padding(.vertical, 6)
         .padding(.horizontal, 10)
+        .frame(minHeight: minimumSettingsRowHeight)
         .id(title.key)
         .onAppear {
             navigationState.register(title: title.key, tab: currentTab)
