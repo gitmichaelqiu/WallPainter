@@ -27,23 +27,6 @@ struct DefaultSettingsView: View {
                         .frame(minWidth: 190, alignment: .trailing)
                     }
 
-                    if hasAutomaticRules {
-                        Divider()
-
-                        SettingsRow(
-                            "SpaceAPI",
-                            helperText: "Required for applying automatic wallpaper rules to spaces. Reconnect it in Permissions if unavailable."
-                        ) {
-                            Text(spaceProvider?.isAvailable == true ? "Connected" : "Paused")
-                                .foregroundStyle(
-                                    spaceProvider?.isAvailable == true
-                                        ? Color.secondary
-                                        : Color.orange
-                                )
-                                .frame(minHeight: 24)
-                        }
-                    }
-
                     if preferences.defaultWallpaperRule.mode != .manual {
                         Divider()
 
