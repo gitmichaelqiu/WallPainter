@@ -61,8 +61,8 @@ struct GeneralSettingsView: View {
 
                     Divider()
 
-                    SettingsRow("Check for Updates") {
-                        Button("Check Now") {
+                    SettingsRow("Check for updates") {
+                        Button("Check") {
                             UpdateManager.shared.updaterController.checkForUpdates(nil)
                         }
                     }
@@ -106,7 +106,7 @@ struct GeneralSettingsView: View {
 
                     Divider()
 
-                    SettingsRow("Apply to current space(s)") {
+                    SettingsRow("Apply to current space") {
                         Button {
                             applyToCurrentSpaces()
                         } label: {
