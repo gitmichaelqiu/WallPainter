@@ -3,8 +3,8 @@ import AVKit
 import AVFoundation
 import Combine
 
-// Simple rows use a 20-point content area and 6-point vertical insets; larger content can grow.
-private let standardSettingsRowHeight: CGFloat = 32
+// Simple rows use a 24-point content area and 6-point vertical insets; larger content can grow.
+private let standardSettingsRowHeight: CGFloat = 36
 private let settingsRowVerticalInset: CGFloat = 6
 
 struct AnimatedSettingsValue: View {
