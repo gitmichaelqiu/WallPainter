@@ -96,8 +96,6 @@ struct SpacesSettingsView: View {
                             .pickerStyle(.menu)
                             .frame(minWidth: 190, alignment: .trailing)
                         }
-
-                        Divider()
                     }
                 } else if displayGroups.isEmpty {
                     SettingsSection("Spaces") {
