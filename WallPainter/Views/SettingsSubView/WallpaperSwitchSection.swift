@@ -36,7 +36,7 @@ struct WallpaperSwitchSection: View {
                         model.refresh()
                     } label: {
                         Image(systemName: "arrow.clockwise")
-                            .frame(minWidth: 20, minHeight: 20)
+                            .frame(width: 16, height: 16)
                     }
                     .accessibilityLabel("Refresh catalog")
                     .disabled(model.isLoading)
