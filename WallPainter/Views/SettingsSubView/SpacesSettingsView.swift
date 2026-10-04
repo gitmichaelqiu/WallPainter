@@ -89,7 +89,7 @@ struct SpacesSettingsView: View {
                             .frame(minWidth: 190, alignment: .trailing)
                         }
                     }
-                    .padding(.top, 24)
+                    .padding(.top, 10)
                 } else if displayGroups.isEmpty {
                     SettingsSection("Spaces") {
                         SettingsRow(
