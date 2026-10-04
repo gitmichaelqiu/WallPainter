@@ -353,7 +353,7 @@ struct SettingsRow<Content: View>: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
                 content
-                    .controlSize(.small)
+                    .controlSize(.regular)
                     .frame(alignment: .trailing)
             }
             .frame(minHeight: standardSettingsRowHeight - settingsRowVerticalInset * 2)
