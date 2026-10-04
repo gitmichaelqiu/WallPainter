@@ -198,7 +198,7 @@ private struct WallpaperCard: View {
 
                 HStack(spacing: 7) {
                     Text(wallpaper.name)
-                        .font(.headline)
+                        .font(.body)
                         .lineLimit(1)
                         .truncationMode(.tail)
 

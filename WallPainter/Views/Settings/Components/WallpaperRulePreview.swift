@@ -20,8 +20,7 @@ struct WallpaperRulePreview: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(.body)
 
             switch rule.mode {
             case .fixed:
