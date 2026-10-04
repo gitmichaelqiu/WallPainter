@@ -75,14 +75,6 @@ struct SpacesSettingsView: View {
     var body: some View {
         SettingsContainer(.spaces) {
             VStack(alignment: .leading, spacing: 20) {
-                if let group = selectedDisplayGroup, !isPreRendering {
-                    SpaceSwitcher(
-                        spaces: group.spaces,
-                        activeSpaceIDs: activeSpaceIDs,
-                        selection: $selectedSpaceID
-                    )
-                }
-
                 if displayGroups.count > 1 {
                     SettingsSection(nil) {
                         SettingsRow("Display") {
@@ -113,6 +105,14 @@ struct SpacesSettingsView: View {
                                 )
                         }
                     }
+                }
+
+                if let group = selectedDisplayGroup, !isPreRendering {
+                    SpaceSwitcher(
+                        spaces: group.spaces,
+                        activeSpaceIDs: activeSpaceIDs,
+                        selection: $selectedSpaceID
+                    )
                 }
 
                 if let selectedSpace {
