@@ -238,15 +238,21 @@ struct WallpaperStore: WallpaperStoring {
             return findAerialID(in: node)
         }
 
-        if let displays = dictionary["Displays"] as? [String: Any],
-           let display = displays[displayID],
-           let wallpaperID = findAerialID(in: display) {
-            return wallpaperID
+        if dictionary["Choices"] != nil {
+            return findAerialID(in: node)
         }
 
-        if let defaultNode = dictionary["Default"],
-           let wallpaperID = findAerialID(in: defaultNode) {
-            return wallpaperID
+        if !displayID.isEmpty {
+            if let displays = dictionary["Displays"] as? [String: Any] {
+                guard let display = displays[displayID] else { return nil }
+                return findAerialID(in: display)
+            }
+
+            // Nested records without a node for this display need a scoped
+            // write before their current wallpaper can be trusted.
+            if dictionary["Default"] != nil {
+                return nil
+            }
         }
 
         return findAerialID(in: node)
@@ -307,7 +313,8 @@ struct WallpaperStore: WallpaperStoring {
 
     private func updateTarget(
         node: Any,
-        configuration: Data
+        configuration: Data,
+        forceLastSet: Bool = false
     ) -> (node: Any, didChange: Bool, hasWritableChoice: Bool) {
         if var dictionary = node as? [String: Any] {
             var didChange = false
@@ -322,14 +329,18 @@ struct WallpaperStore: WallpaperStoring {
 
             for key in Array(dictionary.keys) where key != "Configuration" && key != "Choices" {
                 guard let child = dictionary[key] else { continue }
-                let childResult = updateTarget(node: child, configuration: configuration)
+                let childResult = updateTarget(
+                    node: child,
+                    configuration: configuration,
+                    forceLastSet: forceLastSet
+                )
                 guard childResult.hasWritableChoice else { continue }
                 dictionary[key] = childResult.node
                 didChange = didChange || childResult.didChange
                 hasWritableChoice = true
             }
 
-            if didChange, dictionary["LastSet"] != nil {
+            if (didChange || forceLastSet), hasWritableChoice, dictionary["LastSet"] != nil {
                 dictionary["LastSet"] = Date()
             }
             return (dictionary, didChange, hasWritableChoice)
@@ -353,23 +364,37 @@ struct WallpaperStore: WallpaperStoring {
 
         var didChange = false
         var hasWritableChoice = false
+        var defaultNode = dictionary["Default"]
 
-        if let defaultNode = dictionary["Default"] {
-            let result = updateTarget(node: defaultNode, configuration: configuration)
+        if let currentDefaultNode = defaultNode {
+            let result = updateTarget(node: currentDefaultNode, configuration: configuration)
             if result.hasWritableChoice {
                 dictionary["Default"] = result.node
+                defaultNode = result.node
                 didChange = didChange || result.didChange
                 hasWritableChoice = true
             }
         }
 
-        if var displays = dictionary["Displays"] as? [String: Any],
-           let displayNode = displays[displayID] {
-            let result = updateTarget(node: displayNode, configuration: configuration)
+        guard !displayID.isEmpty else {
+            return (dictionary, didChange, hasWritableChoice)
+        }
+
+        var displays = dictionary["Displays"] as? [String: Any] ?? [:]
+        let existingDisplayNode = displays[displayID]
+        let displayTemplate = existingDisplayNode ?? defaultNode ?? displays.values.first
+
+        if let displayTemplate {
+            let isCreatingDisplayNode = existingDisplayNode == nil
+            let result = updateTarget(
+                node: displayTemplate,
+                configuration: configuration,
+                forceLastSet: isCreatingDisplayNode
+            )
             if result.hasWritableChoice {
                 displays[displayID] = result.node
                 dictionary["Displays"] = displays
-                didChange = didChange || result.didChange
+                didChange = didChange || result.didChange || isCreatingDisplayNode
                 hasWritableChoice = true
             }
         }
