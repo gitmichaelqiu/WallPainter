@@ -13,105 +13,98 @@ struct WallpaperSwitchSection: View {
     private let wallpaperCatalogMaxHeight: CGFloat = 340
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("This changes the wallpaper once and leaves the automatic default and per-space rules unchanged. Those rules may change it again when they run.")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 10)
+        SettingsSection(
+            "Switch Once",
+            helperText: "This changes the wallpaper once and leaves the automatic default and per-space rules unchanged. Those rules may change it again when they run."
+        ) {
+            SettingsRow("Currently active") {
+                Text(model.currentWallpaperSummary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .frame(maxWidth: 220, alignment: .trailing)
+            }
 
-            SettingsSection("Switch Once") {
-                SettingsRow("Currently active") {
-                    Text(model.currentWallpaperSummary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .frame(maxWidth: 220, alignment: .trailing)
+            Divider()
+
+            SettingsRow("Refresh catalog") {
+                Button {
+                    model.refresh()
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                        .frame(width: 16, height: 16)
                 }
+                .accessibilityLabel("Refresh catalog")
+                .disabled(model.isLoading)
+            }
 
-                Divider()
+            Divider()
 
-                SettingsRow("Refresh catalog") {
-                    Button {
-                        model.refresh()
-                    } label: {
-                        Image(systemName: "arrow.clockwise")
-                            .frame(width: 16, height: 16)
+            WallpaperCatalogScrollView(
+                wallpapers: model.items,
+                selection: $model.selectedWallpaperID,
+                isLoading: model.isLoading,
+                scrollSession: catalogScrollSession,
+                isPreRendering: isPreRendering,
+                maxHeight: wallpaperCatalogMaxHeight
+            )
+
+            Divider()
+
+            SettingsRow("Switch wallpaper") {
+                HStack(spacing: 8) {
+                    Button(activeSpacesButtonTitle) {
+                        switchOnActiveSpaces()
                     }
-                    .accessibilityLabel("Refresh catalog")
-                    .disabled(model.isLoading)
-                }
+                    .accessibilityLabel("Switch wallpaper on active spaces")
+                    .disabled(!canSwitchOnActiveSpaces || !canSwitchSelection)
 
-                Divider()
-
-                WallpaperCatalogScrollView(
-                    wallpapers: model.items,
-                    selection: $model.selectedWallpaperID,
-                    isLoading: model.isLoading,
-                    scrollSession: catalogScrollSession,
-                    isPreRendering: isPreRendering,
-                    maxHeight: wallpaperCatalogMaxHeight
-                )
-
-                Divider()
-
-                SettingsRow("Switch wallpaper") {
-                    HStack(spacing: 8) {
-                        Button(activeSpacesButtonTitle) {
-                            switchOnActiveSpaces()
-                        }
-                        .accessibilityLabel("Switch wallpaper on active spaces")
-                        .disabled(!canSwitchOnActiveSpaces || !canSwitchSelection)
-
-                        Button(allSpacesButtonTitle) {
-                            switchOnAllSpaces()
-                        }
-                        .accessibilityLabel("Switch wallpaper on all spaces")
-                        .disabled(!canSwitchSelection)
+                    Button(allSpacesButtonTitle) {
+                        switchOnAllSpaces()
                     }
-                }
-
-                if !canSwitchOnActiveSpaces {
-                    Divider()
-
-                    HStack(alignment: .top, spacing: 12) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(activeSpaceUnavailableTitle)
-                                .font(.subheadline)
-                            Text(activeSpaceUnavailableMessage)
-                                .font(.callout)
-                                .foregroundStyle(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-
-                        if spaceProvider?.isAvailable != true {
-                            Spacer(minLength: 8)
-                            Button("Open Permissions", action: onOpenPermissions)
-                        }
-                    }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                }
-
-                if let operationStatus = visibleOperationStatus {
-                    Divider()
-
-                    HStack(alignment: .top, spacing: 8) {
-                        Image(systemName: operationStatus.symbolName)
-                            .foregroundStyle(operationStatus.isSuccess ? Color.green : Color.orange)
-
-                        Text(operationStatus.message)
-                            .foregroundStyle(operationStatus.isSuccess ? Color.secondary : Color.orange)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("Switch wallpaper on all spaces")
+                    .disabled(!canSwitchSelection)
                 }
             }
+
+            if !canSwitchOnActiveSpaces {
+                Divider()
+
+                HStack(alignment: .top, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(activeSpaceUnavailableTitle)
+                            .font(.subheadline)
+                        Text(activeSpaceUnavailableMessage)
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    if spaceProvider?.isAvailable != true {
+                        Spacer(minLength: 8)
+                        Button("Open Permissions", action: onOpenPermissions)
+                    }
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+            }
+
+            if let operationStatus = visibleOperationStatus {
+                Divider()
+
+                HStack(alignment: .top, spacing: 8) {
+                    Image(systemName: operationStatus.symbolName)
+                        .foregroundStyle(operationStatus.isSuccess ? Color.green : Color.orange)
+
+                    Text(operationStatus.message)
+                        .foregroundStyle(operationStatus.isSuccess ? Color.secondary : Color.orange)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .accessibilityElement(children: .combine)
+            }
         }
-        .frame(maxWidth: .infinity, alignment: .topLeading)
         .onAppear {
             updateSpaceState()
             if !isPreRendering {
