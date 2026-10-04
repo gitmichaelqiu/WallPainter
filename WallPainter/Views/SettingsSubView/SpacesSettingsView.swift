@@ -114,6 +114,7 @@ struct SpacesSettingsView: View {
                         activeSpaceIDs: activeSpaceIDs,
                         selection: $selectedSpaceID
                     )
+                    .padding(.vertical, displayGroups.count > 1 ? -8 : 2)
                 }
 
                 if let selectedSpace {
@@ -230,7 +231,6 @@ private struct SpaceSwitcher: View {
         ) { space in
             Text(activeSpaceIDs.contains(space.id) ? "○ \(space.name)" : space.name)
         }
-        .padding(.vertical, 2)
     }
 
     private var selectedSelection: Binding<String?> {
