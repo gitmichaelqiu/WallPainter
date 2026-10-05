@@ -134,15 +134,11 @@ struct WallpaperSwitchSection: View {
     }
 
     private var currentTargets: [WallpaperSpaceTarget] {
-        currentSpaces.map {
-            WallpaperSpaceTarget(spaceID: $0.id, displayID: $0.displayID)
-        }
+        currentSpaces.compactMap { WallpaperSpaceTarget(space: $0) }
     }
 
     private var allSpaceTargets: [WallpaperSpaceTarget] {
-        regularSpaces.map {
-            WallpaperSpaceTarget(spaceID: $0.id, displayID: $0.displayID)
-        }
+        regularSpaces.compactMap { WallpaperSpaceTarget(space: $0) }
     }
 
     private var canSwitchOnActiveSpaces: Bool {
@@ -201,9 +197,13 @@ struct WallpaperSwitchSection: View {
     private func switchOnAllSpaces() {
         guard let wallpaperID = model.selectedWallpaperID else { return }
 
-        if spaceProvider?.isAvailable == true, !allSpaceTargets.isEmpty {
-            model.synchronizeWallpaperIDs(for: allSpaceTargets)
-            _ = model.applyWallpaper(id: wallpaperID, to: allSpaceTargets)
+        if spaceProvider?.isAvailable == true {
+            if allSpaceTargets.isEmpty {
+                _ = model.applyWallpaper(id: wallpaperID, to: [])
+            } else {
+                model.synchronizeWallpaperIDs(for: allSpaceTargets)
+                _ = model.applyWallpaper(id: wallpaperID, to: allSpaceTargets)
+            }
         } else {
             _ = model.applyWallpaperEverywhere(id: wallpaperID)
         }

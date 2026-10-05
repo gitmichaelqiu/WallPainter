@@ -344,7 +344,7 @@ final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
             .map { ($0.id, $0) })
         return snapshot.currentSpaceIDs.compactMap { spaceID in
             guard let space = spacesByID[spaceID] else { return nil }
-            return WallpaperSpaceTarget(spaceID: space.id, displayID: space.displayID)
+            return WallpaperSpaceTarget(space: space)
         }
     }
 

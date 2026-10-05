@@ -203,9 +203,8 @@ final class WallpaperAutomationCoordinator {
 
         synchronizeActiveSpaces()
 
-        let targets = regularSpaces.map {
-            WallpaperSpaceTarget(spaceID: $0.id, displayID: $0.displayID)
-        }
+        let targets = regularSpaces.compactMap { WallpaperSpaceTarget(space: $0) }
+        let targetsBySpaceID = Dictionary(uniqueKeysWithValues: targets.map { ($0.spaceID, $0) })
         model.synchronizeWallpaperIDs(for: targets)
 
         var wallpaperIDsBySpaceID: [String: String] = [:]
@@ -214,6 +213,7 @@ final class WallpaperAutomationCoordinator {
         let installedWallpaperIDs = Set(model.items.map(\.id))
 
         for space in regularSpaces {
+            guard let target = targetsBySpaceID[space.id] else { continue }
             let rule = preferences.spaceRule(for: space.id)
                 ?? preferences.defaultWallpaperRule
 
@@ -231,9 +231,7 @@ final class WallpaperAutomationCoordinator {
             }
 
             wallpaperIDsBySpaceID[space.id] = wallpaperID
-            writableTargets.append(
-                WallpaperSpaceTarget(spaceID: space.id, displayID: space.displayID)
-            )
+            writableTargets.append(target)
         }
 
         guard !writableTargets.isEmpty else { return }
@@ -253,7 +251,7 @@ final class WallpaperAutomationCoordinator {
         )
         let targets: [WallpaperSpaceTarget] = snapshot.currentSpaceIDs.compactMap { spaceID in
             guard let space = regularSpacesByID[spaceID] else { return nil }
-            return WallpaperSpaceTarget(spaceID: space.id, displayID: space.displayID)
+            return WallpaperSpaceTarget(space: space)
         }
         model.setActiveSpaceTargets(targets)
         if !targets.isEmpty {

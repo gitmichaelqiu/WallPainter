@@ -73,8 +73,9 @@ struct WallpaperStore: WallpaperStoring {
         var result: [String: String] = [:]
 
         for target in uniqueTargets(targets) {
+            let managedSpaceID = target.managedSpaceID ?? target.spaceID
             guard let storeSpaceID = storeSpaceID(
-                for: target.spaceID,
+                for: managedSpaceID,
                 in: spaces
             ),
             let space = spaces[storeSpaceID]
@@ -122,13 +123,14 @@ struct WallpaperStore: WallpaperStoring {
             guard let configuration = configurations[target.spaceID] else {
                 throw WallpaperStoreError.noAerialChoices
             }
+            let managedSpaceID = target.managedSpaceID ?? target.spaceID
             guard let storeSpaceID = storeSpaceID(
-                for: target.spaceID,
+                for: managedSpaceID,
                 in: spaces
             ),
             let space = spaces[storeSpaceID]
             else {
-                throw WallpaperStoreError.spaceNotFound(target.spaceID)
+                throw WallpaperStoreError.spaceNotFound(managedSpaceID)
             }
 
             let spaceResult = updateSpace(

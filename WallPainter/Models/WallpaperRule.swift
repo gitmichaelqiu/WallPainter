@@ -103,12 +103,25 @@ struct WallpaperRule: Codable, Equatable, Sendable {
 }
 
 struct WallpaperSpaceTarget: Codable, Equatable, Hashable, Sendable {
+    /// Stable DesktopRenamer identity used for saved rules and in-memory state.
     let spaceID: String
     let displayID: String
+    /// Current macOS ManagedSpaceID used to resolve the wallpaper-store record.
+    let managedSpaceID: String?
 
-    init(spaceID: String, displayID: String) {
+    init(spaceID: String, displayID: String, managedSpaceID: String? = nil) {
         self.spaceID = spaceID
         self.displayID = displayID
+        self.managedSpaceID = managedSpaceID
+    }
+
+    init?(space: SpaceDescriptor) {
+        guard let managedSpaceID = space.managedSpaceID else { return nil }
+        self.init(
+            spaceID: space.id,
+            displayID: space.displayID,
+            managedSpaceID: managedSpaceID
+        )
     }
 }
 
