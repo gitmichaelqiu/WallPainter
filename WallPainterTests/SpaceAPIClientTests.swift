@@ -60,6 +60,16 @@ final class SpaceAPIClientTests: XCTestCase {
         XCTAssertEqual(tracker.revision, 11)
     }
 
+    func testRevisionTrackerAcceptsNewSequenceAfterResynchronization() {
+        var tracker = SpaceAPIRevisionTracker()
+
+        XCTAssertTrue(tracker.acceptSnapshot(revision: 42))
+        tracker.reset()
+
+        XCTAssertTrue(tracker.acceptSnapshot(revision: 1))
+        XCTAssertEqual(tracker.revision, 1)
+    }
+
     private func snapshotResponse(revision: UInt64) -> String {
         """
         {"jsonrpc":"2.0","id":"snapshot-1","result":\(snapshotJSON(revision: revision))}

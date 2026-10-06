@@ -178,6 +178,7 @@ final class SpaceAPIClient: SpaceAPIProviding {
     @ObservationIgnored private var pendingTimeouts: [String: DispatchWorkItem] = [:]
     @ObservationIgnored private var revisionTracker = SpaceAPIRevisionTracker()
     @ObservationIgnored private var isWaitingForSnapshot = false
+    @ObservationIgnored private var desktopRenamerProcessIdentifier: pid_t?
     @ObservationIgnored private var legacySnapshotRequestID: String?
     @ObservationIgnored private var legacySnapshotRevision: UInt64?
     @ObservationIgnored private var legacySnapshotTimeout: DispatchWorkItem?
@@ -197,6 +198,8 @@ final class SpaceAPIClient: SpaceAPIProviding {
     func start() {
         stop()
         isRunning = true
+        desktopRenamerProcessIdentifier = currentDesktopRenamerProcessIdentifier
+        isWaitingForSnapshot = true
         installObservers()
         requestAPIInfo()
     }
@@ -215,6 +218,7 @@ final class SpaceAPIClient: SpaceAPIProviding {
         legacySnapshotRevision = nil
         revisionTracker.reset()
         isWaitingForSnapshot = false
+        desktopRenamerProcessIdentifier = nil
         negotiatedAPIInfo = nil
         snapshot = nil
         markUnavailable()
@@ -222,7 +226,22 @@ final class SpaceAPIClient: SpaceAPIProviding {
 
     func refresh() {
         guard isRunning else { return }
+        let processChanged = synchronizeDesktopRenamerProcess()
+        if processChanged, desktopRenamerProcessIdentifier == nil {
+            markUnavailable()
+            return
+        }
         requestAPIInfo()
+
+        if processChanged {
+            // The app may post its launch notification before SpaceAPI installs
+            // its request listener. Retry the probe while it finishes starting.
+            for delay in [0.5, 1.5, 3.0, 5.0] {
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                    self?.refresh()
+                }
+            }
+        }
     }
 
     var desktopRenamerApplicationURL: URL? {
@@ -320,6 +339,27 @@ final class SpaceAPIClient: SpaceAPIProviding {
         }
 
         let workspaceCenter = NSWorkspace.shared.notificationCenter
+        let desktopRenamerBundleIdentifiers = Self.desktopRenamerBundleIdentifiers
+        for name in [
+            NSWorkspace.didLaunchApplicationNotification,
+            NSWorkspace.didTerminateApplicationNotification
+        ] {
+            workspaceObservers.append(
+                workspaceCenter.addObserver(
+                    forName: name,
+                    object: nil,
+                    queue: .main
+                ) { [weak self] notification in
+                    guard let application = notification.userInfo?[
+                        NSWorkspace.applicationUserInfoKey
+                    ] as? NSRunningApplication,
+                          let bundleIdentifier = application.bundleIdentifier,
+                          desktopRenamerBundleIdentifiers.contains(bundleIdentifier)
+                    else { return }
+                    Task { @MainActor [weak self] in self?.refresh() }
+                }
+            )
+        }
         workspaceObservers.append(
             workspaceCenter.addObserver(
                 forName: NSWorkspace.didWakeNotification,
@@ -386,6 +426,52 @@ final class SpaceAPIClient: SpaceAPIProviding {
         postRequest(method: "getSpaceSnapshot")
     }
 
+    private var currentDesktopRenamerProcessIdentifier: pid_t? {
+        for bundleIdentifier in Self.desktopRenamerBundleIdentifiers {
+            if let application = NSRunningApplication
+                .runningApplications(withBundleIdentifier: bundleIdentifier)
+                .first(where: { !$0.isTerminated }) {
+                return application.processIdentifier
+            }
+        }
+        return nil
+    }
+
+    /// SpaceAPI revisions are monotonic only within one DesktopRenamer process.
+    /// A process change invalidates pending responses from the old revision stream.
+    private func synchronizeDesktopRenamerProcess() -> Bool {
+        let processIdentifier = currentDesktopRenamerProcessIdentifier
+        guard processIdentifier != desktopRenamerProcessIdentifier else { return false }
+
+        desktopRenamerProcessIdentifier = processIdentifier
+        beginSnapshotResynchronization()
+        cancelPendingRequests()
+        return true
+    }
+
+    /// API info responses establish a new revision baseline, as required by the
+    /// SpaceAPI contract. Ignore events until its full snapshot arrives.
+    private func beginSnapshotResynchronization() {
+        revisionTracker.reset()
+        isWaitingForSnapshot = true
+        cancelLegacySnapshotRequest()
+    }
+
+    private func cancelPendingRequests() {
+        for timeout in pendingTimeouts.values {
+            timeout.cancel()
+        }
+        pendingTimeouts.removeAll()
+        pendingMethods.removeAll()
+    }
+
+    private func cancelLegacySnapshotRequest() {
+        legacySnapshotTimeout?.cancel()
+        legacySnapshotTimeout = nil
+        legacySnapshotRequestID = nil
+        legacySnapshotRevision = nil
+    }
+
     private func postRequest(method: String, params: [String: String]? = nil) {
         let requestID = UUID().uuidString
         guard let payload = try? SpaceAPICodec.requestPayload(
@@ -444,6 +530,8 @@ final class SpaceAPIClient: SpaceAPIProviding {
                 else {
                     throw SpaceAPICodecError.unsupportedAPI
                 }
+                beginSnapshotResynchronization()
+                cancelPendingRequests()
                 negotiatedAPIInfo = info
                 setAvailable(true)
                 requestSnapshot()
@@ -466,6 +554,7 @@ final class SpaceAPIClient: SpaceAPIProviding {
 
     private func handleEventPayload(_ payload: String) {
         guard isRunning,
+              !isWaitingForSnapshot,
               let eventSnapshot = try? SpaceAPICodec.decodeStateChangedEvent(from: payload)
         else { return }
 
