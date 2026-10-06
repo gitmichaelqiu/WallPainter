@@ -150,6 +150,7 @@ final class WallpaperAutomationCoordinator {
         }
 
         spaceProvider?.start()
+        migrateSpaceOverrides()
         appearanceMonitor.start { [weak self] appearance in
             self?.appearanceDidChange(appearance)
         }
@@ -283,7 +284,13 @@ final class WallpaperAutomationCoordinator {
     }
 
     private func spaceStateDidChange() {
+        migrateSpaceOverrides()
         synchronizeActiveSpaces()
         evaluateCurrentAppearance()
+    }
+
+    private func migrateSpaceOverrides() {
+        guard let snapshot = spaceProvider?.snapshot else { return }
+        preferences.migrateLegacySpaceOverrides(using: snapshot.spaces)
     }
 }

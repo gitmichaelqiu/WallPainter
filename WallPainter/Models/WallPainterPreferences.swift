@@ -114,6 +114,43 @@ final class WallPainterPreferences {
         }
     }
 
+    @discardableResult
+    func migrateLegacySpaceOverrides(using spaces: [SpaceDescriptor]) -> Int {
+        var spacesByManagedID: [String: [SpaceDescriptor]] = [:]
+        for space in spaces {
+            guard let managedSpaceID = space.managedSpaceID else { continue }
+            spacesByManagedID[managedSpaceID, default: []].append(space)
+        }
+
+        var migratedOverrides = spaceOverrides
+        var migratedCount = 0
+        for (legacySpaceID, rule) in spaceOverrides {
+            // Previous WallPainter releases used numeric ManagedSpaceIDs as
+            // preference keys. Keep nonnumeric stable IDs exactly as saved.
+            guard Int(legacySpaceID) != nil,
+                  let matches = spacesByManagedID[legacySpaceID],
+                  matches.count == 1,
+                  let space = matches.first,
+                  space.id != legacySpaceID
+            else { continue }
+
+            if let existingRule = migratedOverrides[space.id], existingRule != rule {
+                // A current stable-ID rule wins; retain the old entry rather
+                // than discard conflicting user data.
+                continue
+            }
+
+            migratedOverrides[space.id] = rule
+            migratedOverrides.removeValue(forKey: legacySpaceID)
+            migratedCount += 1
+        }
+
+        if migratedCount > 0 {
+            spaceOverrides = migratedOverrides
+        }
+        return migratedCount
+    }
+
     func resetSpaceOverrides() {
         guard !spaceOverrides.isEmpty else { return }
         spaceOverrides = [:]
