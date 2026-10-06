@@ -1,15 +1,15 @@
 import SwiftUI
 
 enum SettingsTab: String, CaseIterable, Identifiable {
-    case general, spaces, `default`, permissions, about
+    case general, wallpaper, spaces, permissions, about
 
     var id: String { self.rawValue }
 
     var localizedName: LocalizedStringResource {
         switch self {
         case .general: return "General"
+        case .wallpaper: return "Wallpaper"
         case .spaces: return "Spaces"
-        case .default: return "Default"
         case .permissions: return "Permissions"
         case .about: return "About"
         }
@@ -18,10 +18,24 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     var iconName: String {
         switch self {
         case .general: return "gearshape"
+        case .wallpaper: return "photo.on.rectangle.angled"
         case .spaces: return "macwindow"
-        case .default: return "arrow.triangle.2.circlepath"
         case .permissions: return "lock.shield"
         case .about: return "info.circle"
+        }
+    }
+
+    var searchAliases: [String] {
+        switch self {
+        case .wallpaper:
+            return [
+                String(localized: "Switch Once"),
+                String(localized: "Switch"),
+                String(localized: "Default"),
+                String(localized: "Default Rule")
+            ]
+        default:
+            return []
         }
     }
 }
@@ -72,10 +86,17 @@ struct SettingsView: View {
                 ZStack {
                     GeneralSettingsView(
                         model: wallpaperModel,
-                        launchAtLoginManager: launchAtLoginManager,
-                        spaceProvider: spaceProvider
+                        launchAtLoginManager: launchAtLoginManager
                     )
                     .environment(\.settingsTab, .general)
+
+                    WallpaperSettingsView(
+                        model: wallpaperModel,
+                        automationCoordinator: automationCoordinator,
+                        spaceProvider: spaceProvider,
+                        onOpenPermissions: {}
+                    )
+                    .environment(\.settingsTab, .wallpaper)
 
                     SpacesSettingsView(
                         model: wallpaperModel,
@@ -84,12 +105,6 @@ struct SettingsView: View {
                         selectedSpaceID: $selectedSpaceID
                     )
                     .environment(\.settingsTab, .spaces)
-
-                    DefaultSettingsView(
-                        model: wallpaperModel,
-                        spaceProvider: spaceProvider
-                    )
-                    .environment(\.settingsTab, .default)
 
                     PermissionsSettingsView(
                         spaceManager: spaceProvider as? SpaceAPIClient
@@ -142,6 +157,7 @@ struct SettingsView: View {
         return SettingsTab.allCases.filter { tab in
             let matchesTabName = tab.rawValue.lowercased().contains(query)
                 || String(localized: tab.localizedName).lowercased().contains(query)
+                || tab.searchAliases.contains { $0.lowercased().contains(query) }
 
             let matchesSetting = navigationState.registeredItems.contains { item in
                 item.tab == tab && (
@@ -284,8 +300,17 @@ struct SettingsView: View {
                 case .general:
                     GeneralSettingsView(
                         model: wallpaperModel,
-                        launchAtLoginManager: launchAtLoginManager,
-                        spaceProvider: spaceProvider
+                        launchAtLoginManager: launchAtLoginManager
+                    )
+                case .wallpaper:
+                    WallpaperSettingsView(
+                        model: wallpaperModel,
+                        automationCoordinator: automationCoordinator,
+                        spaceProvider: spaceProvider,
+                        onOpenPermissions: {
+                            searchText = ""
+                            selectedTab = .permissions
+                        }
                     )
                 case .spaces:
                     SpacesSettingsView(
@@ -293,11 +318,6 @@ struct SettingsView: View {
                         spaceProvider: spaceProvider,
                         selectedDisplayID: $selectedDisplayID,
                         selectedSpaceID: $selectedSpaceID
-                    )
-                case .default:
-                    DefaultSettingsView(
-                        model: wallpaperModel,
-                        spaceProvider: spaceProvider
                     )
                 case .permissions:
                     PermissionsSettingsView(

@@ -77,6 +77,32 @@ final class WallPainterPreferencesTests: XCTestCase {
         XCTAssertNotNil(defaults.data(forKey: WallPainterPreferences.defaultWallpaperRuleKey))
     }
 
+    func testTimeScheduleRulePersistsAcrossPreferenceReloads() {
+        let suiteName = "WallPainterPreferencesTimeScheduleTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let preferences = WallPainterPreferences(defaults: defaults)
+        let rule = WallpaperRule.timeSchedule([
+            WallpaperTimePeriod(
+                startMinute: 8 * 60,
+                endMinute: 12 * 60,
+                wallpaperID: "morning"
+            ),
+            WallpaperTimePeriod(
+                startMinute: 12 * 60,
+                endMinute: 18 * 60,
+                wallpaperID: "afternoon"
+            )
+        ])
+        preferences.defaultWallpaperRule = rule
+
+        XCTAssertEqual(
+            WallPainterPreferences(defaults: defaults).defaultWallpaperRule,
+            rule
+        )
+    }
+
     func testSpaceRulesCanBeSavedAndReset() {
         let suiteName = "WallPainterPreferencesSpaceRulesTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
@@ -90,5 +116,83 @@ final class WallPainterPreferencesTests: XCTestCase {
 
         preferences.resetSpaceOverrides()
         XCTAssertNil(preferences.spaceRule(for: "space-1"))
+    }
+
+    func testLegacySpaceOverridesMigrateToStableIDsAndPersist() {
+        let suiteName = "WallPainterPreferencesSpaceRuleMigrationTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let preferences = WallPainterPreferences(defaults: defaults)
+        let rule = WallpaperRule.fixed("wallpaper")
+        preferences.setSpaceRule(rule, for: "42001")
+
+        let spaces = [
+            SpaceDescriptor(
+                id: "stable-space-id",
+                name: "Research",
+                displayID: "display-1",
+                displayName: "Built-in Display",
+                number: 1,
+                isFullscreen: false,
+                managedSpaceID: "42001"
+            )
+        ]
+
+        XCTAssertEqual(preferences.migrateLegacySpaceOverrides(using: spaces), 1)
+        XCTAssertNil(preferences.spaceRule(for: "42001"))
+        XCTAssertEqual(preferences.spaceRule(for: "stable-space-id"), rule)
+        XCTAssertEqual(
+            WallPainterPreferences(defaults: defaults).spaceRule(for: "stable-space-id"),
+            rule
+        )
+    }
+
+    func testLegacySpaceOverridesRemainWhenMappingIsAmbiguousOrConflicts() {
+        let suiteName = "WallPainterPreferencesSpaceRuleMigrationSafetyTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let preferences = WallPainterPreferences(defaults: defaults)
+        let legacyRule = WallpaperRule.fixed("legacy-wallpaper")
+        let stableRule = WallpaperRule.fixed("stable-wallpaper")
+        preferences.setSpaceRule(legacyRule, for: "42001")
+        preferences.setSpaceRule(legacyRule, for: "42002")
+        preferences.setSpaceRule(stableRule, for: "stable-space-id")
+
+        let spaces = [
+            SpaceDescriptor(
+                id: "ambiguous-a",
+                name: "Work",
+                displayID: "display-1",
+                displayName: "Built-in Display",
+                number: 1,
+                isFullscreen: false,
+                managedSpaceID: "42001"
+            ),
+            SpaceDescriptor(
+                id: "ambiguous-b",
+                name: "Personal",
+                displayID: "display-1",
+                displayName: "Built-in Display",
+                number: 2,
+                isFullscreen: false,
+                managedSpaceID: "42001"
+            ),
+            SpaceDescriptor(
+                id: "stable-space-id",
+                name: "Research",
+                displayID: "display-2",
+                displayName: "External Display",
+                number: 1,
+                isFullscreen: false,
+                managedSpaceID: "42002"
+            )
+        ]
+
+        XCTAssertEqual(preferences.migrateLegacySpaceOverrides(using: spaces), 0)
+        XCTAssertEqual(preferences.spaceRule(for: "42001"), legacyRule)
+        XCTAssertEqual(preferences.spaceRule(for: "42002"), legacyRule)
+        XCTAssertEqual(preferences.spaceRule(for: "stable-space-id"), stableRule)
     }
 }

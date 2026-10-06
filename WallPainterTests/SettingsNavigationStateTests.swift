@@ -40,12 +40,13 @@ final class SettingsNavigationStateTests: XCTestCase {
     func testSettingsCanRegisterItemsAcrossEveryTab() async {
         let state = SettingsNavigationState()
 
-        state.register(title: "Hide menubar icon", tab: .general)
+        state.register(title: "Show menu bar icon", tab: .general)
         state.register(title: "Launch at login", tab: .general)
         state.register(title: "Wallpaper protection", tab: .general)
+        state.register(title: "Switch wallpaper", tab: .wallpaper)
         state.register(title: "Available spaces", tab: .spaces)
-        state.register(title: "Behavior", tab: .default)
-        state.register(title: "Light wallpaper", tab: .default)
+        state.register(title: "Behavior", tab: .wallpaper)
+        state.register(title: "Light wallpaper", tab: .wallpaper)
         state.register(title: "DesktopRenamer SpaceAPI", tab: .permissions)
         state.register(title: "GitHub / Support", tab: .about)
         await drainMainQueue()
@@ -54,8 +55,9 @@ final class SettingsNavigationStateTests: XCTestCase {
             Set(state.registeredItems.map(\.tab)),
             Set(SettingsTab.allCases)
         )
-        XCTAssertTrue(state.registeredItems.contains { $0.title == "Hide menubar icon" })
+        XCTAssertTrue(state.registeredItems.contains { $0.title == "Show menu bar icon" })
         XCTAssertTrue(state.registeredItems.contains { $0.title == "Wallpaper protection" })
+        XCTAssertTrue(state.registeredItems.contains { $0.title == "Switch wallpaper" })
         XCTAssertTrue(state.registeredItems.contains { $0.title == "Available spaces" })
         XCTAssertTrue(state.registeredItems.contains { $0.title == "Light wallpaper" })
         XCTAssertTrue(state.registeredItems.contains { $0.title == "DesktopRenamer SpaceAPI" })

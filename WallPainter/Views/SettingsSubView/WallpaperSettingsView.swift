@@ -1,19 +1,21 @@
 import SwiftUI
 
-struct DefaultSettingsView: View {
+struct WallpaperSettingsView: View {
     let model: WallpaperModel
+    let automationCoordinator: WallpaperAutomationCoordinator
     let spaceProvider: (any SpaceAPIProviding)?
+    let onOpenPermissions: () -> Void
 
     @Environment(WallPainterPreferences.self) private var preferences
 
     var body: some View {
         @Bindable var preferences = preferences
 
-        SettingsContainer(.default) {
+        SettingsContainer(.wallpaper) {
             VStack(alignment: .leading, spacing: 20) {
                 SettingsSection(
-                    "Automatic Wallpaper Rule",
-                    helperText: "Automatically applies to spaces using Default. Manual changes do not edit this rule and may be replaced the next time it runs."
+                    "Default Rule",
+                    helperText: "Automatically applies to spaces using Default. A manual selection stays active until this rule resolves to a different wallpaper."
                 ) {
                     SettingsRow("Behavior") {
                         Picker("", selection: $preferences.defaultWallpaperRule.mode) {
@@ -27,23 +29,6 @@ struct DefaultSettingsView: View {
                         .frame(minWidth: 190, alignment: .trailing)
                     }
 
-                    if hasAutomaticRules {
-                        Divider()
-
-                        SettingsRow(
-                            "SpaceAPI",
-                            helperText: "Required for applying automatic wallpaper rules to spaces. Reconnect it in Permissions if unavailable."
-                        ) {
-                            Text(spaceProvider?.isAvailable == true ? "Connected" : "Paused")
-                                .foregroundStyle(
-                                    spaceProvider?.isAvailable == true
-                                        ? Color.secondary
-                                        : Color.orange
-                                )
-                                .frame(minHeight: 24)
-                        }
-                    }
-
                     if preferences.defaultWallpaperRule.mode != .manual {
                         Divider()
 
@@ -54,7 +39,7 @@ struct DefaultSettingsView: View {
                                     wallpapers: model.items
                                 )
                             }
-                        } else {
+                        } else if preferences.defaultWallpaperRule.mode == .appearance {
                             SettingsRow("Light wallpaper") {
                                 WallpaperPicker(
                                     selection: $preferences.defaultWallpaperRule.lightWallpaperID,
@@ -70,6 +55,11 @@ struct DefaultSettingsView: View {
                                     wallpapers: model.items
                                 )
                             }
+                        } else {
+                            WallpaperTimeScheduleEditor(
+                                periods: $preferences.defaultWallpaperRule.timePeriods,
+                                wallpapers: model.items
+                            )
                         }
 
                         Divider()
@@ -77,20 +67,22 @@ struct DefaultSettingsView: View {
                         WallpaperRulePreview(
                             rule: preferences.defaultWallpaperRule,
                             wallpapers: model.items,
-                            title: "Preview"
+                            title: "Rule preview"
                         )
                     }
                 }
+
+                WallpaperSwitchSection(
+                    model: model,
+                    automationCoordinator: automationCoordinator,
+                    spaceProvider: spaceProvider,
+                    onOpenPermissions: onOpenPermissions
+                )
 
                 Spacer()
             }
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }
-    }
-
-    private var hasAutomaticRules: Bool {
-        preferences.defaultWallpaperRule.mode != .manual
-            || preferences.spaceOverrides.values.contains { $0.mode != .manual }
     }
 }
 

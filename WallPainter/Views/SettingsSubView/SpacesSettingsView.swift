@@ -75,14 +75,6 @@ struct SpacesSettingsView: View {
     var body: some View {
         SettingsContainer(.spaces) {
             VStack(alignment: .leading, spacing: 20) {
-                if let group = selectedDisplayGroup, !isPreRendering {
-                    SpaceSwitcher(
-                        spaces: group.spaces,
-                        activeSpaceIDs: activeSpaceIDs,
-                        selection: $selectedSpaceID
-                    )
-                }
-
                 if displayGroups.count > 1 {
                     SettingsSection(nil) {
                         SettingsRow("Display") {
@@ -96,9 +88,8 @@ struct SpacesSettingsView: View {
                             .pickerStyle(.menu)
                             .frame(minWidth: 190, alignment: .trailing)
                         }
-
-                        Divider()
                     }
+                    .padding(.top, 10)
                 } else if displayGroups.isEmpty {
                     SettingsSection("Spaces") {
                         SettingsRow(
@@ -113,9 +104,17 @@ struct SpacesSettingsView: View {
                                         ? Color.secondary
                                         : Color.orange
                                 )
-                                .frame(minHeight: 24)
                         }
                     }
+                }
+
+                if let group = selectedDisplayGroup, !isPreRendering {
+                    SpaceSwitcher(
+                        spaces: group.spaces,
+                        activeSpaceIDs: activeSpaceIDs,
+                        selection: $selectedSpaceID
+                    )
+                    .padding(.vertical, displayGroups.count > 1 ? -8 : 2)
                 }
 
                 if let selectedSpace {
@@ -232,7 +231,6 @@ private struct SpaceSwitcher: View {
         ) { space in
             Text(activeSpaceIDs.contains(space.id) ? "○ \(space.name)" : space.name)
         }
-        .padding(.vertical, 2)
     }
 
     private var selectedSelection: Binding<String?> {
@@ -260,6 +258,7 @@ private struct SpaceRuleEditor: View {
     @State private var fixedWallpaperID: String?
     @State private var lightWallpaperID: String?
     @State private var darkWallpaperID: String?
+    @State private var timePeriods: [WallpaperTimePeriod]
 
     init(
         space: SpaceDescriptor,
@@ -281,6 +280,7 @@ private struct SpaceRuleEditor: View {
         _fixedWallpaperID = State(initialValue: startingRule.fixedWallpaperID)
         _lightWallpaperID = State(initialValue: startingRule.lightWallpaperID)
         _darkWallpaperID = State(initialValue: startingRule.darkWallpaperID)
+        _timePeriods = State(initialValue: startingRule.timePeriods)
     }
 
     private var effectiveRule: WallpaperRule {
@@ -294,6 +294,8 @@ private struct SpaceRuleEditor: View {
                 lightWallpaperID: lightWallpaperID,
                 darkWallpaperID: darkWallpaperID
             )
+        case .timeSchedule:
+            return .timeSchedule(timePeriods)
         case .manual:
             return .manual
         }
@@ -302,7 +304,7 @@ private struct SpaceRuleEditor: View {
     var body: some View {
         SettingsSection(
             "Space Behavior",
-            helperText: "Use Default inherits the Default tab's rule; other choices apply only to this space."
+            helperText: "Use Default inherits the automatic wallpaper rule; other choices apply only to this space."
         ) {
             SettingsRow("Behavior") {
                 Picker("", selection: $selection) {
@@ -343,6 +345,13 @@ private struct SpaceRuleEditor: View {
                         wallpapers: model.items
                     )
                 }
+            } else if selection == .timeSchedule {
+                Divider()
+
+                WallpaperTimeScheduleEditor(
+                    periods: $timePeriods,
+                    wallpapers: model.items
+                )
             }
 
             Divider()
@@ -350,7 +359,7 @@ private struct SpaceRuleEditor: View {
             WallpaperRulePreview(
                 rule: effectiveRule,
                 wallpapers: model.items,
-                title: selection == .allSpaces ? "Effective wallpaper" : "Preview"
+                title: selection == .allSpaces ? "Effective wallpaper" : "Rule preview"
             )
         }
         .onChange(of: selection) { _, _ in
@@ -363,6 +372,9 @@ private struct SpaceRuleEditor: View {
             saveIfNeeded()
         }
         .onChange(of: darkWallpaperID) { _, _ in
+            saveIfNeeded()
+        }
+        .onChange(of: timePeriods) { _, _ in
             saveIfNeeded()
         }
         .onChange(of: existingRule) { _, newRule in
@@ -391,6 +403,8 @@ private struct SpaceRuleEditor: View {
                 ),
                 for: space.id
             )
+        case .timeSchedule:
+            preferences.setSpaceRule(.timeSchedule(timePeriods), for: space.id)
         case .manual:
             preferences.setSpaceRule(.manual, for: space.id)
         }
@@ -401,6 +415,7 @@ private struct SpaceRuleEditor: View {
         fixedWallpaperID = rule.fixedWallpaperID
         lightWallpaperID = rule.lightWallpaperID
         darkWallpaperID = rule.darkWallpaperID
+        timePeriods = rule.timePeriods
     }
 }
 
@@ -409,6 +424,7 @@ private enum SpaceRuleSelection: String, CaseIterable, Identifiable {
     case manual
     case fixed
     case appearance
+    case timeSchedule
 
     var id: String { rawValue }
 
@@ -422,6 +438,8 @@ private enum SpaceRuleSelection: String, CaseIterable, Identifiable {
             return "Fixed wallpaper"
         case .appearance:
             return "Follow system appearance"
+        case .timeSchedule:
+            return "Time schedule"
         }
     }
 
@@ -433,6 +451,8 @@ private enum SpaceRuleSelection: String, CaseIterable, Identifiable {
             self = .fixed
         case .appearance:
             self = .appearance
+        case .timeSchedule:
+            self = .timeSchedule
         }
     }
 }

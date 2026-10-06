@@ -4,6 +4,17 @@ import Foundation
 struct WallpaperAssetProtectionStatus: Equatable, Sendable {
     let protectedIDs: Set<String>
     let availableIDs: Set<String>
+    let backupSizeInBytes: Int64
+
+    init(
+        protectedIDs: Set<String>,
+        availableIDs: Set<String>,
+        backupSizeInBytes: Int64 = 0
+    ) {
+        self.protectedIDs = protectedIDs
+        self.availableIDs = availableIDs
+        self.backupSizeInBytes = backupSizeInBytes
+    }
 
     var missingIDs: Set<String> {
         protectedIDs.subtracting(availableIDs)
@@ -206,7 +217,8 @@ struct SystemWallpaperAssetProtector: WallpaperAssetProtecting {
 
         return WallpaperAssetProtectionStatus(
             protectedIDs: protectedIDs,
-            availableIDs: availableIDs
+            availableIDs: availableIDs,
+            backupSizeInBytes: backupStorageSize()
         )
     }
 
@@ -332,6 +344,31 @@ struct SystemWallpaperAssetProtector: WallpaperAssetProtecting {
         }
 
         return true
+    }
+
+    private func backupStorageSize() -> Int64 {
+        guard let enumerator = fileManager.enumerator(
+            at: backupDirectory,
+            includingPropertiesForKeys: [.isRegularFileKey, .fileSizeKey]
+        ) else { return 0 }
+
+        var total: Int64 = 0
+        for case let fileURL as URL in enumerator {
+            total += fileSize(at: fileURL)
+        }
+        return total
+    }
+
+    private func fileSize(at url: URL) -> Int64 {
+        guard let values = try? url.resourceValues(forKeys: [
+            .isRegularFileKey,
+            .fileSizeKey
+        ]),
+        values.isRegularFile == true,
+        let fileSize = values.fileSize
+        else { return 0 }
+
+        return Int64(fileSize)
     }
 
     private func isSafeComponent(_ component: String) -> Bool {

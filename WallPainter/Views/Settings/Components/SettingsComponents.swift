@@ -3,6 +3,10 @@ import AVKit
 import AVFoundation
 import Combine
 
+// Simple rows use a 24-point content area and 6-point vertical insets; larger content can grow.
+private let standardSettingsRowHeight: CGFloat = 36
+private let settingsRowVerticalInset: CGFloat = 6
+
 struct AnimatedSettingsValue: View {
     let text: String
     @State private var displayedText: String
@@ -140,10 +144,19 @@ struct IsSettingsPreRenderingKey: EnvironmentKey {
     static let defaultValue = false
 }
 
+struct IsSettingsSearchRegistrationEnabledKey: EnvironmentKey {
+    static let defaultValue = true
+}
+
 extension EnvironmentValues {
     var isSettingsPreRendering: Bool {
         get { self[IsSettingsPreRenderingKey.self] }
         set { self[IsSettingsPreRenderingKey.self] = newValue }
+    }
+
+    var isSettingsSearchRegistrationEnabled: Bool {
+        get { self[IsSettingsSearchRegistrationEnabledKey.self] }
+        set { self[IsSettingsSearchRegistrationEnabledKey.self] = newValue }
     }
 }
 
@@ -307,6 +320,7 @@ struct SettingsContainer<Content: View>: View {
 
 struct SettingsRow<Content: View>: View {
     let title: LocalizedStringResource
+    let rowID: String
     let content: Content
     let helperText: LocalizedStringKey?
     let warningText: LocalizedStringKey?
@@ -315,16 +329,19 @@ struct SettingsRow<Content: View>: View {
     @AppStorage("ShowDemoVideos") private var showDemoVideos = true
     @Environment(\.settingsTab) var currentTab
     @Environment(\.isSettingsPreRendering) private var isPreRendering
+    @Environment(\.isSettingsSearchRegistrationEnabled) private var isSearchRegistrationEnabled
     @EnvironmentObject var navigationState: SettingsNavigationState
 
     init(
         _ title: LocalizedStringResource,
+        id: String? = nil,
         helperText: LocalizedStringKey? = nil,
         warningText: LocalizedStringKey? = nil,
         demoVideoName: String? = nil,
         @ViewBuilder content: () -> Content
     ) {
         self.title = title
+        self.rowID = id ?? title.key
         self.helperText = helperText
         self.warningText = warningText
         self.demoVideoName = demoVideoName
@@ -333,7 +350,7 @@ struct SettingsRow<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
+            HStack(alignment: .center) {
                 HStack(spacing: 4) {
                     Text(highlightedText(text: String(localized: title), query: navigationState.searchText))
                         .frame(alignment: .leading)
@@ -349,8 +366,10 @@ struct SettingsRow<Content: View>: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
                 content
+                    .controlSize(.regular)
                     .frame(alignment: .trailing)
             }
+            .frame(minHeight: standardSettingsRowHeight - settingsRowVerticalInset * 2)
 
             if showDemoVideos,
                let videoName = demoVideoName,
@@ -366,17 +385,73 @@ struct SettingsRow<Content: View>: View {
                     .padding(.bottom, 6)
             }
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, settingsRowVerticalInset)
         .padding(.horizontal, 10)
-        .id(title.key)
+        .frame(minHeight: standardSettingsRowHeight)
+        .id(rowID)
         .onAppear {
-            navigationState.register(title: title.key, tab: currentTab)
+            if isSearchRegistrationEnabled {
+                navigationState.register(title: title.key, tab: currentTab)
+            }
         }
         .onDisappear {
-            if !isPreRendering {
+            if !isPreRendering && isSearchRegistrationEnabled {
                 navigationState.unregister(title: title.key, tab: currentTab)
             }
         }
+    }
+}
+
+struct SettingsValueRow<Leading: View, Trailing: View>: View {
+    let leading: Leading
+    let trailing: Trailing
+    let horizontalPadding: CGFloat
+
+    init(
+        horizontalPadding: CGFloat = 10,
+        @ViewBuilder leading: () -> Leading,
+        @ViewBuilder trailing: () -> Trailing
+    ) {
+        self.leading = leading()
+        self.trailing = trailing()
+        self.horizontalPadding = horizontalPadding
+    }
+
+    var body: some View {
+        HStack(alignment: .center) {
+            leading
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            trailing
+                .controlSize(.regular)
+                .frame(alignment: .trailing)
+        }
+        .frame(minHeight: standardSettingsRowHeight - settingsRowVerticalInset * 2)
+        .padding(.vertical, settingsRowVerticalInset)
+        .padding(.horizontal, horizontalPadding)
+        .frame(minHeight: standardSettingsRowHeight)
+    }
+}
+
+struct SettingsSectionHeader: View {
+    let title: LocalizedStringKey
+    let helperText: LocalizedStringKey?
+
+    init(_ title: LocalizedStringKey, helperText: LocalizedStringKey? = nil) {
+        self.title = title
+        self.helperText = helperText
+    }
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Text(title)
+                .font(.headline)
+
+            if let helperText {
+                HelperInfoButton(text: helperText)
+            }
+        }
+        .padding(.leading, 4)
     }
 }
 
@@ -397,15 +472,7 @@ struct SettingsSection<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if let title = title {
-                HStack(spacing: 4) {
-                    Text(title)
-                        .font(.headline)
-
-                    if let helperText = helperText {
-                        HelperInfoButton(text: helperText)
-                    }
-                }
-                .padding(.leading, 4)
+                SettingsSectionHeader(title, helperText: helperText)
             }
 
             VStack(spacing: 0) {

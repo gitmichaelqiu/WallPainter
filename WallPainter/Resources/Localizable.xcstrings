@@ -34,12 +34,12 @@
         }
       }
     },
-    "%lld protected" : {
+    "%lld wallpapers (%@)" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已保护 %lld 张壁纸"
+            "value" : "%lld 张壁纸（%@）"
           }
         }
       }
@@ -77,6 +77,56 @@
         }
       }
     },
+    "Add" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加"
+          }
+        }
+      }
+    },
+    "Add at least one time period." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "至少添加一个时段。"
+          }
+        }
+      }
+    },
+    "Add time period" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加时段"
+          }
+        }
+      }
+    },
+    "All spaces" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有桌面空间"
+          }
+        }
+      }
+    },
+    "All spaces (%lld)" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有桌面空间（%lld 个）"
+          }
+        }
+      }
+    },
     "All spaces will use the Default rule again." : {
       "localizations" : {
         "zh-Hans" : {
@@ -97,42 +147,22 @@
         }
       }
     },
+    "App behavior" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用行为"
+          }
+        }
+      }
+    },
     "Apple Aerial %@" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apple Aerial %@"
-          }
-        }
-      }
-    },
-    "Apply" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "应用"
-          }
-        }
-      }
-    },
-    "Apply everywhere" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "应用到所有桌面"
-          }
-        }
-      }
-    },
-    "Apply to current space(s)" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "应用到当前桌面"
           }
         }
       }
@@ -147,22 +177,12 @@
         }
       }
     },
-    "Automatic Wallpaper Rule" : {
+    "Automatically applies to spaces using Default. A manual selection stays active until this rule resolves to a different wallpaper." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "自动壁纸规则"
-          }
-        }
-      }
-    },
-    "Automatically applies to spaces using Default. Manual changes do not edit this rule and may be replaced the next time it runs." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自动应用于使用“默认”规则的桌面。手动更改不会修改此规则，并可能在下次自动运行时被替换。"
+            "value" : "自动应用于使用“默认”规则的桌面。手动选择的壁纸会保持不变，直到此规则解析为另一张壁纸。"
           }
         }
       }
@@ -217,7 +237,27 @@
         }
       }
     },
-    "Check for Updates" : {
+    "Changes the wallpaper without editing any rules. Each manual selection stays active until that space’s rule selects a different wallpaper. Choose Resume Rule from the menu bar to return to automation sooner." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此操作不会修改任何规则。手动选择的壁纸会保持不变，直到该桌面的规则选中另一张壁纸。也可以从菜单栏选择“恢复规则”以提前恢复自动切换。"
+          }
+        }
+      }
+    },
+    "Check" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "检查"
+          }
+        }
+      }
+    },
+    "Check for updates" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -227,22 +267,22 @@
         }
       }
     },
-    "Check Now" : {
+    "Choose an installed wallpaper for every period." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "立即检查"
+            "value" : "请为每个时段选择已安装的壁纸。"
           }
         }
       }
     },
-    "Connected" : {
+    "Connect DesktopRenamer SpaceAPI in Permissions to switch the current space. All Spaces switching is still available." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已连接"
+            "value" : "在“权限”中连接 DesktopRenamer SpaceAPI 后，即可切换当前桌面空间。仍可切换所有空间。"
           }
         }
       }
@@ -277,17 +317,27 @@
         }
       }
     },
-    "Current desktop wallpaper" : {
+    "Current space" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前桌面壁纸"
+            "value" : "当前桌面空间"
           }
         }
       }
     },
-    "Current Wallpaper" : {
+    "Current-space switching is unavailable" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法切换当前桌面空间"
+          }
+        }
+      }
+    },
+    "Currently active" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -327,12 +377,32 @@
         }
       }
     },
+    "Default Rule" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "默认规则"
+          }
+        }
+      }
+    },
     "Delete Tab" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "删除标签页"
+          }
+        }
+      }
+    },
+    "DesktopRenamer did not report the current space. All Spaces switching is still available." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DesktopRenamer 未报告当前桌面空间。仍可切换所有空间。"
           }
         }
       }
@@ -377,6 +447,26 @@
         }
       }
     },
+    "Each period needs a different start and end time." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每个时段的开始和结束时间必须不同。"
+          }
+        }
+      }
+    },
+    "Edit…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑…"
+          }
+        }
+      }
+    },
     "Effective wallpaper" : {
       "localizations" : {
         "zh-Hans" : {
@@ -387,12 +477,42 @@
         }
       }
     },
+    "End" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "结束"
+          }
+        }
+      }
+    },
+    "End (next day)" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "结束（次日）"
+          }
+        }
+      }
+    },
     "Every space will use the default rule again." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "所有桌面都将重新使用默认规则。"
+          }
+        }
+      }
+    },
+    "Fix before saving" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存前请修正"
           }
         }
       }
@@ -433,16 +553,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "通用"
-          }
-        }
-      }
-    },
-    "Hide menubar icon" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "隐藏菜单栏图标"
           }
         }
       }
@@ -547,12 +657,12 @@
         }
       }
     },
-    "Manual Wallpaper" : {
+    "Media Suite" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "手动壁纸"
+            "value" : "媒体套件"
           }
         }
       }
@@ -607,6 +717,16 @@
         }
       }
     },
+    "Next day" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "次日"
+          }
+        }
+      }
+    },
     "No active regular spaces are available." : {
       "localizations" : {
         "zh-Hans" : {
@@ -623,6 +743,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "不自动更改壁纸"
+          }
+        }
+      }
+    },
+    "No current space is available" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有可用的当前桌面空间"
+          }
+        }
+      }
+    },
+    "No free one-hour window. Shorten an existing period before adding another." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有可用的一小时时段。请先缩短现有时段，再添加时段。"
           }
         }
       }
@@ -697,6 +837,26 @@
         }
       }
     },
+    "No time periods configured" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未配置时段"
+          }
+        }
+      }
+    },
+    "No wallpaper selected" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未选择壁纸"
+          }
+        }
+      }
+    },
     "Not detected" : {
       "localizations" : {
         "zh-Hans" : {
@@ -757,15 +917,45 @@
         }
       }
     },
-    "Painter" : {
-      "shouldTranslate" : false
-    },
-    "Paused" : {
+    "Open Permissions" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已暂停"
+            "value" : "打开权限设置"
+          }
+        }
+      }
+    },
+    "Painter" : {
+      "shouldTranslate" : false
+    },
+    "Period %lld" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第 %lld 个时段"
+          }
+        }
+      }
+    },
+    "Periods repeat daily in local time. An end time earlier than its start is on the next day; gaps keep the current wallpaper." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时段每天按本地时间重复。结束时间早于开始时间表示在次日结束；空档时保持当前壁纸。"
+          }
+        }
+      }
+    },
+    "Periods repeat daily in local time. An end time earlier than its start is on the next day. The current wallpaper stays active when no period matches." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时段每天按本地时间重复。结束时间早于开始时间表示在次日结束。没有时段匹配时，当前壁纸将保持不变。"
           }
         }
       }
@@ -780,22 +970,12 @@
         }
       }
     },
-    "Preview" : {
+    "Quit" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "预览"
-          }
-        }
-      }
-    },
-    "Quit WallPainter" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "退出 WallPainter"
+            "value" : "退出"
           }
         }
       }
@@ -810,22 +990,22 @@
         }
       }
     },
-    "Refresh" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "刷新"
-          }
-        }
-      }
-    },
     "Refresh catalog" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "刷新目录"
+          }
+        }
+      }
+    },
+    "Remove" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除"
           }
         }
       }
@@ -856,16 +1036,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "报告问题"
-          }
-        }
-      }
-    },
-    "Required for applying automatic wallpaper rules to spaces. Reconnect it in Permissions if unavailable." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "将自动壁纸规则应用到桌面需要 SpaceAPI。若其不可用，请前往“权限”重新连接。"
           }
         }
       }
@@ -910,12 +1080,52 @@
         }
       }
     },
+    "Resume Rule" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "恢复规则"
+          }
+        }
+      }
+    },
     "Retry" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "重试"
+          }
+        }
+      }
+    },
+    "Rule preview" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "规则预览"
+          }
+        }
+      }
+    },
+    "Save" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存"
+          }
+        }
+      }
+    },
+    "Save becomes available after every issue is resolved." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解决所有问题后即可保存。"
           }
         }
       }
@@ -930,32 +1140,22 @@
         }
       }
     },
-    "Select a wallpaper and apply it once. This does not change Default or per-space rules; automation may later replace it." : {
+    "Select this wallpaper for a one-time switch" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选择一张壁纸并立即应用一次。此操作不会更改“默认”规则或各桌面的规则；之后自动化可能会替换此壁纸。"
+            "value" : "选择此壁纸以进行一次性切换"
           }
         }
       }
     },
-    "Select this installed live wallpaper" : {
+    "Selected to switch" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选择此已安装的动态壁纸"
-          }
-        }
-      }
-    },
-    "Selected" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已选择"
+            "value" : "已选中用于切换"
           }
         }
       }
@@ -970,12 +1170,32 @@
         }
       }
     },
+    "Set Up…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设置…"
+          }
+        }
+      }
+    },
     "Settings…" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "设置…"
+          }
+        }
+      }
+    },
+    "Show menu bar icon" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示菜单栏图标"
           }
         }
       }
@@ -1010,16 +1230,6 @@
         }
       }
     },
-    "SpaceAPI" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SpaceAPI"
-          }
-        }
-      }
-    },
     "SpaceAPI disconnected" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1036,6 +1246,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "桌面"
+          }
+        }
+      }
+    },
+    "Start" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开始"
           }
         }
       }
@@ -1060,12 +1280,42 @@
         }
       }
     },
-    "Switching…" : {
+    "Switch Once" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在切换…"
+            "value" : "切换一次"
+          }
+        }
+      }
+    },
+    "Switch wallpaper" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切换壁纸"
+          }
+        }
+      }
+    },
+    "Switch wallpaper on all spaces" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在所有桌面空间切换壁纸"
+          }
+        }
+      }
+    },
+    "Switch wallpaper on current space" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切换当前桌面空间的壁纸"
           }
         }
       }
@@ -1150,6 +1400,46 @@
         }
       }
     },
+    "Time periods" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时段"
+          }
+        }
+      }
+    },
+    "Time periods cannot overlap." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时段不能重叠。"
+          }
+        }
+      }
+    },
+    "Time schedule" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时间安排"
+          }
+        }
+      }
+    },
+    "Time Schedule" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时间安排"
+          }
+        }
+      }
+    },
     "Unavailable" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1170,12 +1460,12 @@
         }
       }
     },
-    "Use Default inherits the Default tab's rule; other choices apply only to this space." : {
+    "Use Default inherits the automatic wallpaper rule; other choices apply only to this space." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“使用默认”会继承“默认”标签页中的规则；其他选项仅应用于此桌面。"
+            "value" : "“使用默认”会继承自动壁纸规则；其他选项仅应用于此桌面。"
           }
         }
       }
@@ -1239,6 +1529,16 @@
         }
       }
     },
+    "Wallpaper preview" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "壁纸预览"
+          }
+        }
+      }
+    },
     "Wallpaper protection" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1285,6 +1585,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "壁纸已应用到所选桌面。"
+          }
+        }
+      }
+    },
+    "Workflow Suite" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "工作流套件"
           }
         }
       }

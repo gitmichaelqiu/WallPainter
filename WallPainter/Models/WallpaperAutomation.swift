@@ -2,6 +2,18 @@ import AppKit
 import Foundation
 import Observation
 
+private struct WallpaperAutomationPreferencesSnapshot: Equatable {
+    let defaultRule: WallpaperRule
+    let spaceOverrides: [String: WallpaperRule]
+    let wallpaperProtectionEnabled: Bool
+
+    init(preferences: WallPainterPreferences) {
+        defaultRule = preferences.defaultWallpaperRule
+        spaceOverrides = preferences.spaceOverrides
+        wallpaperProtectionEnabled = preferences.wallpaperProtectionEnabled
+    }
+}
+
 enum WallpaperAppearance: String, CaseIterable, Codable, Identifiable, Sendable {
     case light
     case dark
@@ -74,7 +86,10 @@ final class WallpaperAutomationCoordinator {
     @ObservationIgnored private var preferencesObserver: NSObjectProtocol?
     @ObservationIgnored private var spaceSnapshotObserver: NSObjectProtocol?
     @ObservationIgnored private var spaceAvailabilityObserver: NSObjectProtocol?
+    @ObservationIgnored private var systemTimeObservers: [NSObjectProtocol] = []
     @ObservationIgnored private var appearanceEvaluationWorkItem: DispatchWorkItem?
+    @ObservationIgnored private var timeScheduleEvaluationWorkItem: DispatchWorkItem?
+    @ObservationIgnored private var observedPreferences: WallpaperAutomationPreferencesSnapshot?
 
     init(
         model: WallpaperModel,
@@ -86,6 +101,7 @@ final class WallpaperAutomationCoordinator {
         self.preferences = preferences
         self.appearanceMonitor = appearanceMonitor ?? SystemAppearanceMonitor()
         self.spaceProvider = spaceProvider
+        observedPreferences = WallpaperAutomationPreferencesSnapshot(preferences: preferences)
     }
 
     var isSpaceAPIAvailable: Bool {
@@ -127,6 +143,22 @@ final class WallpaperAutomationCoordinator {
                 self?.preferencesDidChange()
             }
         }
+        for notificationName in [
+            Notification.Name.NSSystemClockDidChange,
+            Notification.Name.NSSystemTimeZoneDidChange
+        ] {
+            systemTimeObservers.append(
+                notificationCenter.addObserver(
+                    forName: notificationName,
+                    object: nil,
+                    queue: .main
+                ) { [weak self] _ in
+                    Task { @MainActor [weak self] in
+                        self?.systemTimeDidChange()
+                    }
+                }
+            )
+        }
         if let spaceProvider {
             let observedSpaceProvider = spaceProvider as AnyObject
             spaceSnapshotObserver = notificationCenter.addObserver(
@@ -150,6 +182,7 @@ final class WallpaperAutomationCoordinator {
         }
 
         spaceProvider?.start()
+        migrateSpaceOverrides()
         appearanceMonitor.start { [weak self] appearance in
             self?.appearanceDidChange(appearance)
         }
@@ -162,6 +195,8 @@ final class WallpaperAutomationCoordinator {
         spaceProvider?.stop()
         appearanceEvaluationWorkItem?.cancel()
         appearanceEvaluationWorkItem = nil
+        timeScheduleEvaluationWorkItem?.cancel()
+        timeScheduleEvaluationWorkItem = nil
 
         let notificationCenter = NotificationCenter.default
         if let catalogObserver {
@@ -176,14 +211,20 @@ final class WallpaperAutomationCoordinator {
         if let spaceAvailabilityObserver {
             notificationCenter.removeObserver(spaceAvailabilityObserver)
         }
+        for observer in systemTimeObservers {
+            notificationCenter.removeObserver(observer)
+        }
         self.catalogObserver = nil
         self.preferencesObserver = nil
         self.spaceSnapshotObserver = nil
         self.spaceAvailabilityObserver = nil
+        self.systemTimeObservers.removeAll()
         isRunning = false
     }
 
     func evaluateCurrentAppearance() {
+        scheduleNextTimeScheduleEvaluation()
+
         // Reconcile the private Apple cache before resolving rules. A restored
         // asset is discovered by the catalog here; an unrecoverable asset is
         // removed from the installed set and its saved rule is left intact.
@@ -203,17 +244,18 @@ final class WallpaperAutomationCoordinator {
 
         synchronizeActiveSpaces()
 
-        let targets = regularSpaces.map {
-            WallpaperSpaceTarget(spaceID: $0.id, displayID: $0.displayID)
-        }
+        let targets = regularSpaces.compactMap { WallpaperSpaceTarget(space: $0) }
+        let targetsBySpaceID = Dictionary(uniqueKeysWithValues: targets.map { ($0.spaceID, $0) })
         model.synchronizeWallpaperIDs(for: targets)
 
         var wallpaperIDsBySpaceID: [String: String] = [:]
         var writableTargets: [WallpaperSpaceTarget] = []
+        var releasedManualHolds = Set<String>()
         let currentWallpaperIDs = model.wallpaperIDs(for: targets)
         let installedWallpaperIDs = Set(model.items.map(\.id))
 
         for space in regularSpaces {
+            guard let target = targetsBySpaceID[space.id] else { continue }
             let rule = preferences.spaceRule(for: space.id)
                 ?? preferences.defaultWallpaperRule
 
@@ -226,18 +268,68 @@ final class WallpaperAutomationCoordinator {
                 continue
             }
 
+            if let manualHold = preferences.manualWallpaperHoldsBySpaceID[space.id] {
+                guard manualHold.ruleWallpaperID != wallpaperID else {
+                    guard installedWallpaperIDs.contains(manualHold.wallpaperID) else { continue }
+                    if currentWallpaperIDs[space.id] != manualHold.wallpaperID {
+                        wallpaperIDsBySpaceID[space.id] = manualHold.wallpaperID
+                        writableTargets.append(target)
+                    }
+                    continue
+                }
+                releasedManualHolds.insert(space.id)
+            }
+
             guard currentWallpaperIDs[space.id] != wallpaperID else {
                 continue
             }
 
             wallpaperIDsBySpaceID[space.id] = wallpaperID
-            writableTargets.append(
-                WallpaperSpaceTarget(spaceID: space.id, displayID: space.displayID)
-            )
+            writableTargets.append(target)
         }
+
+        preferences.clearManualWallpaperHolds(forSpaceIDs: releasedManualHolds)
 
         guard !writableTargets.isEmpty else { return }
         _ = model.applyWallpapers(wallpaperIDsBySpaceID, to: writableTargets)
+    }
+
+    func recordManualWallpaperSwitch(
+        of wallpaperID: String,
+        for targets: [WallpaperSpaceTarget]
+    ) {
+        let date = Date()
+        let installedWallpaperIDs = Set(model.items.map(\.id))
+        var holds: [String: ManualWallpaperHold] = [:]
+        for target in targets where !target.spaceID.isEmpty {
+            let rule = preferences.spaceRule(for: target.spaceID)
+                ?? preferences.defaultWallpaperRule
+            let resolvedRuleWallpaperID = rule.isValid(installedWallpaperIDs: installedWallpaperIDs)
+                ? rule.resolvedWallpaperID(for: currentAppearance, at: date)
+                : nil
+            holds[target.spaceID] = ManualWallpaperHold(
+                wallpaperID: wallpaperID,
+                ruleWallpaperID: resolvedRuleWallpaperID
+            )
+        }
+        preferences.setManualWallpaperHolds(holds)
+        model.refreshWallpaperProtectionStatus()
+    }
+
+    func resumeRule(for target: WallpaperSpaceTarget) {
+        guard !target.spaceID.isEmpty else { return }
+
+        preferences.clearManualWallpaperHolds(forSpaceIDs: [target.spaceID])
+        model.refreshWallpaperProtectionStatus()
+
+        let installedWallpaperIDs = Set(model.items.map(\.id))
+        let rule = preferences.spaceRule(for: target.spaceID)
+            ?? preferences.defaultWallpaperRule
+        guard rule.isValid(installedWallpaperIDs: installedWallpaperIDs),
+              let wallpaperID = rule.resolvedWallpaperID(for: currentAppearance)
+        else { return }
+
+        _ = model.applyWallpaper(id: wallpaperID, to: [target])
     }
 
     private func synchronizeActiveSpaces() {
@@ -253,7 +345,7 @@ final class WallpaperAutomationCoordinator {
         )
         let targets: [WallpaperSpaceTarget] = snapshot.currentSpaceIDs.compactMap { spaceID in
             guard let space = regularSpacesByID[spaceID] else { return nil }
-            return WallpaperSpaceTarget(spaceID: space.id, displayID: space.displayID)
+            return WallpaperSpaceTarget(space: space)
         }
         model.setActiveSpaceTargets(targets)
         if !targets.isEmpty {
@@ -281,11 +373,68 @@ final class WallpaperAutomationCoordinator {
     }
 
     private func preferencesDidChange() {
+        let latestPreferences = WallpaperAutomationPreferencesSnapshot(preferences: preferences)
+        guard observedPreferences != latestPreferences else { return }
+        observedPreferences = latestPreferences
         evaluateCurrentAppearance()
     }
 
     private func spaceStateDidChange() {
+        migrateSpaceOverrides()
         synchronizeActiveSpaces()
         evaluateCurrentAppearance()
+    }
+
+    private func systemTimeDidChange() {
+        evaluateCurrentAppearance()
+    }
+
+    private func scheduleNextTimeScheduleEvaluation() {
+        timeScheduleEvaluationWorkItem?.cancel()
+        timeScheduleEvaluationWorkItem = nil
+        guard isRunning else { return }
+
+        let rules = [preferences.defaultWallpaperRule] + Array(preferences.spaceOverrides.values)
+        let boundaryMinutes = Set(rules.flatMap { rule -> [Int] in
+            guard rule.mode == .timeSchedule else { return [] }
+            return rule.timePeriods
+                .filter(\.hasValidTimeRange)
+                .flatMap { [$0.startMinute, $0.endMinute] }
+        })
+        guard !boundaryMinutes.isEmpty else { return }
+
+        let now = Date()
+        let calendar = Calendar.current
+        let nextBoundary = boundaryMinutes.compactMap { minute -> Date? in
+            var components = DateComponents()
+            components.hour = minute / 60
+            components.minute = minute % 60
+            components.second = 0
+            return calendar.nextDate(
+                after: now,
+                matching: components,
+                matchingPolicy: .nextTime,
+                repeatedTimePolicy: .first,
+                direction: .forward
+            )
+        }.min()
+        guard let nextBoundary else { return }
+
+        let workItem = DispatchWorkItem { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self, self.isRunning else { return }
+                self.evaluateCurrentAppearance()
+            }
+        }
+        timeScheduleEvaluationWorkItem = workItem
+        DispatchQueue.main.asyncAfter(
+            deadline: .now() + max(0.1, nextBoundary.timeIntervalSince(now)),
+            execute: workItem
+        )
+    }
+
+    private func migrateSpaceOverrides() {
+        guard let snapshot = spaceProvider?.snapshot else { return }
+        preferences.migrateLegacySpaceOverrides(using: snapshot.spaces)
     }
 }

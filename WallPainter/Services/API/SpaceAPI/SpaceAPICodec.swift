@@ -87,6 +87,38 @@ enum SpaceAPICodec {
         return try decodeSnapshotObject(snapshot)
     }
 
+    static func decodeLegacySpaceSnapshot(from payload: String) throws -> [SpaceDescriptor] {
+        guard let data = payload.data(using: .utf8),
+              let object = try? JSONSerialization.jsonObject(with: data),
+              let snapshot = object as? [String: Any],
+              let spaces = snapshot["spaces"] as? [[String: Any]]
+        else {
+            throw SpaceAPICodecError.invalidPayload
+        }
+
+        return try spaces.map { space in
+            guard let id = stringValue(space["id"]),
+                  let name = space["name"] as? String,
+                  let displayID = space["displayID"] as? String,
+                  let displayName = space["displayName"] as? String,
+                  let number = (space["number"] as? NSNumber)?.intValue,
+                  let isFullscreen = (space["isFullscreen"] as? NSNumber)?.boolValue
+            else {
+                throw SpaceAPICodecError.invalidResponse
+            }
+
+            return SpaceDescriptor(
+                id: id,
+                name: name,
+                displayID: displayID,
+                displayName: displayName,
+                number: number,
+                isFullscreen: isFullscreen,
+                managedSpaceID: id
+            )
+        }
+    }
+
     private static func object(from payload: String) throws -> [String: Any] {
         guard let data = payload.data(using: .utf8),
               let object = try? JSONSerialization.jsonObject(with: data),
@@ -104,6 +136,16 @@ enum SpaceAPICodec {
             throw SpaceAPICodecError.invalidResponse
         }
         return result
+    }
+
+    private static func stringValue(_ value: Any?) -> String? {
+        if let value = value as? String {
+            return value
+        }
+        if let value = value as? NSNumber {
+            return value.stringValue
+        }
+        return nil
     }
 
     private static func decodeSnapshotObject(_ object: [String: Any]) throws -> SpaceSnapshot {
@@ -138,6 +180,8 @@ enum SpaceAPICodec {
         return SpaceSnapshot(
             revision: revision,
             currentSpaceIDs: currentSpaceIDs,
+            currentSpaceID: object["currentSpaceID"] as? String,
+            currentDisplayID: object["currentDisplayID"] as? String,
             spaces: descriptors
         )
     }

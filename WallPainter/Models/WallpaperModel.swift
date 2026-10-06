@@ -66,12 +66,19 @@ final class WallpaperModel {
             return String(localized: "Not detected")
         case .empty:
             if let currentWallpaperID {
-                return name(for: currentWallpaperID)
+                return wallpaperName(for: currentWallpaperID)
             }
             return String(localized: "Not detected")
         case .uniform(let wallpaperID):
-            return name(for: wallpaperID)
+            return wallpaperName(for: wallpaperID)
         }
+    }
+
+    func wallpaperName(for wallpaperID: String) -> String {
+        if let item = items.first(where: { $0.id == wallpaperID }) {
+            return item.name
+        }
+        return String(localized: "Apple Aerial \(wallpaperID.prefix(8))")
     }
 
     var currentWallpaperSummary: String {
@@ -258,6 +265,15 @@ final class WallpaperModel {
         })
     }
 
+    func selectCurrentWallpaper(for target: WallpaperSpaceTarget) {
+        guard let wallpaperID = currentWallpaperIDsBySpaceID[target.spaceID],
+              items.contains(where: { $0.id == wallpaperID }),
+              selectedWallpaperID != wallpaperID
+        else { return }
+
+        selectedWallpaperID = wallpaperID
+    }
+
     func wallpaperState(for targets: [WallpaperSpaceTarget]) -> WallpaperActiveState {
         let IDs = uniqueTargets(targets).compactMap { currentWallpaperIDsBySpaceID[$0.spaceID] }
         guard !IDs.isEmpty else { return .empty }
@@ -408,13 +424,6 @@ final class WallpaperModel {
         }
     }
 
-    private func name(for wallpaperID: String) -> String {
-        if let item = items.first(where: { $0.id == wallpaperID }) {
-            return item.name
-        }
-        return String(localized: "Apple Aerial \(wallpaperID.prefix(8))")
-    }
-
     private func updateCurrentWallpaperState() {
         if !activeSpaceTargets.isEmpty {
             currentWallpaperState = wallpaperState(for: activeSpaceTargets)
@@ -457,6 +466,11 @@ final class WallpaperModel {
             items: items,
             for: preferences.protectedWallpaperIDs
         )
+    }
+
+    func refreshWallpaperProtectionStatus() {
+        retainConfiguredAssets()
+        postChange()
     }
 
     @discardableResult

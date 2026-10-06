@@ -1,6 +1,11 @@
 import Foundation
 import Observation
 
+struct ManualWallpaperHold: Codable, Equatable, Sendable {
+    let wallpaperID: String
+    let ruleWallpaperID: String?
+}
+
 @MainActor
 @Observable
 final class WallPainterPreferences {
@@ -10,6 +15,7 @@ final class WallPainterPreferences {
     static let notifyOnSpaceAPIDisconnectKey = "WallPainter.notifyOnSpaceAPIDisconnect"
     static let defaultWallpaperRuleKey = "WallPainter.defaultWallpaperRule"
     static let spaceOverridesKey = "WallPainter.spaceOverrides"
+    static let manualWallpaperHoldsKey = "WallPainter.manualWallpaperHoldsBySpaceID"
 
     @ObservationIgnored private let defaults: UserDefaults
 
@@ -66,11 +72,19 @@ final class WallPainterPreferences {
         }
     }
 
+    private(set) var manualWallpaperHoldsBySpaceID: [String: ManualWallpaperHold] {
+        didSet {
+            persist(manualWallpaperHoldsBySpaceID, forKey: Self.manualWallpaperHoldsKey)
+            postChange()
+        }
+    }
+
     var protectedWallpaperIDs: Set<String> {
         var IDs = defaultWallpaperRule.referencedWallpaperIDs
         for rule in spaceOverrides.values {
             IDs.formUnion(rule.referencedWallpaperIDs)
         }
+        IDs.formUnion(manualWallpaperHoldsBySpaceID.values.map(\.wallpaperID))
         if let selectedWallpaperID {
             IDs.insert(selectedWallpaperID)
         }
@@ -98,6 +112,12 @@ final class WallPainterPreferences {
             from: defaults,
             key: Self.spaceOverridesKey
         ) ?? [:]
+
+        manualWallpaperHoldsBySpaceID = Self.decode(
+            [String: ManualWallpaperHold].self,
+            from: defaults,
+            key: Self.manualWallpaperHoldsKey
+        ) ?? [:]
     }
 
     func spaceRule(for spaceID: String) -> WallpaperRule? {
@@ -112,6 +132,61 @@ final class WallPainterPreferences {
         } else {
             spaceOverrides.removeValue(forKey: spaceID)
         }
+    }
+
+    func setManualWallpaperHolds(_ holds: [String: ManualWallpaperHold]) {
+        guard !holds.isEmpty else { return }
+        var updatedHolds = manualWallpaperHoldsBySpaceID
+        updatedHolds.merge(holds) { _, new in new }
+        guard updatedHolds != manualWallpaperHoldsBySpaceID else { return }
+        manualWallpaperHoldsBySpaceID = updatedHolds
+    }
+
+    func clearManualWallpaperHolds(forSpaceIDs spaceIDs: Set<String>) {
+        guard !spaceIDs.isEmpty else { return }
+        var updatedHolds = manualWallpaperHoldsBySpaceID
+        for spaceID in spaceIDs {
+            updatedHolds.removeValue(forKey: spaceID)
+        }
+        guard updatedHolds != manualWallpaperHoldsBySpaceID else { return }
+        manualWallpaperHoldsBySpaceID = updatedHolds
+    }
+
+    @discardableResult
+    func migrateLegacySpaceOverrides(using spaces: [SpaceDescriptor]) -> Int {
+        var spacesByManagedID: [String: [SpaceDescriptor]] = [:]
+        for space in spaces {
+            guard let managedSpaceID = space.managedSpaceID else { continue }
+            spacesByManagedID[managedSpaceID, default: []].append(space)
+        }
+
+        var migratedOverrides = spaceOverrides
+        var migratedCount = 0
+        for (legacySpaceID, rule) in spaceOverrides {
+            // Previous WallPainter releases used numeric ManagedSpaceIDs as
+            // preference keys. Keep nonnumeric stable IDs exactly as saved.
+            guard Int(legacySpaceID) != nil,
+                  let matches = spacesByManagedID[legacySpaceID],
+                  matches.count == 1,
+                  let space = matches.first,
+                  space.id != legacySpaceID
+            else { continue }
+
+            if let existingRule = migratedOverrides[space.id], existingRule != rule {
+                // A current stable-ID rule wins; retain the old entry rather
+                // than discard conflicting user data.
+                continue
+            }
+
+            migratedOverrides[space.id] = rule
+            migratedOverrides.removeValue(forKey: legacySpaceID)
+            migratedCount += 1
+        }
+
+        if migratedCount > 0 {
+            spaceOverrides = migratedOverrides
+        }
+        return migratedCount
     }
 
     func resetSpaceOverrides() {

@@ -27,7 +27,6 @@ struct PermissionsSettingsView: View {
                                 Text("Unavailable")
                                     .foregroundStyle(.secondary)
                             }
-                            .frame(height: 24)
                         }
                     }
 
@@ -69,7 +68,6 @@ struct PermissionsSettingsView: View {
                         SettingsRow("Notification access") {
                             Text(notificationPermissionMessage)
                                 .foregroundStyle(.orange)
-                                .frame(minHeight: 24)
                         }
                     }
                 }
@@ -113,6 +111,5 @@ private struct SpaceAPIStatusView: View {
                 }
             }
         }
-        .frame(height: 24)
     }
 }
