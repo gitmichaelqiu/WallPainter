@@ -58,7 +58,7 @@ struct WallpaperSwitchSection: View {
                     Button(focusedSpaceButtonTitle) {
                         switchOnFocusedSpace()
                     }
-                    .accessibilityLabel("Switch wallpaper on focused space")
+                    .accessibilityLabel("Switch wallpaper on current space")
                     .disabled(!canSwitchOnFocusedSpace || !canSwitchSelection)
 
                     Button(allSpacesButtonTitle) {
@@ -159,7 +159,7 @@ struct WallpaperSwitchSection: View {
     }
 
     private var focusedSpaceButtonTitle: LocalizedStringKey {
-        "Focused space"
+        "Current space"
     }
 
     private var allSpacesButtonTitle: LocalizedStringKey {
@@ -171,16 +171,16 @@ struct WallpaperSwitchSection: View {
 
     private var focusedSpaceUnavailableTitle: LocalizedStringResource {
         if spaceProvider?.isAvailable == true {
-            return "No focused space is available"
+            return "No current space is available"
         }
-        return "Focused-space switching is unavailable"
+        return "Current-space switching is unavailable"
     }
 
     private var focusedSpaceUnavailableMessage: LocalizedStringResource {
         if spaceProvider?.isAvailable == true {
-            return "DesktopRenamer did not report the focused space. All Spaces switching is still available."
+            return "DesktopRenamer did not report the current space. All Spaces switching is still available."
         }
-        return "Connect DesktopRenamer SpaceAPI in Permissions to switch the focused space. All Spaces switching is still available."
+        return "Connect DesktopRenamer SpaceAPI in Permissions to switch the current space. All Spaces switching is still available."
     }
 
     private var visibleOperationStatus: WallpaperOperationStatus? {

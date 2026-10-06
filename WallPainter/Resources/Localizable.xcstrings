@@ -188,12 +188,12 @@
         }
       }
     },
-    "Automatic Wallpaper Rule" : {
+    "Default Rule" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "自动壁纸规则"
+            "value" : "默认规则"
           }
         }
       }
@@ -288,17 +288,17 @@
         }
       }
     },
-    "Connect DesktopRenamer SpaceAPI in Permissions to switch the focused space. All Spaces switching is still available." : {
+    "Connect DesktopRenamer SpaceAPI in Permissions to switch the current space. All Spaces switching is still available." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在“权限”中连接 DesktopRenamer SpaceAPI 后，即可切换当前聚焦的桌面空间。仍可切换所有空间。"
+            "value" : "在“权限”中连接 DesktopRenamer SpaceAPI 后，即可切换当前桌面空间。仍可切换所有空间。"
           }
         }
       }
     },
-    "DesktopRenamer did not report the focused space. All Spaces switching is still available." : {
+    "DesktopRenamer did not report the current space. All Spaces switching is still available." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -518,22 +518,22 @@
         }
       }
     },
-    "Focused space" : {
+    "Current space" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前聚焦桌面"
+            "value" : "当前桌面空间"
           }
         }
       }
     },
-    "Focused-space switching is unavailable" : {
+    "Current-space switching is unavailable" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法切换当前聚焦的桌面空间"
+            "value" : "无法切换当前桌面空间"
           }
         }
       }
@@ -728,12 +728,12 @@
         }
       }
     },
-    "No focused space is available" : {
+    "No current space is available" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "没有可用的聚焦桌面空间"
+            "value" : "没有可用的当前桌面空间"
           }
         }
       }
@@ -1355,12 +1355,12 @@
         }
       }
     },
-    "Switch wallpaper on focused space" : {
+    "Switch wallpaper on current space" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "切换当前聚焦桌面的壁纸"
+            "value" : "切换当前桌面空间的壁纸"
           }
         }
       }

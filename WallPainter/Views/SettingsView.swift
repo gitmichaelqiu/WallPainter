@@ -32,7 +32,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
                 String(localized: "Switch Once"),
                 String(localized: "Switch"),
                 String(localized: "Default"),
-                String(localized: "Automatic Wallpaper Rule")
+                String(localized: "Default Rule")
             ]
         default:
             return []
