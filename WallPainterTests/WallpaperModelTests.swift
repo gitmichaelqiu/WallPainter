@@ -94,6 +94,33 @@ final class WallpaperModelTests: XCTestCase {
         XCTAssertTrue(store.appliedMaps.isEmpty)
     }
 
+    func testSelectingCurrentWallpaperForFocusedSpaceUpdatesCatalogSelection() {
+        let currentWallpaper = WallpaperItem.preview
+        let previouslySelectedWallpaper = WallpaperItem(
+            id: "previous-selection",
+            name: "Previous Selection",
+            thumbnailURL: nil,
+            videoURL: URL(fileURLWithPath: "/tmp/previous-selection.mov"),
+            preferredOrder: 1
+        )
+        let preferences = WallPainterPreferences(defaults: makeDefaults())
+        preferences.selectedWallpaperID = previouslySelectedWallpaper.id
+        let target = WallpaperSpaceTarget(spaceID: "space-1", displayID: "display-1")
+        let store = ScopedRecordingWallpaperStore(currentIDs: ["space-1": currentWallpaper.id])
+        let model = WallpaperModel(
+            catalog: TestWallpaperCatalog(items: [currentWallpaper, previouslySelectedWallpaper]),
+            store: store,
+            preferences: preferences
+        )
+        model.setActiveSpaceTargets([target])
+        model.refresh()
+
+        model.selectCurrentWallpaper(for: target)
+
+        XCTAssertEqual(model.selectedWallpaperID, currentWallpaper.id)
+        XCTAssertEqual(preferences.selectedWallpaperID, currentWallpaper.id)
+    }
+
     private func makeDefaults() -> UserDefaults {
         let suiteName = "WallPainterTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!

@@ -77,36 +77,6 @@
         }
       }
     },
-    "Active spaces" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "当前桌面空间"
-          }
-        }
-      }
-    },
-    "Active spaces (%lld)" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "当前桌面空间（%lld 个）"
-          }
-        }
-      }
-    },
-    "Active-space switching is unavailable" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法切换当前桌面空间"
-          }
-        }
-      }
-    },
     "Add" : {
       "localizations" : {
         "zh-Hans" : {
@@ -318,12 +288,22 @@
         }
       }
     },
-    "Connect DesktopRenamer SpaceAPI in Permissions to switch only active spaces. All Spaces switching is still available." : {
+    "Connect DesktopRenamer SpaceAPI in Permissions to switch the focused space. All Spaces switching is still available." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在“权限”中连接 DesktopRenamer SpaceAPI 后，即可仅切换当前桌面空间。仍可切换所有空间。"
+            "value" : "在“权限”中连接 DesktopRenamer SpaceAPI 后，即可切换当前聚焦的桌面空间。仍可切换所有空间。"
+          }
+        }
+      }
+    },
+    "DesktopRenamer did not report the focused space. All Spaces switching is still available." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DesktopRenamer 未报告当前聚焦的桌面空间。仍可切换所有空间。"
           }
         }
       }
@@ -538,6 +518,26 @@
         }
       }
     },
+    "Focused space" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前聚焦桌面"
+          }
+        }
+      }
+    },
+    "Focused-space switching is unavailable" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法切换当前聚焦的桌面空间"
+          }
+        }
+      }
+    },
     "Follow system appearance" : {
       "localizations" : {
         "zh-Hans" : {
@@ -728,12 +728,12 @@
         }
       }
     },
-    "No active spaces are available" : {
+    "No focused space is available" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "没有可用的当前桌面空间"
+            "value" : "没有可用的聚焦桌面空间"
           }
         }
       }
@@ -1355,12 +1355,12 @@
         }
       }
     },
-    "Switch wallpaper on active spaces" : {
+    "Switch wallpaper on focused space" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在当前桌面空间切换壁纸"
+            "value" : "切换当前聚焦桌面的壁纸"
           }
         }
       }

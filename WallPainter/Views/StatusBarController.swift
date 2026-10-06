@@ -402,32 +402,7 @@ final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
     }
 
     private var activeSwitchSpaceTarget: WallpaperSpaceTarget? {
-        guard let snapshot = spaceProvider?.snapshot else { return nil }
-        let spacesByID = Dictionary(uniqueKeysWithValues: snapshot.spaces.map { ($0.id, $0) })
-
-        // SpaceAPI 1.2 identifies the focused space; currentSpaceIDs covers all displays.
-        if let currentSpaceID = snapshot.currentSpaceID, !currentSpaceID.isEmpty {
-            guard snapshot.currentSpaceIDs.contains(currentSpaceID),
-                  let space = spacesByID[currentSpaceID],
-                  !space.isFullscreen
-            else { return nil }
-            return WallpaperSpaceTarget(space: space)
-        }
-
-        if let currentDisplayID = snapshot.currentDisplayID, !currentDisplayID.isEmpty {
-            let matchingSpaces = snapshot.currentSpaceIDs.compactMap { spacesByID[$0] }
-                .filter { $0.displayID == currentDisplayID && !$0.isFullscreen }
-            guard matchingSpaces.count == 1, let space = matchingSpaces.first else { return nil }
-            return WallpaperSpaceTarget(space: space)
-        }
-
-        // Older SpaceAPI snapshots are safe to use only when they report one visible space.
-        guard snapshot.currentSpaceIDs.count == 1,
-              let spaceID = snapshot.currentSpaceIDs.first,
-              let space = spacesByID[spaceID],
-              !space.isFullscreen
-        else { return nil }
-        return WallpaperSpaceTarget(space: space)
+        spaceProvider?.snapshot?.focusedRegularSpaceTarget
     }
 
     private func synchronizeActiveSpaceState() {

@@ -50,6 +50,58 @@ final class SpaceAPIClientTests: XCTestCase {
         XCTAssertEqual(eventSnapshot.currentSpaceIDs, ["space-2"])
     }
 
+    func testFocusedRegularSpaceTargetPrefersSpaceAPIFocusedSpace() {
+        let snapshot = SpaceSnapshot(
+            revision: 1,
+            currentSpaceIDs: ["space-a", "space-b"],
+            currentSpaceID: "space-b",
+            currentDisplayID: "display-a",
+            spaces: [
+                makeSpace(id: "space-a", displayID: "display-a"),
+                makeSpace(id: "space-b", displayID: "display-b")
+            ]
+        )
+
+        XCTAssertEqual(
+            snapshot.focusedRegularSpaceTarget,
+            WallpaperSpaceTarget(
+                spaceID: "space-b",
+                displayID: "display-b",
+                managedSpaceID: "managed-space-b"
+            )
+        )
+    }
+
+    func testFocusedRegularSpaceTargetFallsBackToCurrentDisplay() {
+        let snapshot = SpaceSnapshot(
+            revision: 1,
+            currentSpaceIDs: ["space-a", "space-b"],
+            currentDisplayID: "display-b",
+            spaces: [
+                makeSpace(id: "space-a", displayID: "display-a"),
+                makeSpace(id: "space-b", displayID: "display-b")
+            ]
+        )
+
+        XCTAssertEqual(
+            snapshot.focusedRegularSpaceTarget?.spaceID,
+            "space-b"
+        )
+    }
+
+    func testFocusedRegularSpaceTargetDoesNotGuessWhenFocusIsAmbiguous() {
+        let snapshot = SpaceSnapshot(
+            revision: 1,
+            currentSpaceIDs: ["space-a", "space-b"],
+            spaces: [
+                makeSpace(id: "space-a", displayID: "display-a"),
+                makeSpace(id: "space-b", displayID: "display-b")
+            ]
+        )
+
+        XCTAssertNil(snapshot.focusedRegularSpaceTarget)
+    }
+
     func testRevisionTrackerRejectsStaleEventsAndRequestsResynchronizationAfterGap() {
         var tracker = SpaceAPIRevisionTracker()
 
@@ -83,5 +135,21 @@ final class SpaceAPIClientTests: XCTestCase {
         return """
         {"apiVersion":"1.0.0","revision":\(revision),"timestamp":"2026-08-31T07:00:00Z","currentSpaceIDs":\(currentSpaceIDs),"currentSpaceName":"Writing","spaces":[{"id":"space-1","name":"Writing","displayID":"display-1","displayName":"Built-in Display","number":1,"isFullscreen":false},{"id":"space-2","name":"Research","displayID":"display-2","displayName":"External Display","number":2,"isFullscreen":false},{"id":"full-screen","name":"Video","displayID":"display-1","displayName":"Built-in Display","number":0,"isFullscreen":true,"appName":"Video"}]}
         """
+    }
+
+    private func makeSpace(
+        id: String,
+        displayID: String,
+        isFullscreen: Bool = false
+    ) -> SpaceDescriptor {
+        SpaceDescriptor(
+            id: id,
+            name: id,
+            displayID: displayID,
+            displayName: displayID,
+            number: 1,
+            isFullscreen: isFullscreen,
+            managedSpaceID: "managed-\(id)"
+        )
     }
 }

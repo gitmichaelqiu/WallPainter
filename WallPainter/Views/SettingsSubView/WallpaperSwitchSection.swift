@@ -8,6 +8,7 @@ struct WallpaperSwitchSection: View {
 
     @Environment(\.isSettingsPreRendering) private var isPreRendering
     @State private var snapshot: SpaceSnapshot?
+    @State private var selectionSpaceID: String?
     @StateObject private var catalogScrollSession = CatalogScrollSession()
     @State private var statusSelectionID: String?
 
@@ -19,10 +20,10 @@ struct WallpaperSwitchSection: View {
             helperText: "Changes the wallpaper without editing any rules. Each manual selection stays active until that space’s rule selects a different wallpaper. Choose Resume Rule from the menu bar to return to automation sooner."
         ) {
             SettingsRow("Currently active") {
-                Text(model.currentWallpaperSummary)
+                Text(currentFocusedWallpaperSummary)
                     .lineLimit(1)
                     .truncationMode(.middle)
-                    .frame(maxWidth: 220, alignment: .trailing)
+                    .frame(maxWidth: 320, alignment: .trailing)
             }
 
             Divider()
@@ -30,6 +31,7 @@ struct WallpaperSwitchSection: View {
             SettingsRow("Refresh catalog") {
                 Button {
                     model.refresh()
+                    updateSpaceState(selectCurrentWallpaper: true)
                 } label: {
                     Image(systemName: "arrow.clockwise")
                         .frame(width: 16, height: 16)
@@ -53,11 +55,11 @@ struct WallpaperSwitchSection: View {
 
             SettingsRow("Switch wallpaper") {
                 HStack(spacing: 8) {
-                    Button(activeSpacesButtonTitle) {
-                        switchOnActiveSpaces()
+                    Button(focusedSpaceButtonTitle) {
+                        switchOnFocusedSpace()
                     }
-                    .accessibilityLabel("Switch wallpaper on active spaces")
-                    .disabled(!canSwitchOnActiveSpaces || !canSwitchSelection)
+                    .accessibilityLabel("Switch wallpaper on focused space")
+                    .disabled(!canSwitchOnFocusedSpace || !canSwitchSelection)
 
                     Button(allSpacesButtonTitle) {
                         switchOnAllSpaces()
@@ -67,14 +69,14 @@ struct WallpaperSwitchSection: View {
                 }
             }
 
-            if !canSwitchOnActiveSpaces {
+            if !canSwitchOnFocusedSpace {
                 Divider()
 
                 HStack(alignment: .top, spacing: 12) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(activeSpaceUnavailableTitle)
+                        Text(focusedSpaceUnavailableTitle)
                             .font(.subheadline)
-                        Text(activeSpaceUnavailableMessage)
+                        Text(focusedSpaceUnavailableMessage)
                             .font(.callout)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -107,7 +109,7 @@ struct WallpaperSwitchSection: View {
             }
         }
         .onAppear {
-            updateSpaceState()
+            updateSpaceState(selectCurrentWallpaper: true)
             if !isPreRendering {
                 spaceProvider?.refresh()
             }
@@ -122,38 +124,42 @@ struct WallpaperSwitchSection: View {
         )) { _ in
             updateSpaceState()
         }
+        .onChange(of: model.items) { _, _ in
+            updateSpaceState(selectCurrentWallpaper: true)
+        }
     }
 
     private var regularSpaces: [SpaceDescriptor] {
         snapshot?.spaces.filter { !$0.isFullscreen } ?? []
     }
 
-    private var currentSpaces: [SpaceDescriptor] {
-        guard let snapshot else { return [] }
-        let spacesByID = Dictionary(uniqueKeysWithValues: regularSpaces.map { ($0.id, $0) })
-        return snapshot.currentSpaceIDs.compactMap { spacesByID[$0] }
+    private var focusedSpace: SpaceDescriptor? {
+        guard spaceProvider?.isAvailable == true else { return nil }
+        return snapshot?.focusedRegularSpace
     }
 
-    private var currentTargets: [WallpaperSpaceTarget] {
-        currentSpaces.compactMap { WallpaperSpaceTarget(space: $0) }
+    private var focusedSpaceTarget: WallpaperSpaceTarget? {
+        focusedSpace.flatMap { WallpaperSpaceTarget(space: $0) }
+    }
+
+    private var focusedTargets: [WallpaperSpaceTarget] {
+        focusedSpaceTarget.map { [$0] } ?? []
     }
 
     private var allSpaceTargets: [WallpaperSpaceTarget] {
         regularSpaces.compactMap { WallpaperSpaceTarget(space: $0) }
     }
 
-    private var canSwitchOnActiveSpaces: Bool {
-        spaceProvider?.isAvailable == true && !currentTargets.isEmpty
+    private var canSwitchOnFocusedSpace: Bool {
+        spaceProvider?.isAvailable == true && !focusedTargets.isEmpty
     }
 
     private var canSwitchSelection: Bool {
         model.selectedWallpaper != nil && !model.isLoading && !model.isSwitching
     }
 
-    private var activeSpacesButtonTitle: LocalizedStringKey {
-        currentTargets.isEmpty
-            ? "Active spaces"
-            : "Active spaces (\(currentTargets.count))"
+    private var focusedSpaceButtonTitle: LocalizedStringKey {
+        "Focused space"
     }
 
     private var allSpacesButtonTitle: LocalizedStringKey {
@@ -163,18 +169,18 @@ struct WallpaperSwitchSection: View {
         return "All spaces (\(allSpaceTargets.count))"
     }
 
-    private var activeSpaceUnavailableTitle: LocalizedStringResource {
+    private var focusedSpaceUnavailableTitle: LocalizedStringResource {
         if spaceProvider?.isAvailable == true {
-            return "No active spaces are available"
+            return "No focused space is available"
         }
-        return "Active-space switching is unavailable"
+        return "Focused-space switching is unavailable"
     }
 
-    private var activeSpaceUnavailableMessage: LocalizedStringResource {
+    private var focusedSpaceUnavailableMessage: LocalizedStringResource {
         if spaceProvider?.isAvailable == true {
-            return "No regular Mission Control spaces were reported. All Spaces switching is still available."
+            return "DesktopRenamer did not report the focused space. All Spaces switching is still available."
         }
-        return "Connect DesktopRenamer SpaceAPI in Permissions to switch only active spaces. All Spaces switching is still available."
+        return "Connect DesktopRenamer SpaceAPI in Permissions to switch the focused space. All Spaces switching is still available."
     }
 
     private var visibleOperationStatus: WallpaperOperationStatus? {
@@ -182,16 +188,38 @@ struct WallpaperSwitchSection: View {
         return model.operationStatus
     }
 
-    private func updateSpaceState() {
-        snapshot = spaceProvider?.snapshot
-        guard !currentTargets.isEmpty else { return }
-        model.synchronizeCurrentWallpapers(for: currentTargets)
+    private var currentFocusedWallpaperSummary: String {
+        guard let target = focusedSpaceTarget,
+              let wallpaperID = model.currentWallpaperIDsBySpaceID[target.spaceID],
+              let focusedSpace
+        else { return String(localized: "Not detected") }
+
+        return "\(model.wallpaperName(for: wallpaperID)) · \(focusedSpace.displayName)"
     }
 
-    private func switchOnActiveSpaces() {
+    private func updateSpaceState(selectCurrentWallpaper: Bool = false) {
+        snapshot = spaceProvider?.snapshot
+        guard let target = focusedSpaceTarget else {
+            selectionSpaceID = nil
+            return
+        }
+
+        model.synchronizeWallpaperIDs(for: [target])
+        guard model.currentWallpaperIDsBySpaceID[target.spaceID] != nil else {
+            selectionSpaceID = nil
+            return
+        }
+
+        if selectCurrentWallpaper || selectionSpaceID != target.spaceID {
+            model.selectCurrentWallpaper(for: target)
+        }
+        selectionSpaceID = target.spaceID
+    }
+
+    private func switchOnFocusedSpace() {
         guard let wallpaperID = model.selectedWallpaperID else { return }
         updateSpaceState()
-        let targets = currentTargets
+        let targets = focusedTargets
         guard model.applyWallpaper(id: wallpaperID, to: targets) else { return }
         automationCoordinator.recordManualWallpaperSwitch(of: wallpaperID, for: targets)
         statusSelectionID = wallpaperID

@@ -59,6 +59,39 @@ struct SpaceSnapshot: Codable, Equatable, Sendable {
     }
 }
 
+extension SpaceSnapshot {
+    var focusedRegularSpace: SpaceDescriptor? {
+        let spacesByID = Dictionary(uniqueKeysWithValues: spaces.map { ($0.id, $0) })
+
+        if let currentSpaceID, !currentSpaceID.isEmpty {
+            guard currentSpaceIDs.contains(currentSpaceID),
+                  let space = spacesByID[currentSpaceID],
+                  !space.isFullscreen
+            else { return nil }
+            return space
+        }
+
+        if let currentDisplayID, !currentDisplayID.isEmpty {
+            let matches = currentSpaceIDs.compactMap { spacesByID[$0] }
+                .filter { $0.displayID == currentDisplayID && !$0.isFullscreen }
+            guard matches.count == 1 else { return nil }
+            return matches[0]
+        }
+
+        guard currentSpaceIDs.count == 1,
+              let spaceID = currentSpaceIDs.first,
+              let space = spacesByID[spaceID],
+              !space.isFullscreen
+        else { return nil }
+        return space
+    }
+
+    var focusedRegularSpaceTarget: WallpaperSpaceTarget? {
+        guard let space = focusedRegularSpace else { return nil }
+        return WallpaperSpaceTarget(space: space)
+    }
+}
+
 struct SpaceAPIInfo: Codable, Equatable, Sendable {
     let contractVersion: String
     let jsonRPCVersion: String
