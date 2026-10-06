@@ -190,11 +190,10 @@ struct WallpaperSwitchSection: View {
 
     private var currentFocusedWallpaperSummary: String {
         guard let target = focusedSpaceTarget,
-              let wallpaperID = model.currentWallpaperIDsBySpaceID[target.spaceID],
-              let focusedSpace
+              let wallpaperID = model.currentWallpaperIDsBySpaceID[target.spaceID]
         else { return String(localized: "Not detected") }
 
-        return "\(model.wallpaperName(for: wallpaperID)) · \(focusedSpace.displayName)"
+        return model.wallpaperName(for: wallpaperID)
     }
 
     private func updateSpaceState(selectCurrentWallpaper: Bool = false) {
