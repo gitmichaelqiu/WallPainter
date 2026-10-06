@@ -105,7 +105,12 @@ struct GeneralSettingsView: View {
                             Text("Off")
                                 .foregroundStyle(.secondary)
                         } else if model.assetProtectionStatus.isHealthy {
-                            Text("\(model.assetProtectionStatus.protectedIDs.count) wallpapers backed up")
+                            let status = model.assetProtectionStatus
+                            let storageSize = ByteCountFormatter.string(
+                                fromByteCount: status.backupSizeInBytes,
+                                countStyle: .file
+                            )
+                            Text("\(status.protectedIDs.count) wallpapers backed up (\(storageSize))")
                                 .foregroundStyle(.secondary)
                         } else {
                             HStack(spacing: 8) {

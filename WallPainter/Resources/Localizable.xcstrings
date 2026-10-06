@@ -34,12 +34,12 @@
         }
       }
     },
-    "%lld wallpapers backed up" : {
+    "%lld wallpapers backed up (%@)" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld 张壁纸已备份"
+            "value" : "%lld 张壁纸已备份（%@）"
           }
         }
       }

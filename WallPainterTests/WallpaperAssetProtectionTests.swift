@@ -30,6 +30,27 @@ final class WallpaperAssetProtectionTests: XCTestCase {
         ).path))
     }
 
+    func testStatusReportsBackupStorageUsageForVideosAndThumbnails() throws {
+        let directories = try makeDirectories()
+        let wallpaper = makeWallpaper(
+            id: "storage-usage",
+            directories: directories,
+            hasThumbnail: true
+        )
+        try writeData("video-data", to: wallpaper.videoURL)
+        try writeData("thumbnail-data", to: try XCTUnwrap(wallpaper.thumbnailURL))
+
+        let status = makeProtector(directories: directories).retain(
+            items: [wallpaper],
+            for: [wallpaper.id]
+        )
+
+        XCTAssertEqual(
+            status.backupSizeInBytes,
+            Int64("video-data".utf8.count + "thumbnail-data".utf8.count)
+        )
+    }
+
     func testRestoresMissingWallpaperAndThumbnailFromBackup() throws {
         let directories = try makeDirectories()
         let wallpaper = makeWallpaper(

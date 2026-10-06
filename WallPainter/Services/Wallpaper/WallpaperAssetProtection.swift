@@ -4,6 +4,17 @@ import Foundation
 struct WallpaperAssetProtectionStatus: Equatable, Sendable {
     let protectedIDs: Set<String>
     let availableIDs: Set<String>
+    let backupSizeInBytes: Int64
+
+    init(
+        protectedIDs: Set<String>,
+        availableIDs: Set<String>,
+        backupSizeInBytes: Int64 = 0
+    ) {
+        self.protectedIDs = protectedIDs
+        self.availableIDs = availableIDs
+        self.backupSizeInBytes = backupSizeInBytes
+    }
 
     var missingIDs: Set<String> {
         protectedIDs.subtracting(availableIDs)
@@ -206,7 +217,8 @@ struct SystemWallpaperAssetProtector: WallpaperAssetProtecting {
 
         return WallpaperAssetProtectionStatus(
             protectedIDs: protectedIDs,
-            availableIDs: availableIDs
+            availableIDs: availableIDs,
+            backupSizeInBytes: backupStorageSize(for: protectedIDs)
         )
     }
 
@@ -332,6 +344,34 @@ struct SystemWallpaperAssetProtector: WallpaperAssetProtecting {
         }
 
         return true
+    }
+
+    private func backupStorageSize(for wallpaperIDs: Set<String>) -> Int64 {
+        wallpaperIDs.reduce(into: Int64.zero) { total, wallpaperID in
+            guard let paths = paths(for: wallpaperID) else { return }
+
+            total += fileSize(at: paths.backupVideoURL)
+            for fileExtension in Self.thumbnailExtensions {
+                guard let thumbnailURL = thumbnailURL(
+                    in: paths.backupThumbnailDirectory,
+                    wallpaperID: wallpaperID,
+                    fileExtension: fileExtension
+                ) else { continue }
+                total += fileSize(at: thumbnailURL)
+            }
+        }
+    }
+
+    private func fileSize(at url: URL) -> Int64 {
+        guard let values = try? url.resourceValues(forKeys: [
+            .isRegularFileKey,
+            .fileSizeKey
+        ]),
+        values.isRegularFile == true,
+        let fileSize = values.fileSize
+        else { return 0 }
+
+        return Int64(fileSize)
     }
 
     private func isSafeComponent(_ component: String) -> Bool {
