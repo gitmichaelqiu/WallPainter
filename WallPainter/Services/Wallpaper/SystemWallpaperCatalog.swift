@@ -143,14 +143,9 @@ struct SystemWallpaperCatalog: WallpaperCatalogProviding {
                 preferredOrder: entry?.preferredOrder ?? Int.max
             )
         }
-        .sorted {
-            if $0.preferredOrder == $1.preferredOrder {
-                return $0.name.localizedStandardCompare($1.name) == .orderedAscending
-            }
-            return $0.preferredOrder < $1.preferredOrder
-        }
 
-        return disambiguated(items)
+        let sortedItems = items.sorted(by: wallpaperNameOrder)
+        return disambiguated(sortedItems).sorted(by: wallpaperNameOrder)
     }
 
     private var applicationSupportDirectory: URL {
@@ -289,6 +284,14 @@ struct SystemWallpaperCatalog: WallpaperCatalogProviding {
                 preferredOrder: item.preferredOrder
             )
         }
+    }
+
+    private func wallpaperNameOrder(_ lhs: WallpaperItem, _ rhs: WallpaperItem) -> Bool {
+        let comparison = lhs.name.localizedStandardCompare(rhs.name)
+        if comparison == .orderedSame {
+            return lhs.id < rhs.id
+        }
+        return comparison == .orderedAscending
     }
 
     private func meaningfulName(_ name: String?) -> String? {
