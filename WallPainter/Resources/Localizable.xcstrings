@@ -107,6 +107,16 @@
         }
       }
     },
+    "Add" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加"
+          }
+        }
+      }
+    },
     "Add at least one time period." : {
       "localizations" : {
         "zh-Hans" : {
@@ -118,6 +128,16 @@
       }
     },
     "Add Time Period" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加时段"
+          }
+        }
+      }
+    },
+    "Add time period" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -473,6 +493,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "所有桌面都将重新使用默认规则。"
+          }
+        }
+      }
+    },
+    "Fix before saving" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存前请修正"
           }
         }
       }
@@ -870,6 +900,16 @@
         }
       }
     },
+    "Periods repeat daily in local time and may cross midnight. Outside configured periods, the current wallpaper stays active." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时段每天按本地时间重复，并可跨午夜。在已配置的时段之外，当前壁纸将保持不变。"
+          }
+        }
+      }
+    },
     "Periods repeat daily using your Mac’s local time. Periods may cross midnight." : {
       "localizations" : {
         "zh-Hans" : {
@@ -1046,6 +1086,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "保存"
+          }
+        }
+      }
+    },
+    "Save becomes available after every issue is resolved." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解决所有问题后即可保存。"
           }
         }
       }
@@ -1326,6 +1376,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此壁纸存储不支持对多个桌面分别写入不同壁纸。"
+          }
+        }
+      }
+    },
+    "Time periods" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时段"
           }
         }
       }

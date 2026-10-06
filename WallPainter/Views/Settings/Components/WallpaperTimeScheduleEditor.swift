@@ -22,7 +22,8 @@ struct WallpaperTimeScheduleEditor: View {
             ) { savedPeriods in
                 periods = savedPeriods
             }
-            .frame(minWidth: 560, idealWidth: 640, minHeight: 420, idealHeight: 580)
+            .frame(width: 720, height: 520)
+            .environment(\.isSettingsSearchRegistrationEnabled, false)
         }
     }
 }
@@ -48,76 +49,140 @@ private struct WallpaperTimeScheduleEditorSheet: View {
         Set(wallpapers.map(\.id))
     }
 
-    private var canSave: Bool {
-        WallpaperTimeSchedule.isValid(
-            periods,
-            installedWallpaperIDs: installedWallpaperIDs
-        )
-    }
-
-    private var validationMessages: [LocalizedStringKey] {
-        var messages: [LocalizedStringKey] = []
+    private var validationIssues: [WallpaperTimeScheduleValidationIssue] {
+        var issues: [WallpaperTimeScheduleValidationIssue] = []
 
         if periods.isEmpty {
-            messages.append("Add at least one time period.")
+            issues.append(.empty)
         } else {
             if periods.contains(where: { !$0.hasValidTimeRange }) {
-                messages.append("Each period needs a different start and end time.")
+                issues.append(.invalidTime)
             }
             if WallpaperTimeSchedule.hasOverlaps(periods) {
-                messages.append("Time periods cannot overlap.")
+                issues.append(.overlap)
             }
             if periods.contains(where: { period in
                 period.wallpaperID.map(installedWallpaperIDs.contains) != true
             }) {
-                messages.append("Choose an installed wallpaper for every period.")
+                issues.append(.missingWallpaper)
             }
         }
 
-        return messages
+        return issues
+    }
+
+    private var canSave: Bool {
+        validationIssues.isEmpty
+            && WallpaperTimeSchedule.isValid(
+                periods,
+                installedWallpaperIDs: installedWallpaperIDs
+            )
     }
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Periods repeat daily using your Mac’s local time. Periods may cross midnight.")
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                VStack(alignment: .leading, spacing: 20) {
+                    SettingsSection(
+                        "Time periods",
+                        helperText: "Periods repeat daily in local time and may cross midnight. Outside configured periods, the current wallpaper stays active."
+                    ) {
+                        ForEach(periods.indices, id: \.self) { index in
+                            let periodID = periods[index].id
 
-                    ForEach(Array(periods.indices), id: \.self) { index in
-                        WallpaperTimePeriodEditorCard(
-                            period: $periods[index],
-                            index: index,
-                            wallpapers: wallpapers,
-                            onRemove: { removePeriod(at: index) }
-                        )
-                    }
+                            if index > 0 {
+                                Divider()
+                            }
 
-                    Button {
-                        addPeriod()
-                    } label: {
-                        Label("Add Time Period", systemImage: "plus")
-                    }
-                    .buttonStyle(.bordered)
-
-                    if !validationMessages.isEmpty {
-                        VStack(alignment: .leading, spacing: 4) {
-                            ForEach(validationMessages.indices, id: \.self) { index in
-                                Label {
-                                    Text(validationMessages[index])
-                                } icon: {
-                                    Image(systemName: "exclamationmark.circle.fill")
+                            SettingsRow(
+                                "Period \(index + 1)",
+                                id: "schedule.\(periodID.uuidString).title"
+                            ) {
+                                Button(role: .destructive) {
+                                    removePeriod(id: periodID)
+                                } label: {
+                                    Label("Remove", systemImage: "trash")
                                 }
-                                .foregroundStyle(.red)
+                            }
+
+                            Divider()
+
+                            SettingsRow(
+                                "Start",
+                                id: "schedule.\(periodID.uuidString).start"
+                            ) {
+                                DatePicker(
+                                    "Start",
+                                    selection: dateBinding(for: $periods[index].startMinute),
+                                    displayedComponents: .hourAndMinute
+                                )
+                                .labelsHidden()
+                                .datePickerStyle(.field)
+                            }
+
+                            Divider()
+
+                            SettingsRow(
+                                "End",
+                                id: "schedule.\(periodID.uuidString).end"
+                            ) {
+                                DatePicker(
+                                    "End",
+                                    selection: dateBinding(for: $periods[index].endMinute),
+                                    displayedComponents: .hourAndMinute
+                                )
+                                .labelsHidden()
+                                .datePickerStyle(.field)
+                            }
+
+                            Divider()
+
+                            SettingsRow(
+                                "Wallpaper",
+                                id: "schedule.\(periodID.uuidString).wallpaper"
+                            ) {
+                                WallpaperPicker(
+                                    selection: $periods[index].wallpaperID,
+                                    wallpapers: wallpapers
+                                )
                             }
                         }
-                        .font(.callout)
-                        .padding(.top, 4)
+
+                        if !periods.isEmpty {
+                            Divider()
+                        }
+
+                        SettingsRow("Add time period", id: "schedule.add") {
+                            Button("Add", systemImage: "plus") {
+                                addPeriod()
+                            }
+                        }
+                    }
+
+                    if !validationIssues.isEmpty {
+                        SettingsSection(
+                            "Fix before saving",
+                            helperText: "Save becomes available after every issue is resolved."
+                        ) {
+                            ForEach(validationIssues.indices, id: \.self) { index in
+                                let issue = validationIssues[index]
+                                if index > 0 {
+                                    Divider()
+                                }
+
+                                SettingsRow(
+                                    issue.title,
+                                    id: "schedule.validation.\(issue.id)"
+                                ) {
+                                    Image(systemName: "exclamationmark.circle.fill")
+                                        .foregroundStyle(.red)
+                                }
+                            }
+                        }
                     }
                 }
-                .padding(20)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
             }
             .navigationTitle("Time Schedule")
             .toolbar {
@@ -137,9 +202,8 @@ private struct WallpaperTimeScheduleEditorSheet: View {
         }
     }
 
-    private func removePeriod(at index: Int) {
-        guard periods.indices.contains(index) else { return }
-        periods.remove(at: index)
+    private func removePeriod(id: UUID) {
+        periods.removeAll { $0.id == id }
     }
 
     private func addPeriod() {
@@ -166,58 +230,6 @@ private struct WallpaperTimeScheduleEditorSheet: View {
         }
         return preferredStart
     }
-}
-
-private struct WallpaperTimePeriodEditorCard: View {
-    @Binding var period: WallpaperTimePeriod
-    let index: Int
-    let wallpapers: [WallpaperItem]
-    let onRemove: () -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Period \(index + 1)")
-                    .font(.headline)
-                Spacer()
-                Button(role: .destructive, action: onRemove) {
-                    Label("Remove", systemImage: "trash")
-                        .labelStyle(.iconOnly)
-                }
-                .help("Remove this time period")
-            }
-
-            HStack(spacing: 16) {
-                timePicker("Start", minute: $period.startMinute)
-                timePicker("End", minute: $period.endMinute)
-            }
-
-            HStack {
-                Text("Wallpaper")
-                    .foregroundStyle(.secondary)
-                Spacer(minLength: 12)
-                WallpaperPicker(selection: $period.wallpaperID, wallpapers: wallpapers)
-            }
-        }
-        .padding(12)
-        .background(.quaternary.opacity(0.35), in: .rect(cornerRadius: 10))
-    }
-
-    private func timePicker(_ title: LocalizedStringKey, minute: Binding<Int>) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            DatePicker(
-                title,
-                selection: dateBinding(for: minute),
-                displayedComponents: .hourAndMinute
-            )
-            .labelsHidden()
-            .datePickerStyle(.field)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
 
     private func dateBinding(for minute: Binding<Int>) -> Binding<Date> {
         Binding(
@@ -241,5 +253,27 @@ private struct WallpaperTimePeriodEditorCard: View {
     private func minuteOfDay(for date: Date) -> Int {
         let components = Calendar.current.dateComponents([.hour, .minute], from: date)
         return (components.hour ?? 0) * 60 + (components.minute ?? 0)
+    }
+}
+
+private enum WallpaperTimeScheduleValidationIssue: String, Identifiable {
+    case empty
+    case invalidTime
+    case overlap
+    case missingWallpaper
+
+    var id: String { rawValue }
+
+    var title: LocalizedStringResource {
+        switch self {
+        case .empty:
+            return "Add at least one time period."
+        case .invalidTime:
+            return "Each period needs a different start and end time."
+        case .overlap:
+            return "Time periods cannot overlap."
+        case .missingWallpaper:
+            return "Choose an installed wallpaper for every period."
+        }
     }
 }

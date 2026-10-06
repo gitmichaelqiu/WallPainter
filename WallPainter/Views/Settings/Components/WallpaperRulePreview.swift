@@ -70,6 +70,7 @@ struct WallpaperRulePreview: View {
             }
         }
         .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func wallpaper(withID id: String?) -> WallpaperItem? {

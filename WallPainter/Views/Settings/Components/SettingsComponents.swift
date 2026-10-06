@@ -144,10 +144,19 @@ struct IsSettingsPreRenderingKey: EnvironmentKey {
     static let defaultValue = false
 }
 
+struct IsSettingsSearchRegistrationEnabledKey: EnvironmentKey {
+    static let defaultValue = true
+}
+
 extension EnvironmentValues {
     var isSettingsPreRendering: Bool {
         get { self[IsSettingsPreRenderingKey.self] }
         set { self[IsSettingsPreRenderingKey.self] = newValue }
+    }
+
+    var isSettingsSearchRegistrationEnabled: Bool {
+        get { self[IsSettingsSearchRegistrationEnabledKey.self] }
+        set { self[IsSettingsSearchRegistrationEnabledKey.self] = newValue }
     }
 }
 
@@ -311,6 +320,7 @@ struct SettingsContainer<Content: View>: View {
 
 struct SettingsRow<Content: View>: View {
     let title: LocalizedStringResource
+    let rowID: String
     let content: Content
     let helperText: LocalizedStringKey?
     let warningText: LocalizedStringKey?
@@ -319,16 +329,19 @@ struct SettingsRow<Content: View>: View {
     @AppStorage("ShowDemoVideos") private var showDemoVideos = true
     @Environment(\.settingsTab) var currentTab
     @Environment(\.isSettingsPreRendering) private var isPreRendering
+    @Environment(\.isSettingsSearchRegistrationEnabled) private var isSearchRegistrationEnabled
     @EnvironmentObject var navigationState: SettingsNavigationState
 
     init(
         _ title: LocalizedStringResource,
+        id: String? = nil,
         helperText: LocalizedStringKey? = nil,
         warningText: LocalizedStringKey? = nil,
         demoVideoName: String? = nil,
         @ViewBuilder content: () -> Content
     ) {
         self.title = title
+        self.rowID = id ?? title.key
         self.helperText = helperText
         self.warningText = warningText
         self.demoVideoName = demoVideoName
@@ -375,12 +388,14 @@ struct SettingsRow<Content: View>: View {
         .padding(.vertical, settingsRowVerticalInset)
         .padding(.horizontal, 10)
         .frame(minHeight: standardSettingsRowHeight)
-        .id(title.key)
+        .id(rowID)
         .onAppear {
-            navigationState.register(title: title.key, tab: currentTab)
+            if isSearchRegistrationEnabled {
+                navigationState.register(title: title.key, tab: currentTab)
+            }
         }
         .onDisappear {
-            if !isPreRendering {
+            if !isPreRendering && isSearchRegistrationEnabled {
                 navigationState.unregister(title: title.key, tab: currentTab)
             }
         }
