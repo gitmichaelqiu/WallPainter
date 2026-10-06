@@ -30,6 +30,20 @@ struct WallpaperMenuEntry: Equatable {
 }
 
 enum WallpaperMenuEntries {
+    static func shouldOfferResumeRule(
+        for activeSpaceID: String?,
+        rule: WallpaperRule?,
+        manualHoldsBySpaceID: [String: ManualWallpaperHold]
+    ) -> Bool {
+        guard let activeSpaceID,
+              let rule,
+              rule.mode != .manual,
+              manualHoldsBySpaceID[activeSpaceID] != nil
+        else { return false }
+
+        return true
+    }
+
     static func make(
         wallpapers: [WallpaperItem],
         currentWallpaperID: String?
@@ -174,6 +188,7 @@ final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
         let switchMenu = NSMenu(title: switchTitle)
         switchMenu.autoenablesItems = false
 
+        let activeTarget = activeSwitchSpaceTarget
         let entries: [WallpaperMenuEntry]
         if spaceProvider == nil {
             entries = WallpaperMenuEntries.make(
@@ -184,7 +199,7 @@ final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
             entries = WallpaperMenuEntries.make(
                 wallpapers: model.items,
                 currentWallpaperIDsBySpaceID: model.currentWallpaperIDsBySpaceID,
-                activeSpaceTargets: activeSwitchSpaceTarget.map { [$0] } ?? [],
+                activeSpaceTargets: activeTarget.map { [$0] } ?? [],
                 isSpaceAPIAvailable: spaceProvider?.isAvailable == true
             )
         }
@@ -214,6 +229,26 @@ final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
 
         switchItem.submenu = switchMenu
         menu.addItem(switchItem)
+
+        if spaceProvider?.isAvailable == true, let activeTarget {
+            let rule = preferences.spaceRule(for: activeTarget.spaceID)
+                ?? preferences.defaultWallpaperRule
+            if WallpaperMenuEntries.shouldOfferResumeRule(
+                for: activeTarget.spaceID,
+                rule: rule,
+                manualHoldsBySpaceID: preferences.manualWallpaperHoldsBySpaceID
+            ) {
+                let resumeRuleItem = NSMenuItem(
+                    title: String(localized: "Resume Rule"),
+                    action: #selector(resumeRuleForActiveSpace(_:)),
+                    keyEquivalent: ""
+                )
+                resumeRuleItem.target = self
+                resumeRuleItem.representedObject = activeTarget.spaceID
+                menu.addItem(resumeRuleItem)
+            }
+        }
+
         menu.addItem(.separator())
 
         let settingsItem = NSMenuItem(
@@ -317,6 +352,18 @@ final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
                 )
             }
         }
+        rebuildMenu()
+    }
+
+    @objc private func resumeRuleForActiveSpace(_ sender: NSMenuItem) {
+        guard spaceProvider?.isAvailable == true,
+              let spaceID = sender.representedObject as? String,
+              let target = activeSwitchSpaceTarget,
+              target.spaceID == spaceID
+        else { return }
+
+        automationCoordinator.resumeRule(for: target)
+        synchronizeActiveSpaceState()
         rebuildMenu()
     }
 

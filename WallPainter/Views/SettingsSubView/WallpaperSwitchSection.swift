@@ -16,7 +16,7 @@ struct WallpaperSwitchSection: View {
     var body: some View {
         SettingsSection(
             "Switch Once",
-            helperText: "Changes the wallpaper without editing any rules. Each manual selection stays active until that space’s rule selects a different wallpaper."
+            helperText: "Changes the wallpaper without editing any rules. Each manual selection stays active until that space’s rule selects a different wallpaper. Choose Resume Rule from the menu bar to return to automation sooner."
         ) {
             SettingsRow("Currently active") {
                 Text(model.currentWallpaperSummary)

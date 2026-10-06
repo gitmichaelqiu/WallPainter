@@ -316,6 +316,22 @@ final class WallpaperAutomationCoordinator {
         model.refreshWallpaperProtectionStatus()
     }
 
+    func resumeRule(for target: WallpaperSpaceTarget) {
+        guard !target.spaceID.isEmpty else { return }
+
+        preferences.clearManualWallpaperHolds(forSpaceIDs: [target.spaceID])
+        model.refreshWallpaperProtectionStatus()
+
+        let installedWallpaperIDs = Set(model.items.map(\.id))
+        let rule = preferences.spaceRule(for: target.spaceID)
+            ?? preferences.defaultWallpaperRule
+        guard rule.isValid(installedWallpaperIDs: installedWallpaperIDs),
+              let wallpaperID = rule.resolvedWallpaperID(for: currentAppearance)
+        else { return }
+
+        _ = model.applyWallpaper(id: wallpaperID, to: [target])
+    }
+
     private func synchronizeActiveSpaces() {
         guard let spaceProvider,
               spaceProvider.isAvailable,

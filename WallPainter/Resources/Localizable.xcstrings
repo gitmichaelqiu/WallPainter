@@ -1135,6 +1135,16 @@
         }
       }
     },
+    "Resume Rule" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "恢复规则"
+          }
+        }
+      }
+    },
     "Retry" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1435,12 +1445,12 @@
         }
       }
     },
-    "Changes the wallpaper without editing any rules. Each manual selection stays active until that space’s rule selects a different wallpaper." : {
+    "Changes the wallpaper without editing any rules. Each manual selection stays active until that space’s rule selects a different wallpaper. Choose Resume Rule from the menu bar to return to automation sooner." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此操作不会修改任何规则。手动选择的壁纸会保持不变，直到该桌面的规则选中另一张壁纸。"
+            "value" : "此操作不会修改任何规则。手动选择的壁纸会保持不变，直到该桌面的规则选中另一张壁纸。也可以从菜单栏选择“恢复规则”以提前恢复自动切换。"
           }
         }
       }
