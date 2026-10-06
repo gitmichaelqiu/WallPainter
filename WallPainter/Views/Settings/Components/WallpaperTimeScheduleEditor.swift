@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct WallpaperTimeScheduleEditor: View {
@@ -81,20 +82,24 @@ private struct WallpaperTimeScheduleEditorSheet: View {
     }
 
     var body: some View {
-        NavigationStack {
+        VStack(spacing: 0) {
+            HStack {
+                Text("Time Schedule")
+                    .font(.headline)
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 20)
+            .frame(height: 48)
+
+            Divider()
+
             ScrollViewReader { scrollProxy in
                 ScrollView {
                     VStack(alignment: .leading, spacing: 12) {
-                        SettingsSection(
+                        SettingsSectionHeader(
                             "Time periods",
                             helperText: "Periods repeat daily in local time. An end time earlier than its start is on the next day; gaps keep the current wallpaper."
-                        ) {
-                            SettingsRow("Add time period", id: "schedule.add") {
-                                Button("Add", systemImage: "plus") {
-                                    addPeriod()
-                                }
-                            }
-                        }
+                        )
 
                         ForEach(periods) { period in
                             periodSection(period, number: periodNumber(for: period.id))
@@ -106,6 +111,15 @@ private struct WallpaperTimeScheduleEditorSheet: View {
                                     )
                                 )
                         }
+
+                        SettingsSection {
+                            SettingsRow("Add time period", id: "schedule.add") {
+                                Button("Add", systemImage: "plus") {
+                                    addPeriod()
+                                }
+                            }
+                        }
+                        .padding(.top, 10)
 
                         if !validationIssues.isEmpty {
                             SettingsSection(
@@ -140,22 +154,28 @@ private struct WallpaperTimeScheduleEditorSheet: View {
                     periodIDToReveal = nil
                 }
             }
-            .navigationTitle("Time Schedule")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
+
+            Divider()
+
+            HStack(spacing: 8) {
+                Spacer(minLength: 0)
+
+                Button("Cancel") {
+                    dismiss()
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        onSave(periods)
-                        dismiss()
-                    }
-                    .disabled(!canSave)
+                .buttonStyle(.bordered)
+
+                Button("Save") {
+                    onSave(periods)
+                    dismiss()
                 }
+                .buttonStyle(.borderedProminent)
+                .disabled(!canSave)
             }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     @ViewBuilder
@@ -183,14 +203,10 @@ private struct WallpaperTimeScheduleEditorSheet: View {
                 "Start",
                 id: "schedule.\(periodID.uuidString).start"
             ) {
-                DatePicker(
-                    "Start",
-                    selection: dateBinding(for: minuteBinding(for: periodID, keyPath: \.startMinute)),
-                    displayedComponents: .hourAndMinute
+                AlignedTimePicker(
+                    selection: dateBinding(for: minuteBinding(for: periodID, keyPath: \.startMinute))
                 )
-                .labelsHidden()
-                .datePickerStyle(.field)
-                .font(.body)
+                .accessibilityLabel("Start")
                 .frame(minHeight: 24, alignment: .center)
             }
 
@@ -200,14 +216,10 @@ private struct WallpaperTimeScheduleEditorSheet: View {
                 isOvernight ? "End (next day)" : "End",
                 id: "schedule.\(periodID.uuidString).end"
             ) {
-                DatePicker(
-                    "End",
-                    selection: dateBinding(for: minuteBinding(for: periodID, keyPath: \.endMinute)),
-                    displayedComponents: .hourAndMinute
+                AlignedTimePicker(
+                    selection: dateBinding(for: minuteBinding(for: periodID, keyPath: \.endMinute))
                 )
-                .labelsHidden()
-                .datePickerStyle(.field)
-                .font(.body)
+                .accessibilityLabel("End")
                 .frame(minHeight: 24, alignment: .center)
             }
 
@@ -326,6 +338,71 @@ private struct WallpaperTimeScheduleEditorSheet: View {
     private func minuteOfDay(for date: Date) -> Int {
         let components = Calendar.current.dateComponents([.hour, .minute], from: date)
         return (components.hour ?? 0) * 60 + (components.minute ?? 0)
+    }
+}
+
+private struct AlignedTimePicker: NSViewRepresentable {
+    @Binding var selection: Date
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(selection: $selection)
+    }
+
+    func makeNSView(context: Context) -> NSDatePicker {
+        let picker = NSDatePicker()
+        picker.datePickerStyle = .textField
+        picker.datePickerMode = .single
+        picker.datePickerElements = .hourMinute
+        picker.calendar = .current
+        picker.locale = .current
+        picker.timeZone = .current
+        picker.controlSize = .regular
+        picker.font = .systemFont(ofSize: NSFont.systemFontSize(for: .regular))
+
+        let cell = VerticallyAlignedTimePickerCell(textCell: "")
+        cell.datePickerStyle = .textField
+        cell.datePickerMode = .single
+        cell.datePickerElements = .hourMinute
+        cell.calendar = .current
+        cell.locale = .current
+        cell.timeZone = .current
+        cell.controlSize = .regular
+        cell.font = .systemFont(ofSize: NSFont.systemFontSize(for: .regular))
+        picker.cell = cell
+
+        picker.dateValue = selection
+        picker.target = context.coordinator
+        picker.action = #selector(Coordinator.selectionDidChange(_:))
+        return picker
+    }
+
+    func updateNSView(_ picker: NSDatePicker, context: Context) {
+        context.coordinator.selection = $selection
+
+        let displayedTime = Calendar.current.dateComponents([.hour, .minute], from: picker.dateValue)
+        let selectedTime = Calendar.current.dateComponents([.hour, .minute], from: selection)
+        if displayedTime.hour != selectedTime.hour || displayedTime.minute != selectedTime.minute {
+            picker.dateValue = selection
+        }
+    }
+
+    final class Coordinator: NSObject {
+        var selection: Binding<Date>
+
+        init(selection: Binding<Date>) {
+            self.selection = selection
+        }
+
+        @objc func selectionDidChange(_ sender: NSDatePicker) {
+            selection.wrappedValue = sender.dateValue
+        }
+    }
+}
+
+private final class VerticallyAlignedTimePickerCell: NSDatePickerCell {
+    override func titleRect(forBounds rect: NSRect) -> NSRect {
+        // Center the active segment highlight within the bezeled time field.
+        super.titleRect(forBounds: rect).offsetBy(dx: 0, dy: -1)
     }
 }
 

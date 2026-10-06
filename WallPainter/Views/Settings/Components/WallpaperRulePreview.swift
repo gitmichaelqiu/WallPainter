@@ -47,19 +47,14 @@ struct WallpaperRulePreview: View {
                 } else {
                     VStack(spacing: 0) {
                         ForEach(rule.timePeriods) { period in
-                            if period.id != rule.timePeriods.first?.id {
-                                Divider()
-                            }
-
-                            HStack(spacing: 12) {
+                            SettingsValueRow(horizontalPadding: 0) {
                                 Text(period.formattedTimeRange)
                                     .foregroundStyle(.secondary)
-                                Spacer(minLength: 8)
+                            } trailing: {
                                 Text(wallpaper(withID: period.wallpaperID)?.name ?? "Wallpaper unavailable")
                                     .lineLimit(1)
                                     .truncationMode(.tail)
                             }
-                            .padding(.vertical, 7)
                         }
                     }
                 }

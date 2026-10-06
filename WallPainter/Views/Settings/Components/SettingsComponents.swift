@@ -402,6 +402,59 @@ struct SettingsRow<Content: View>: View {
     }
 }
 
+struct SettingsValueRow<Leading: View, Trailing: View>: View {
+    let leading: Leading
+    let trailing: Trailing
+    let horizontalPadding: CGFloat
+
+    init(
+        horizontalPadding: CGFloat = 10,
+        @ViewBuilder leading: () -> Leading,
+        @ViewBuilder trailing: () -> Trailing
+    ) {
+        self.leading = leading()
+        self.trailing = trailing()
+        self.horizontalPadding = horizontalPadding
+    }
+
+    var body: some View {
+        HStack(alignment: .center) {
+            leading
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            trailing
+                .controlSize(.regular)
+                .frame(alignment: .trailing)
+        }
+        .frame(minHeight: standardSettingsRowHeight - settingsRowVerticalInset * 2)
+        .padding(.vertical, settingsRowVerticalInset)
+        .padding(.horizontal, horizontalPadding)
+        .frame(minHeight: standardSettingsRowHeight)
+    }
+}
+
+struct SettingsSectionHeader: View {
+    let title: LocalizedStringKey
+    let helperText: LocalizedStringKey?
+
+    init(_ title: LocalizedStringKey, helperText: LocalizedStringKey? = nil) {
+        self.title = title
+        self.helperText = helperText
+    }
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Text(title)
+                .font(.headline)
+
+            if let helperText {
+                HelperInfoButton(text: helperText)
+            }
+        }
+        .padding(.leading, 4)
+    }
+}
+
 struct SettingsSection<Content: View>: View {
     let title: LocalizedStringKey?
     let helperText: LocalizedStringKey?
@@ -419,15 +472,7 @@ struct SettingsSection<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if let title = title {
-                HStack(spacing: 4) {
-                    Text(title)
-                        .font(.headline)
-
-                    if let helperText = helperText {
-                        HelperInfoButton(text: helperText)
-                    }
-                }
-                .padding(.leading, 4)
+                SettingsSectionHeader(title, helperText: helperText)
             }
 
             VStack(spacing: 0) {
