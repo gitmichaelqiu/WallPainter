@@ -2,6 +2,7 @@ import SwiftUI
 
 struct WallpaperSwitchSection: View {
     @Bindable var model: WallpaperModel
+    let automationCoordinator: WallpaperAutomationCoordinator
     let spaceProvider: (any SpaceAPIProviding)?
     let onOpenPermissions: () -> Void
 
@@ -15,7 +16,7 @@ struct WallpaperSwitchSection: View {
     var body: some View {
         SettingsSection(
             "Switch Once",
-            helperText: "This changes the wallpaper once and leaves the automatic default and per-space rules unchanged. Those rules may change it again when they run."
+            helperText: "Changes the wallpaper without editing any rules. Each manual selection stays active until that space’s rule selects a different wallpaper."
         ) {
             SettingsRow("Currently active") {
                 Text(model.currentWallpaperSummary)
@@ -190,7 +191,9 @@ struct WallpaperSwitchSection: View {
     private func switchOnActiveSpaces() {
         guard let wallpaperID = model.selectedWallpaperID else { return }
         updateSpaceState()
-        _ = model.applyWallpaper(id: wallpaperID, to: currentTargets)
+        let targets = currentTargets
+        guard model.applyWallpaper(id: wallpaperID, to: targets) else { return }
+        automationCoordinator.recordManualWallpaperSwitch(of: wallpaperID, for: targets)
         statusSelectionID = wallpaperID
     }
 
@@ -201,8 +204,14 @@ struct WallpaperSwitchSection: View {
             if allSpaceTargets.isEmpty {
                 _ = model.applyWallpaper(id: wallpaperID, to: [])
             } else {
-                model.synchronizeWallpaperIDs(for: allSpaceTargets)
-                _ = model.applyWallpaper(id: wallpaperID, to: allSpaceTargets)
+                let targets = allSpaceTargets
+                model.synchronizeWallpaperIDs(for: targets)
+                if model.applyWallpaper(id: wallpaperID, to: targets) {
+                    automationCoordinator.recordManualWallpaperSwitch(
+                        of: wallpaperID,
+                        for: targets
+                    )
+                }
             }
         } else {
             _ = model.applyWallpaperEverywhere(id: wallpaperID)

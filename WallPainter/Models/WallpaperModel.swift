@@ -459,6 +459,11 @@ final class WallpaperModel {
         )
     }
 
+    func refreshWallpaperProtectionStatus() {
+        retainConfiguredAssets()
+        postChange()
+    }
+
     @discardableResult
     private func removeProtectionBackups() -> Bool {
         do {

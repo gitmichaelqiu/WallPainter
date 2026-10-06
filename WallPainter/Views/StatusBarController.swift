@@ -310,7 +310,12 @@ final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
             else { return }
 
             synchronizeActiveSpaceState()
-            _ = model.applyWallpaper(id: wallpaperID, to: [target])
+            if model.applyWallpaper(id: wallpaperID, to: [target]) {
+                automationCoordinator.recordManualWallpaperSwitch(
+                    of: wallpaperID,
+                    for: [target]
+                )
+            }
         }
         rebuildMenu()
     }
