@@ -768,16 +768,6 @@
         }
       }
     },
-    "No wallpaper selected" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "未选择壁纸"
-          }
-        }
-      }
-    },
     "No regular Mission Control spaces were reported." : {
       "localizations" : {
         "zh-Hans" : {
@@ -834,6 +824,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "尚未配置时段"
+          }
+        }
+      }
+    },
+    "No wallpaper selected" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未选择壁纸"
           }
         }
       }
@@ -922,6 +922,7 @@
       }
     },
     "Periods repeat daily in local time and may cross midnight. Outside configured periods, the current wallpaper stays active." : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -963,6 +964,7 @@
       }
     },
     "Periods repeat every day in your local time. The current wallpaper stays active when no period matches." : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {

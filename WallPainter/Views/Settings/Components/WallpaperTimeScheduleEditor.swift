@@ -31,6 +31,7 @@ struct WallpaperTimeScheduleEditor: View {
 private struct WallpaperTimeScheduleEditorSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var periods: [WallpaperTimePeriod]
+    @State private var periodIDToReveal: UUID?
 
     let wallpapers: [WallpaperItem]
     let onSave: ([WallpaperTimePeriod]) -> Void
@@ -81,47 +82,63 @@ private struct WallpaperTimeScheduleEditorSheet: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    SettingsSection(
-                        "Time periods",
-                        helperText: "Periods repeat daily in local time. An end time earlier than its start is on the next day; gaps keep the current wallpaper."
-                    ) {
-                        SettingsRow("Add time period", id: "schedule.add") {
-                            Button("Add", systemImage: "plus") {
-                                addPeriod()
-                            }
-                        }
-                    }
-
-                    ForEach(periods) { period in
-                        periodSection(period, number: periodNumber(for: period.id))
-                    }
-
-                    if !validationIssues.isEmpty {
+            ScrollViewReader { scrollProxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 12) {
                         SettingsSection(
-                            "Fix before saving",
-                            helperText: "Save becomes available after every issue is resolved."
+                            "Time periods",
+                            helperText: "Periods repeat daily in local time. An end time earlier than its start is on the next day; gaps keep the current wallpaper."
                         ) {
-                            ForEach(validationIssues.indices, id: \.self) { index in
-                                let issue = validationIssues[index]
-                                if index > 0 {
-                                    Divider()
+                            SettingsRow("Add time period", id: "schedule.add") {
+                                Button("Add", systemImage: "plus") {
+                                    addPeriod()
                                 }
+                            }
+                        }
 
-                                SettingsRow(
-                                    issue.title,
-                                    id: "schedule.validation.\(issue.id)"
-                                ) {
-                                    Image(systemName: "exclamationmark.circle.fill")
-                                        .foregroundStyle(.red)
+                        ForEach(periods) { period in
+                            periodSection(period, number: periodNumber(for: period.id))
+                                .padding(.top, 10)
+                                .transition(
+                                    .asymmetric(
+                                        insertion: .move(edge: .bottom).combined(with: .opacity),
+                                        removal: .opacity
+                                    )
+                                )
+                        }
+
+                        if !validationIssues.isEmpty {
+                            SettingsSection(
+                                "Fix before saving",
+                                helperText: "Save becomes available after every issue is resolved."
+                            ) {
+                                ForEach(validationIssues.indices, id: \.self) { index in
+                                    let issue = validationIssues[index]
+                                    if index > 0 {
+                                        Divider()
+                                    }
+
+                                    SettingsRow(
+                                        issue.title,
+                                        id: "schedule.validation.\(issue.id)"
+                                    ) {
+                                        Image(systemName: "exclamationmark.circle.fill")
+                                            .foregroundStyle(.red)
+                                    }
                                 }
                             }
                         }
                     }
+                    .padding(16)
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
-                .padding(16)
-                .frame(maxWidth: .infinity, alignment: .topLeading)
+                .onChange(of: periodIDToReveal) { _, periodID in
+                    guard let periodID else { return }
+                    withSettingsAnimation {
+                        scrollProxy.scrollTo(periodTitleID(for: periodID), anchor: .center)
+                    }
+                    periodIDToReveal = nil
+                }
             }
             .navigationTitle("Time Schedule")
             .toolbar {
@@ -149,10 +166,12 @@ private struct WallpaperTimeScheduleEditorSheet: View {
         SettingsSection {
             SettingsRow(
                 "Period \(number)",
-                id: "schedule.\(periodID.uuidString).title"
+                id: periodTitleID(for: periodID)
             ) {
                 Button(role: .destructive) {
-                    removePeriod(id: periodID)
+                    withSettingsAnimation {
+                        removePeriod(id: periodID)
+                    }
                 } label: {
                     Label("Remove", systemImage: "trash")
                 }
@@ -171,6 +190,8 @@ private struct WallpaperTimeScheduleEditorSheet: View {
                 )
                 .labelsHidden()
                 .datePickerStyle(.field)
+                .font(.body)
+                .frame(minHeight: 24, alignment: .center)
             }
 
             Divider()
@@ -186,6 +207,8 @@ private struct WallpaperTimeScheduleEditorSheet: View {
                 )
                 .labelsHidden()
                 .datePickerStyle(.field)
+                .font(.body)
+                .frame(minHeight: 24, alignment: .center)
             }
 
             Divider()
@@ -224,12 +247,18 @@ private struct WallpaperTimeScheduleEditorSheet: View {
 
     private func addPeriod() {
         let startMinute = nextAvailableStartMinute()
-        periods.append(
-            WallpaperTimePeriod(
-                startMinute: startMinute,
-                endMinute: (startMinute + 60) % WallpaperTimeSchedule.minutesPerDay
-            )
+        let period = WallpaperTimePeriod(
+            startMinute: startMinute,
+            endMinute: (startMinute + 60) % WallpaperTimeSchedule.minutesPerDay
         )
+        withSettingsAnimation {
+            periods.append(period)
+            periodIDToReveal = period.id
+        }
+    }
+
+    private func periodTitleID(for id: UUID) -> String {
+        "schedule.\(id.uuidString).title"
     }
 
     private func nextAvailableStartMinute() -> Int {
@@ -305,36 +334,28 @@ private struct ScheduledWallpaperPreview: View {
     let isUnavailable: Bool
 
     var body: some View {
-        HStack(spacing: 10) {
+        Group {
             if let wallpaper {
                 WallpaperThumbnail(url: wallpaper.thumbnailURL)
                     .frame(width: 144, height: 81)
                     .clipShape(.rect(cornerRadius: 8))
-
-                Text(wallpaper.name)
-                    .font(.callout)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-                    .frame(maxWidth: 180, alignment: .leading)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text(wallpaper.name))
             } else {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(.quaternary.opacity(0.35))
-                    .frame(width: 144, height: 81)
-                    .overlay {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(.quaternary.opacity(0.35))
                         Image(systemName: isUnavailable ? "exclamationmark.triangle" : "photo")
                             .font(.title3)
                             .foregroundStyle(.secondary)
-                    }
-
-                Text(isUnavailable ? "Wallpaper unavailable" : "No wallpaper selected")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-                    .frame(maxWidth: 180, alignment: .leading)
+                }
+                .frame(width: 144, height: 81)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(
+                    isUnavailable ? Text("Wallpaper unavailable") : Text("No wallpaper selected")
+                )
             }
         }
-        .accessibilityElement(children: .combine)
     }
 }
 
