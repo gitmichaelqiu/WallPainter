@@ -47,13 +47,34 @@ struct WallpaperRulePreview: View {
                 } else {
                     VStack(spacing: 0) {
                         ForEach(rule.timePeriods) { period in
+                            let periodWallpaper = wallpaper(withID: period.wallpaperID)
+                            let isOvernight = period.startMinute > period.endMinute
+                            let wallpaperName = periodWallpaper?.name
+                                ?? (period.wallpaperID == nil ? "No wallpaper selected" : "Wallpaper unavailable")
+
                             SettingsValueRow(horizontalPadding: 0) {
-                                Text(period.formattedTimeRange)
+                                HStack(spacing: 16) {
+                                    HStack(spacing: 4) {
+                                        Text(period.formattedTimeRange)
+                                        if isOvernight {
+                                            Text("Next day")
+                                                .font(.caption)
+                                        }
+                                    }
                                     .foregroundStyle(.secondary)
-                            } trailing: {
-                                Text(wallpaper(withID: period.wallpaperID)?.name ?? "Wallpaper unavailable")
                                     .lineLimit(1)
-                                    .truncationMode(.tail)
+                                    .frame(width: 220, alignment: .leading)
+
+                                    Text(wallpaperName)
+                                        .lineLimit(1)
+                                        .truncationMode(.tail)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                            } trailing: {
+                                ScheduledWallpaperThumbnail(
+                                    wallpaper: periodWallpaper,
+                                    isUnavailable: period.wallpaperID != nil && periodWallpaper == nil
+                                )
                             }
                         }
                     }
@@ -71,6 +92,44 @@ struct WallpaperRulePreview: View {
     private func wallpaper(withID id: String?) -> WallpaperItem? {
         guard let id else { return nil }
         return wallpapers.first { $0.id == id }
+    }
+}
+
+struct ScheduledWallpaperThumbnail: View {
+    private static let width: CGFloat = 144
+    private static let height: CGFloat = 81
+
+    let wallpaper: WallpaperItem?
+    let isUnavailable: Bool
+
+    var body: some View {
+        Group {
+            if let wallpaper {
+                WallpaperThumbnail(url: wallpaper.thumbnailURL)
+            } else {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(.quaternary.opacity(0.35))
+                    Image(systemName: isUnavailable ? "exclamationmark.triangle" : "photo")
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .frame(width: Self.width, height: Self.height)
+        .clipShape(.rect(cornerRadius: 8))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var accessibilityLabel: Text {
+        if let wallpaper {
+            Text(wallpaper.name)
+        } else if isUnavailable {
+            Text("Wallpaper unavailable")
+        } else {
+            Text("No wallpaper selected")
+        }
     }
 }
 

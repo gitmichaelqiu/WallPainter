@@ -250,7 +250,7 @@ private struct WallpaperTimeScheduleEditorSheet: View {
                 "Wallpaper preview",
                 id: "schedule.\(periodID.uuidString).preview"
             ) {
-                ScheduledWallpaperPreview(
+                ScheduledWallpaperThumbnail(
                     wallpaper: wallpaper(for: period.wallpaperID),
                     isUnavailable: period.wallpaperID != nil && wallpaper(for: period.wallpaperID) == nil
                 )
@@ -347,36 +347,6 @@ private struct WallpaperTimeScheduleEditorSheet: View {
     private func minuteOfDay(for date: Date) -> Int {
         let components = Calendar.current.dateComponents([.hour, .minute], from: date)
         return (components.hour ?? 0) * 60 + (components.minute ?? 0)
-    }
-}
-
-private struct ScheduledWallpaperPreview: View {
-    let wallpaper: WallpaperItem?
-    let isUnavailable: Bool
-
-    var body: some View {
-        Group {
-            if let wallpaper {
-                WallpaperThumbnail(url: wallpaper.thumbnailURL)
-                    .frame(width: 144, height: 81)
-                    .clipShape(.rect(cornerRadius: 8))
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(Text(wallpaper.name))
-            } else {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(.quaternary.opacity(0.35))
-                        Image(systemName: isUnavailable ? "exclamationmark.triangle" : "photo")
-                            .font(.title3)
-                            .foregroundStyle(.secondary)
-                }
-                .frame(width: 144, height: 81)
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(
-                    isUnavailable ? Text("Wallpaper unavailable") : Text("No wallpaper selected")
-                )
-            }
-        }
     }
 }
 

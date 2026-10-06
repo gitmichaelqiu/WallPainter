@@ -828,6 +828,16 @@
         }
       }
     },
+    "Next day" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "次日"
+          }
+        }
+      }
+    },
     "No wallpaper selected" : {
       "localizations" : {
         "zh-Hans" : {
