@@ -77,6 +77,32 @@ final class WallPainterPreferencesTests: XCTestCase {
         XCTAssertNotNil(defaults.data(forKey: WallPainterPreferences.defaultWallpaperRuleKey))
     }
 
+    func testTimeScheduleRulePersistsAcrossPreferenceReloads() {
+        let suiteName = "WallPainterPreferencesTimeScheduleTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let preferences = WallPainterPreferences(defaults: defaults)
+        let rule = WallpaperRule.timeSchedule([
+            WallpaperTimePeriod(
+                startMinute: 8 * 60,
+                endMinute: 12 * 60,
+                wallpaperID: "morning"
+            ),
+            WallpaperTimePeriod(
+                startMinute: 12 * 60,
+                endMinute: 18 * 60,
+                wallpaperID: "afternoon"
+            )
+        ])
+        preferences.defaultWallpaperRule = rule
+
+        XCTAssertEqual(
+            WallPainterPreferences(defaults: defaults).defaultWallpaperRule,
+            rule
+        )
+    }
+
     func testSpaceRulesCanBeSavedAndReset() {
         let suiteName = "WallPainterPreferencesSpaceRulesTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!

@@ -258,6 +258,7 @@ private struct SpaceRuleEditor: View {
     @State private var fixedWallpaperID: String?
     @State private var lightWallpaperID: String?
     @State private var darkWallpaperID: String?
+    @State private var timePeriods: [WallpaperTimePeriod]
 
     init(
         space: SpaceDescriptor,
@@ -279,6 +280,7 @@ private struct SpaceRuleEditor: View {
         _fixedWallpaperID = State(initialValue: startingRule.fixedWallpaperID)
         _lightWallpaperID = State(initialValue: startingRule.lightWallpaperID)
         _darkWallpaperID = State(initialValue: startingRule.darkWallpaperID)
+        _timePeriods = State(initialValue: startingRule.timePeriods)
     }
 
     private var effectiveRule: WallpaperRule {
@@ -292,6 +294,8 @@ private struct SpaceRuleEditor: View {
                 lightWallpaperID: lightWallpaperID,
                 darkWallpaperID: darkWallpaperID
             )
+        case .timeSchedule:
+            return .timeSchedule(timePeriods)
         case .manual:
             return .manual
         }
@@ -341,6 +345,13 @@ private struct SpaceRuleEditor: View {
                         wallpapers: model.items
                     )
                 }
+            } else if selection == .timeSchedule {
+                Divider()
+
+                WallpaperTimeScheduleEditor(
+                    periods: $timePeriods,
+                    wallpapers: model.items
+                )
             }
 
             Divider()
@@ -361,6 +372,9 @@ private struct SpaceRuleEditor: View {
             saveIfNeeded()
         }
         .onChange(of: darkWallpaperID) { _, _ in
+            saveIfNeeded()
+        }
+        .onChange(of: timePeriods) { _, _ in
             saveIfNeeded()
         }
         .onChange(of: existingRule) { _, newRule in
@@ -389,6 +403,8 @@ private struct SpaceRuleEditor: View {
                 ),
                 for: space.id
             )
+        case .timeSchedule:
+            preferences.setSpaceRule(.timeSchedule(timePeriods), for: space.id)
         case .manual:
             preferences.setSpaceRule(.manual, for: space.id)
         }
@@ -399,6 +415,7 @@ private struct SpaceRuleEditor: View {
         fixedWallpaperID = rule.fixedWallpaperID
         lightWallpaperID = rule.lightWallpaperID
         darkWallpaperID = rule.darkWallpaperID
+        timePeriods = rule.timePeriods
     }
 }
 
@@ -407,6 +424,7 @@ private enum SpaceRuleSelection: String, CaseIterable, Identifiable {
     case manual
     case fixed
     case appearance
+    case timeSchedule
 
     var id: String { rawValue }
 
@@ -420,6 +438,8 @@ private enum SpaceRuleSelection: String, CaseIterable, Identifiable {
             return "Fixed wallpaper"
         case .appearance:
             return "Follow system appearance"
+        case .timeSchedule:
+            return "Time schedule"
         }
     }
 
@@ -431,6 +451,8 @@ private enum SpaceRuleSelection: String, CaseIterable, Identifiable {
             self = .fixed
         case .appearance:
             self = .appearance
+        case .timeSchedule:
+            self = .timeSchedule
         }
     }
 }

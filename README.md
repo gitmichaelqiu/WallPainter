@@ -56,7 +56,7 @@ After downloading DesktopRenamer, you need to turn on SpaceAPI in Settings → G
 
 ## Switch Once or Set a Rule
 
-Use the menu bar **Switch** menu or Settings → **Wallpaper** → **Switch Once** for a one-time wallpaper change. This does not edit automatic rules, and a rule may change the wallpaper again later. Configure the automatic default behavior in Settings → **Wallpaper**, or set an override for a particular desktop in **Spaces**.
+Use the menu bar **Switch** menu or Settings → **Wallpaper** → **Switch Once** for a one-time wallpaper change. This does not edit automatic rules, and a rule may change the wallpaper again later. Configure the automatic default behavior in Settings → **Wallpaper**, or set an override for a particular desktop in **Spaces**. A **Time schedule** rule supports recurring daily periods in local time, including periods that cross midnight. Assign an installed wallpaper to every period and save only after resolving any overlaps; outside configured periods, the current wallpaper stays active.
 
 ## ⚠️ Issues
 

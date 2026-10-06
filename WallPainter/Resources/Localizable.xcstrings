@@ -107,6 +107,47 @@
         }
       }
     },
+    "Add" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加"
+          }
+        }
+      }
+    },
+    "Add at least one time period." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "至少添加一个时段。"
+          }
+        }
+      }
+    },
+    "Add time period" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加时段"
+          }
+        }
+      }
+    },
+    "Add Time Period" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加时段"
+          }
+        }
+      }
+    },
     "All spaces" : {
       "localizations" : {
         "zh-Hans" : {
@@ -267,6 +308,16 @@
         }
       }
     },
+    "Choose an installed wallpaper for every period." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请为每个时段选择已安装的壁纸。"
+          }
+        }
+      }
+    },
     "Connect DesktopRenamer SpaceAPI in Permissions to switch only active spaces. All Spaces switching is still available." : {
       "localizations" : {
         "zh-Hans" : {
@@ -397,6 +448,26 @@
         }
       }
     },
+    "Each period needs a different start and end time." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每个时段的开始和结束时间必须不同。"
+          }
+        }
+      }
+    },
+    "Edit…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑…"
+          }
+        }
+      }
+    },
     "Effective wallpaper" : {
       "localizations" : {
         "zh-Hans" : {
@@ -407,12 +478,42 @@
         }
       }
     },
+    "End" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "结束"
+          }
+        }
+      }
+    },
+    "End (next day)" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "结束（次日）"
+          }
+        }
+      }
+    },
     "Every space will use the default rule again." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "所有桌面都将重新使用默认规则。"
+          }
+        }
+      }
+    },
+    "Fix before saving" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存前请修正"
           }
         }
       }
@@ -717,6 +818,46 @@
         }
       }
     },
+    "No time periods configured" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未配置时段"
+          }
+        }
+      }
+    },
+    "No free one-hour window. Shorten an existing period before adding another." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有可用的一小时时段。请先缩短现有时段，再添加时段。"
+          }
+        }
+      }
+    },
+    "Next day" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "次日"
+          }
+        }
+      }
+    },
+    "No wallpaper selected" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未选择壁纸"
+          }
+        }
+      }
+    },
     "Not detected" : {
       "localizations" : {
         "zh-Hans" : {
@@ -790,6 +931,69 @@
     "Painter" : {
       "shouldTranslate" : false
     },
+    "Period %lld" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第 %lld 个时段"
+          }
+        }
+      }
+    },
+    "Periods repeat daily in local time and may cross midnight. Outside configured periods, the current wallpaper stays active." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时段每天按本地时间重复，并可跨午夜。在已配置的时段之外，当前壁纸将保持不变。"
+          }
+        }
+      }
+    },
+    "Periods repeat daily in local time. An end time earlier than its start is on the next day; gaps keep the current wallpaper." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时段每天按本地时间重复。结束时间早于开始时间表示在次日结束；空档时保持当前壁纸。"
+          }
+        }
+      }
+    },
+    "Periods repeat daily in local time. An end time earlier than its start is on the next day. The current wallpaper stays active when no period matches." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时段每天按本地时间重复。结束时间早于开始时间表示在次日结束。没有时段匹配时，当前壁纸将保持不变。"
+          }
+        }
+      }
+    },
+    "Periods repeat daily using your Mac’s local time. Periods may cross midnight." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时段每天按 Mac 的本地时间重复，并可跨午夜。"
+          }
+        }
+      }
+    },
+    "Periods repeat every day in your local time. The current wallpaper stays active when no period matches." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时段每天按本地时间重复。没有时段匹配时，当前壁纸将保持不变。"
+          }
+        }
+      }
+    },
     "Permissions" : {
       "localizations" : {
         "zh-Hans" : {
@@ -826,6 +1030,27 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "刷新目录"
+          }
+        }
+      }
+    },
+    "Remove" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除"
+          }
+        }
+      }
+    },
+    "Remove this time period" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除此时段"
           }
         }
       }
@@ -920,6 +1145,26 @@
         }
       }
     },
+    "Save" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存"
+          }
+        }
+      }
+    },
+    "Save becomes available after every issue is resolved." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解决所有问题后即可保存。"
+          }
+        }
+      }
+    },
     "Search" : {
       "localizations" : {
         "zh-Hans" : {
@@ -956,6 +1201,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "SpaceAPI 从已连接变为断开时发送 macOS 通知。需要通知权限。"
+          }
+        }
+      }
+    },
+    "Set Up…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设置…"
           }
         }
       }
@@ -1026,6 +1281,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "桌面"
+          }
+        }
+      }
+    },
+    "Start" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开始"
           }
         }
       }
@@ -1180,6 +1445,46 @@
         }
       }
     },
+    "Time periods" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时段"
+          }
+        }
+      }
+    },
+    "Time periods cannot overlap." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时段不能重叠。"
+          }
+        }
+      }
+    },
+    "Time schedule" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时间安排"
+          }
+        }
+      }
+    },
+    "Time Schedule" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时间安排"
+          }
+        }
+      }
+    },
     "Unavailable" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1265,6 +1570,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "壁纸"
+          }
+        }
+      }
+    },
+    "Wallpaper preview" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "壁纸预览"
           }
         }
       }
