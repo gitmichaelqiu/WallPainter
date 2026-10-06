@@ -180,6 +180,8 @@ enum SpaceAPICodec {
         return SpaceSnapshot(
             revision: revision,
             currentSpaceIDs: currentSpaceIDs,
+            currentSpaceID: object["currentSpaceID"] as? String,
+            currentDisplayID: object["currentDisplayID"] as? String,
             spaces: descriptors
         )
     }
