@@ -40,6 +40,29 @@ struct WallpaperRulePreview: View {
                         label: "Dark"
                     )
                 }
+            case .timeSchedule:
+                if rule.timePeriods.isEmpty {
+                    Text("No time periods configured")
+                        .foregroundStyle(.secondary)
+                } else {
+                    VStack(spacing: 0) {
+                        ForEach(rule.timePeriods) { period in
+                            if period.id != rule.timePeriods.first?.id {
+                                Divider()
+                            }
+
+                            HStack(spacing: 12) {
+                                Text(period.formattedTimeRange)
+                                    .foregroundStyle(.secondary)
+                                Spacer(minLength: 8)
+                                Text(wallpaper(withID: period.wallpaperID)?.name ?? "Wallpaper unavailable")
+                                    .lineLimit(1)
+                                    .truncationMode(.tail)
+                            }
+                            .padding(.vertical, 7)
+                        }
+                    }
+                }
             case .manual:
                 Text("No automatic wallpaper changes")
                     .foregroundStyle(.secondary)

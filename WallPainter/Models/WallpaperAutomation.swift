@@ -75,6 +75,7 @@ final class WallpaperAutomationCoordinator {
     @ObservationIgnored private var spaceSnapshotObserver: NSObjectProtocol?
     @ObservationIgnored private var spaceAvailabilityObserver: NSObjectProtocol?
     @ObservationIgnored private var appearanceEvaluationWorkItem: DispatchWorkItem?
+    @ObservationIgnored private var timeScheduleEvaluationWorkItem: DispatchWorkItem?
 
     init(
         model: WallpaperModel,
@@ -163,6 +164,8 @@ final class WallpaperAutomationCoordinator {
         spaceProvider?.stop()
         appearanceEvaluationWorkItem?.cancel()
         appearanceEvaluationWorkItem = nil
+        timeScheduleEvaluationWorkItem?.cancel()
+        timeScheduleEvaluationWorkItem = nil
 
         let notificationCenter = NotificationCenter.default
         if let catalogObserver {
@@ -185,6 +188,8 @@ final class WallpaperAutomationCoordinator {
     }
 
     func evaluateCurrentAppearance() {
+        scheduleNextTimeScheduleEvaluation()
+
         // Reconcile the private Apple cache before resolving rules. A restored
         // asset is discovered by the catalog here; an unrecoverable asset is
         // removed from the installed set and its saved rule is left intact.
@@ -287,6 +292,50 @@ final class WallpaperAutomationCoordinator {
         migrateSpaceOverrides()
         synchronizeActiveSpaces()
         evaluateCurrentAppearance()
+    }
+
+    private func scheduleNextTimeScheduleEvaluation() {
+        timeScheduleEvaluationWorkItem?.cancel()
+        timeScheduleEvaluationWorkItem = nil
+        guard isRunning else { return }
+
+        let rules = [preferences.defaultWallpaperRule] + Array(preferences.spaceOverrides.values)
+        let boundaryMinutes = Set(rules.flatMap { rule -> [Int] in
+            guard rule.mode == .timeSchedule else { return [] }
+            return rule.timePeriods
+                .filter(\.hasValidTimeRange)
+                .flatMap { [$0.startMinute, $0.endMinute] }
+        })
+        guard !boundaryMinutes.isEmpty else { return }
+
+        let now = Date()
+        let calendar = Calendar.current
+        let nextBoundary = boundaryMinutes.compactMap { minute -> Date? in
+            var components = DateComponents()
+            components.hour = minute / 60
+            components.minute = minute % 60
+            components.second = 0
+            return calendar.nextDate(
+                after: now,
+                matching: components,
+                matchingPolicy: .nextTime,
+                repeatedTimePolicy: .first,
+                direction: .forward
+            )
+        }.min()
+        guard let nextBoundary else { return }
+
+        let workItem = DispatchWorkItem { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self, self.isRunning else { return }
+                self.evaluateCurrentAppearance()
+            }
+        }
+        timeScheduleEvaluationWorkItem = workItem
+        DispatchQueue.main.asyncAfter(
+            deadline: .now() + max(0.1, nextBoundary.timeIntervalSince(now)),
+            execute: workItem
+        )
     }
 
     private func migrateSpaceOverrides() {

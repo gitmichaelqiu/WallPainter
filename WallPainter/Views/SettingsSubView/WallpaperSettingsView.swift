@@ -38,7 +38,7 @@ struct WallpaperSettingsView: View {
                                     wallpapers: model.items
                                 )
                             }
-                        } else {
+                        } else if preferences.defaultWallpaperRule.mode == .appearance {
                             SettingsRow("Light wallpaper") {
                                 WallpaperPicker(
                                     selection: $preferences.defaultWallpaperRule.lightWallpaperID,
@@ -54,6 +54,11 @@ struct WallpaperSettingsView: View {
                                     wallpapers: model.items
                                 )
                             }
+                        } else {
+                            WallpaperTimeScheduleEditor(
+                                periods: $preferences.defaultWallpaperRule.timePeriods,
+                                wallpapers: model.items
+                            )
                         }
 
                         Divider()
