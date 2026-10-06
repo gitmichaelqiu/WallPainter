@@ -14,7 +14,7 @@ struct WallpaperSettingsView: View {
         SettingsContainer(.wallpaper) {
             VStack(alignment: .leading, spacing: 20) {
                 SettingsSection(
-                    "Automatic Wallpaper Rule",
+                    "Default Rule",
                     helperText: "Automatically applies to spaces using Default. A manual selection stays active until this rule resolves to a different wallpaper."
                 ) {
                     SettingsRow("Behavior") {

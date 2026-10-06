@@ -77,36 +77,6 @@
         }
       }
     },
-    "Active spaces" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "当前桌面空间"
-          }
-        }
-      }
-    },
-    "Active spaces (%lld)" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "当前桌面空间（%lld 个）"
-          }
-        }
-      }
-    },
-    "Active-space switching is unavailable" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法切换当前桌面空间"
-          }
-        }
-      }
-    },
     "Add" : {
       "localizations" : {
         "zh-Hans" : {
@@ -128,17 +98,6 @@
       }
     },
     "Add time period" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "添加时段"
-          }
-        }
-      }
-    },
-    "Add Time Period" : {
-      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -218,16 +177,6 @@
         }
       }
     },
-    "Automatic Wallpaper Rule" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自动壁纸规则"
-          }
-        }
-      }
-    },
     "Automatically applies to spaces using Default. A manual selection stays active until this rule resolves to a different wallpaper." : {
       "localizations" : {
         "zh-Hans" : {
@@ -288,6 +237,16 @@
         }
       }
     },
+    "Changes the wallpaper without editing any rules. Each manual selection stays active until that space’s rule selects a different wallpaper. Choose Resume Rule from the menu bar to return to automation sooner." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此操作不会修改任何规则。手动选择的壁纸会保持不变，直到该桌面的规则选中另一张壁纸。也可以从菜单栏选择“恢复规则”以提前恢复自动切换。"
+          }
+        }
+      }
+    },
     "Check" : {
       "localizations" : {
         "zh-Hans" : {
@@ -318,12 +277,12 @@
         }
       }
     },
-    "Connect DesktopRenamer SpaceAPI in Permissions to switch only active spaces. All Spaces switching is still available." : {
+    "Connect DesktopRenamer SpaceAPI in Permissions to switch the current space. All Spaces switching is still available." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在“权限”中连接 DesktopRenamer SpaceAPI 后，即可仅切换当前桌面空间。仍可切换所有空间。"
+            "value" : "在“权限”中连接 DesktopRenamer SpaceAPI 后，即可切换当前桌面空间。仍可切换所有空间。"
           }
         }
       }
@@ -354,6 +313,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无法移除备份"
+          }
+        }
+      }
+    },
+    "Current space" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前桌面空间"
+          }
+        }
+      }
+    },
+    "Current-space switching is unavailable" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法切换当前桌面空间"
           }
         }
       }
@@ -398,12 +377,32 @@
         }
       }
     },
+    "Default Rule" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "默认规则"
+          }
+        }
+      }
+    },
     "Delete Tab" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "删除标签页"
+          }
+        }
+      }
+    },
+    "DesktopRenamer did not report the current space. All Spaces switching is still available." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DesktopRenamer 未报告当前桌面空间。仍可切换所有空间。"
           }
         }
       }
@@ -718,6 +717,16 @@
         }
       }
     },
+    "Next day" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "次日"
+          }
+        }
+      }
+    },
     "No active regular spaces are available." : {
       "localizations" : {
         "zh-Hans" : {
@@ -728,7 +737,17 @@
         }
       }
     },
-    "No active spaces are available" : {
+    "No automatic wallpaper changes" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不自动更改壁纸"
+          }
+        }
+      }
+    },
+    "No current space is available" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -738,12 +757,12 @@
         }
       }
     },
-    "No automatic wallpaper changes" : {
+    "No free one-hour window. Shorten an existing period before adding another." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "不自动更改壁纸"
+            "value" : "没有可用的一小时时段。请先缩短现有时段，再添加时段。"
           }
         }
       }
@@ -788,16 +807,6 @@
         }
       }
     },
-    "No regular Mission Control spaces were reported. All Spaces switching is still available." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "未检测到常规 Mission Control 桌面空间。仍可切换所有空间。"
-          }
-        }
-      }
-    },
     "No regular spaces are available." : {
       "localizations" : {
         "zh-Hans" : {
@@ -834,26 +843,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "尚未配置时段"
-          }
-        }
-      }
-    },
-    "No free one-hour window. Shorten an existing period before adding another." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "没有可用的一小时时段。请先缩短现有时段，再添加时段。"
-          }
-        }
-      }
-    },
-    "Next day" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "次日"
           }
         }
       }
@@ -951,17 +940,6 @@
         }
       }
     },
-    "Periods repeat daily in local time and may cross midnight. Outside configured periods, the current wallpaper stays active." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "时段每天按本地时间重复，并可跨午夜。在已配置的时段之外，当前壁纸将保持不变。"
-          }
-        }
-      }
-    },
     "Periods repeat daily in local time. An end time earlier than its start is on the next day; gaps keep the current wallpaper." : {
       "localizations" : {
         "zh-Hans" : {
@@ -978,28 +956,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "时段每天按本地时间重复。结束时间早于开始时间表示在次日结束。没有时段匹配时，当前壁纸将保持不变。"
-          }
-        }
-      }
-    },
-    "Periods repeat daily using your Mac’s local time. Periods may cross midnight." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "时段每天按 Mac 的本地时间重复，并可跨午夜。"
-          }
-        }
-      }
-    },
-    "Periods repeat every day in your local time. The current wallpaper stays active when no period matches." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "时段每天按本地时间重复。没有时段匹配时，当前壁纸将保持不变。"
           }
         }
       }
@@ -1050,17 +1006,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "移除"
-          }
-        }
-      }
-    },
-    "Remove this time period" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移除此时段"
           }
         }
       }
@@ -1355,22 +1300,22 @@
         }
       }
     },
-    "Switch wallpaper on active spaces" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在当前桌面空间切换壁纸"
-          }
-        }
-      }
-    },
     "Switch wallpaper on all spaces" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "在所有桌面空间切换壁纸"
+          }
+        }
+      }
+    },
+    "Switch wallpaper on current space" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切换当前桌面空间的壁纸"
           }
         }
       }
@@ -1441,16 +1386,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "壁纸存储中不存在桌面 %@。"
-          }
-        }
-      }
-    },
-    "Changes the wallpaper without editing any rules. Each manual selection stays active until that space’s rule selects a different wallpaper. Choose Resume Rule from the menu bar to return to automation sooner." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此操作不会修改任何规则。手动选择的壁纸会保持不变，直到该桌面的规则选中另一张壁纸。也可以从菜单栏选择“恢复规则”以提前恢复自动切换。"
           }
         }
       }
