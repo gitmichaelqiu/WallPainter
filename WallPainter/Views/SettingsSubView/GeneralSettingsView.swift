@@ -110,7 +110,7 @@ struct GeneralSettingsView: View {
                                 fromByteCount: status.backupSizeInBytes,
                                 countStyle: .file
                             )
-                            Text("\(status.protectedIDs.count) wallpapers backed up (\(storageSize))")
+                            Text("\(status.protectedIDs.count) wallpapers (\(storageSize))")
                                 .foregroundStyle(.secondary)
                         } else {
                             HStack(spacing: 8) {
