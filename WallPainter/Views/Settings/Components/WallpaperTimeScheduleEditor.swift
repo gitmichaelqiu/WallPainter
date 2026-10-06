@@ -1,4 +1,3 @@
-import AppKit
 import SwiftUI
 
 struct WallpaperTimeScheduleEditor: View {
@@ -203,9 +202,14 @@ private struct WallpaperTimeScheduleEditorSheet: View {
                 "Start",
                 id: "schedule.\(periodID.uuidString).start"
             ) {
-                AlignedTimePicker(
-                    selection: dateBinding(for: minuteBinding(for: periodID, keyPath: \.startMinute))
+                DatePicker(
+                    "Start",
+                    selection: dateBinding(for: minuteBinding(for: periodID, keyPath: \.startMinute)),
+                    displayedComponents: .hourAndMinute
                 )
+                .labelsHidden()
+                .datePickerStyle(.field)
+                .fixedSize()
                 .accessibilityLabel("Start")
                 .frame(minHeight: 24, alignment: .center)
             }
@@ -216,9 +220,14 @@ private struct WallpaperTimeScheduleEditorSheet: View {
                 isOvernight ? "End (next day)" : "End",
                 id: "schedule.\(periodID.uuidString).end"
             ) {
-                AlignedTimePicker(
-                    selection: dateBinding(for: minuteBinding(for: periodID, keyPath: \.endMinute))
+                DatePicker(
+                    "End",
+                    selection: dateBinding(for: minuteBinding(for: periodID, keyPath: \.endMinute)),
+                    displayedComponents: .hourAndMinute
                 )
+                .labelsHidden()
+                .datePickerStyle(.field)
+                .fixedSize()
                 .accessibilityLabel("End")
                 .frame(minHeight: 24, alignment: .center)
             }
@@ -338,71 +347,6 @@ private struct WallpaperTimeScheduleEditorSheet: View {
     private func minuteOfDay(for date: Date) -> Int {
         let components = Calendar.current.dateComponents([.hour, .minute], from: date)
         return (components.hour ?? 0) * 60 + (components.minute ?? 0)
-    }
-}
-
-private struct AlignedTimePicker: NSViewRepresentable {
-    @Binding var selection: Date
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(selection: $selection)
-    }
-
-    func makeNSView(context: Context) -> NSDatePicker {
-        let picker = NSDatePicker()
-        picker.datePickerStyle = .textField
-        picker.datePickerMode = .single
-        picker.datePickerElements = .hourMinute
-        picker.calendar = .current
-        picker.locale = .current
-        picker.timeZone = .current
-        picker.controlSize = .regular
-        picker.font = .systemFont(ofSize: NSFont.systemFontSize(for: .regular))
-
-        let cell = VerticallyAlignedTimePickerCell(textCell: "")
-        cell.datePickerStyle = .textField
-        cell.datePickerMode = .single
-        cell.datePickerElements = .hourMinute
-        cell.calendar = .current
-        cell.locale = .current
-        cell.timeZone = .current
-        cell.controlSize = .regular
-        cell.font = .systemFont(ofSize: NSFont.systemFontSize(for: .regular))
-        picker.cell = cell
-
-        picker.dateValue = selection
-        picker.target = context.coordinator
-        picker.action = #selector(Coordinator.selectionDidChange(_:))
-        return picker
-    }
-
-    func updateNSView(_ picker: NSDatePicker, context: Context) {
-        context.coordinator.selection = $selection
-
-        let displayedTime = Calendar.current.dateComponents([.hour, .minute], from: picker.dateValue)
-        let selectedTime = Calendar.current.dateComponents([.hour, .minute], from: selection)
-        if displayedTime.hour != selectedTime.hour || displayedTime.minute != selectedTime.minute {
-            picker.dateValue = selection
-        }
-    }
-
-    final class Coordinator: NSObject {
-        var selection: Binding<Date>
-
-        init(selection: Binding<Date>) {
-            self.selection = selection
-        }
-
-        @objc func selectionDidChange(_ sender: NSDatePicker) {
-            selection.wrappedValue = sender.dateValue
-        }
-    }
-}
-
-private final class VerticallyAlignedTimePickerCell: NSDatePickerCell {
-    override func titleRect(forBounds rect: NSRect) -> NSRect {
-        // Center the active segment highlight within the bezeled time field.
-        super.titleRect(forBounds: rect).offsetBy(dx: 0, dy: -1)
     }
 }
 
