@@ -3,6 +3,42 @@ import XCTest
 @testable import WallPainter
 
 final class StatusBarMenuTests: XCTestCase {
+    func testResumeRuleRequiresAnAutomationRuleAndManualHoldOnActiveSpace() {
+        let holds = [
+            "space-1": ManualWallpaperHold(wallpaperID: "manual", ruleWallpaperID: "rule"),
+            "space-2": ManualWallpaperHold(wallpaperID: "manual", ruleWallpaperID: nil)
+        ]
+
+        XCTAssertTrue(
+            WallpaperMenuEntries.shouldOfferResumeRule(
+                for: "space-1",
+                rule: .fixed("rule"),
+                manualHoldsBySpaceID: holds
+            )
+        )
+        XCTAssertFalse(
+            WallpaperMenuEntries.shouldOfferResumeRule(
+                for: "space-2",
+                rule: .manual,
+                manualHoldsBySpaceID: holds
+            )
+        )
+        XCTAssertFalse(
+            WallpaperMenuEntries.shouldOfferResumeRule(
+                for: "space-3",
+                rule: .fixed("rule"),
+                manualHoldsBySpaceID: holds
+            )
+        )
+        XCTAssertFalse(
+            WallpaperMenuEntries.shouldOfferResumeRule(
+                for: nil,
+                rule: .fixed("rule"),
+                manualHoldsBySpaceID: holds
+            )
+        )
+    }
+
     func testEntriesContainEveryWallpaperAndCheckCurrentWallpaper() {
         let wallpapers = [
             makeWallpaper(id: "day", name: "Golden Gate Day"),

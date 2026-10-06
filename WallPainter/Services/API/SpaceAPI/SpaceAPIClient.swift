@@ -40,7 +40,23 @@ struct SpaceDescriptor: Codable, Equatable, Identifiable, Sendable {
 struct SpaceSnapshot: Codable, Equatable, Sendable {
     let revision: UInt64
     let currentSpaceIDs: [String]
+    let currentSpaceID: String?
+    let currentDisplayID: String?
     let spaces: [SpaceDescriptor]
+
+    init(
+        revision: UInt64,
+        currentSpaceIDs: [String],
+        currentSpaceID: String? = nil,
+        currentDisplayID: String? = nil,
+        spaces: [SpaceDescriptor]
+    ) {
+        self.revision = revision
+        self.currentSpaceIDs = currentSpaceIDs
+        self.currentSpaceID = currentSpaceID
+        self.currentDisplayID = currentDisplayID
+        self.spaces = spaces
+    }
 }
 
 struct SpaceAPIInfo: Codable, Equatable, Sendable {
@@ -656,6 +672,8 @@ final class SpaceAPIClient: SpaceAPIProviding {
         self.snapshot = SpaceSnapshot(
             revision: snapshot.revision,
             currentSpaceIDs: snapshot.currentSpaceIDs,
+            currentSpaceID: snapshot.currentSpaceID,
+            currentDisplayID: snapshot.currentDisplayID,
             spaces: mappedSpaces
         )
         NotificationCenter.default.post(

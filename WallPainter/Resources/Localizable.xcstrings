@@ -228,12 +228,12 @@
         }
       }
     },
-    "Automatically applies to spaces using Default. Manual changes do not edit this rule and may be replaced the next time it runs." : {
+    "Automatically applies to spaces using Default. A manual selection stays active until this rule resolves to a different wallpaper." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "自动应用于使用“默认”规则的桌面。手动更改不会修改此规则，并可能在下次自动运行时被替换。"
+            "value" : "自动应用于使用“默认”规则的桌面。手动选择的壁纸会保持不变，直到此规则解析为另一张壁纸。"
           }
         }
       }
@@ -658,6 +658,16 @@
         }
       }
     },
+    "Media Suite" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "媒体套件"
+          }
+        }
+      }
+    },
     "More Apps" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1004,12 +1014,12 @@
         }
       }
     },
-    "Quit WallPainter" : {
+    "Quit" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "退出 WallPainter"
+            "value" : "退出"
           }
         }
       }
@@ -1121,6 +1131,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重置覆盖项"
+          }
+        }
+      }
+    },
+    "Resume Rule" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "恢复规则"
           }
         }
       }
@@ -1425,12 +1445,12 @@
         }
       }
     },
-    "This changes the wallpaper once and leaves the automatic default and per-space rules unchanged. Those rules may change it again when they run." : {
+    "Changes the wallpaper without editing any rules. Each manual selection stays active until that space’s rule selects a different wallpaper. Choose Resume Rule from the menu bar to return to automation sooner." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这里只切换一次壁纸，不会更改默认自动规则或按桌面设置的规则。规则运行时可能会再次更改壁纸。"
+            "value" : "此操作不会修改任何规则。手动选择的壁纸会保持不变，直到该桌面的规则选中另一张壁纸。也可以从菜单栏选择“恢复规则”以提前恢复自动切换。"
           }
         }
       }
@@ -1630,6 +1650,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "壁纸已应用到所选桌面。"
+          }
+        }
+      }
+    },
+    "Workflow Suite" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "工作流套件"
           }
         }
       }

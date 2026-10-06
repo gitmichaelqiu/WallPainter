@@ -2,6 +2,7 @@ import SwiftUI
 
 struct WallpaperSettingsView: View {
     let model: WallpaperModel
+    let automationCoordinator: WallpaperAutomationCoordinator
     let spaceProvider: (any SpaceAPIProviding)?
     let onOpenPermissions: () -> Void
 
@@ -14,7 +15,7 @@ struct WallpaperSettingsView: View {
             VStack(alignment: .leading, spacing: 20) {
                 SettingsSection(
                     "Automatic Wallpaper Rule",
-                    helperText: "Automatically applies to spaces using Default. Manual changes do not edit this rule and may be replaced the next time it runs."
+                    helperText: "Automatically applies to spaces using Default. A manual selection stays active until this rule resolves to a different wallpaper."
                 ) {
                     SettingsRow("Behavior") {
                         Picker("", selection: $preferences.defaultWallpaperRule.mode) {
@@ -73,6 +74,7 @@ struct WallpaperSettingsView: View {
 
                 WallpaperSwitchSection(
                     model: model,
+                    automationCoordinator: automationCoordinator,
                     spaceProvider: spaceProvider,
                     onOpenPermissions: onOpenPermissions
                 )

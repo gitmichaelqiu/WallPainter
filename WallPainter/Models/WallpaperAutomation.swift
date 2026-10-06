@@ -2,6 +2,18 @@ import AppKit
 import Foundation
 import Observation
 
+private struct WallpaperAutomationPreferencesSnapshot: Equatable {
+    let defaultRule: WallpaperRule
+    let spaceOverrides: [String: WallpaperRule]
+    let wallpaperProtectionEnabled: Bool
+
+    init(preferences: WallPainterPreferences) {
+        defaultRule = preferences.defaultWallpaperRule
+        spaceOverrides = preferences.spaceOverrides
+        wallpaperProtectionEnabled = preferences.wallpaperProtectionEnabled
+    }
+}
+
 enum WallpaperAppearance: String, CaseIterable, Codable, Identifiable, Sendable {
     case light
     case dark
@@ -77,6 +89,7 @@ final class WallpaperAutomationCoordinator {
     @ObservationIgnored private var systemTimeObservers: [NSObjectProtocol] = []
     @ObservationIgnored private var appearanceEvaluationWorkItem: DispatchWorkItem?
     @ObservationIgnored private var timeScheduleEvaluationWorkItem: DispatchWorkItem?
+    @ObservationIgnored private var observedPreferences: WallpaperAutomationPreferencesSnapshot?
 
     init(
         model: WallpaperModel,
@@ -88,6 +101,7 @@ final class WallpaperAutomationCoordinator {
         self.preferences = preferences
         self.appearanceMonitor = appearanceMonitor ?? SystemAppearanceMonitor()
         self.spaceProvider = spaceProvider
+        observedPreferences = WallpaperAutomationPreferencesSnapshot(preferences: preferences)
     }
 
     var isSpaceAPIAvailable: Bool {
@@ -236,6 +250,7 @@ final class WallpaperAutomationCoordinator {
 
         var wallpaperIDsBySpaceID: [String: String] = [:]
         var writableTargets: [WallpaperSpaceTarget] = []
+        var releasedManualHolds = Set<String>()
         let currentWallpaperIDs = model.wallpaperIDs(for: targets)
         let installedWallpaperIDs = Set(model.items.map(\.id))
 
@@ -253,6 +268,18 @@ final class WallpaperAutomationCoordinator {
                 continue
             }
 
+            if let manualHold = preferences.manualWallpaperHoldsBySpaceID[space.id] {
+                guard manualHold.ruleWallpaperID != wallpaperID else {
+                    guard installedWallpaperIDs.contains(manualHold.wallpaperID) else { continue }
+                    if currentWallpaperIDs[space.id] != manualHold.wallpaperID {
+                        wallpaperIDsBySpaceID[space.id] = manualHold.wallpaperID
+                        writableTargets.append(target)
+                    }
+                    continue
+                }
+                releasedManualHolds.insert(space.id)
+            }
+
             guard currentWallpaperIDs[space.id] != wallpaperID else {
                 continue
             }
@@ -261,8 +288,48 @@ final class WallpaperAutomationCoordinator {
             writableTargets.append(target)
         }
 
+        preferences.clearManualWallpaperHolds(forSpaceIDs: releasedManualHolds)
+
         guard !writableTargets.isEmpty else { return }
         _ = model.applyWallpapers(wallpaperIDsBySpaceID, to: writableTargets)
+    }
+
+    func recordManualWallpaperSwitch(
+        of wallpaperID: String,
+        for targets: [WallpaperSpaceTarget]
+    ) {
+        let date = Date()
+        let installedWallpaperIDs = Set(model.items.map(\.id))
+        var holds: [String: ManualWallpaperHold] = [:]
+        for target in targets where !target.spaceID.isEmpty {
+            let rule = preferences.spaceRule(for: target.spaceID)
+                ?? preferences.defaultWallpaperRule
+            let resolvedRuleWallpaperID = rule.isValid(installedWallpaperIDs: installedWallpaperIDs)
+                ? rule.resolvedWallpaperID(for: currentAppearance, at: date)
+                : nil
+            holds[target.spaceID] = ManualWallpaperHold(
+                wallpaperID: wallpaperID,
+                ruleWallpaperID: resolvedRuleWallpaperID
+            )
+        }
+        preferences.setManualWallpaperHolds(holds)
+        model.refreshWallpaperProtectionStatus()
+    }
+
+    func resumeRule(for target: WallpaperSpaceTarget) {
+        guard !target.spaceID.isEmpty else { return }
+
+        preferences.clearManualWallpaperHolds(forSpaceIDs: [target.spaceID])
+        model.refreshWallpaperProtectionStatus()
+
+        let installedWallpaperIDs = Set(model.items.map(\.id))
+        let rule = preferences.spaceRule(for: target.spaceID)
+            ?? preferences.defaultWallpaperRule
+        guard rule.isValid(installedWallpaperIDs: installedWallpaperIDs),
+              let wallpaperID = rule.resolvedWallpaperID(for: currentAppearance)
+        else { return }
+
+        _ = model.applyWallpaper(id: wallpaperID, to: [target])
     }
 
     private func synchronizeActiveSpaces() {
@@ -306,6 +373,9 @@ final class WallpaperAutomationCoordinator {
     }
 
     private func preferencesDidChange() {
+        let latestPreferences = WallpaperAutomationPreferencesSnapshot(preferences: preferences)
+        guard observedPreferences != latestPreferences else { return }
+        observedPreferences = latestPreferences
         evaluateCurrentAppearance()
     }
 

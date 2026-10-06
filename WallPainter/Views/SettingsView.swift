@@ -92,6 +92,7 @@ struct SettingsView: View {
 
                     WallpaperSettingsView(
                         model: wallpaperModel,
+                        automationCoordinator: automationCoordinator,
                         spaceProvider: spaceProvider,
                         onOpenPermissions: {}
                     )
@@ -304,6 +305,7 @@ struct SettingsView: View {
                 case .wallpaper:
                     WallpaperSettingsView(
                         model: wallpaperModel,
+                        automationCoordinator: automationCoordinator,
                         spaceProvider: spaceProvider,
                         onOpenPermissions: {
                             searchText = ""

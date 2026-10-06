@@ -192,6 +192,44 @@ final class WallpaperSpaceAutomationTests: XCTestCase {
         XCTAssertEqual(store.currentIDs["space-a"], wallpaper.id)
     }
 
+    func testResumeRuleClearsManualHoldAndAppliesTheCurrentRule() {
+        let ruleWallpaper = makeWallpaper(id: "rule")
+        let manualWallpaper = makeWallpaper(id: "manual")
+        let preferences = makePreferences()
+        preferences.defaultWallpaperRule = .fixed(ruleWallpaper.id)
+        preferences.setManualWallpaperHolds([
+            "space-a": ManualWallpaperHold(
+                wallpaperID: manualWallpaper.id,
+                ruleWallpaperID: ruleWallpaper.id
+            )
+        ])
+
+        let store = SpaceAutomationTestStore(currentIDs: ["space-a": manualWallpaper.id])
+        let model = makeModel(
+            items: [ruleWallpaper, manualWallpaper],
+            store: store,
+            preferences: preferences
+        )
+        model.refresh()
+
+        let coordinator = WallpaperAutomationCoordinator(
+            model: model,
+            preferences: preferences,
+            appearanceMonitor: SpaceAutomationTestAppearanceMonitor(initialAppearance: .light),
+            spaceProvider: SpaceAutomationTestProvider(
+                snapshot: makeSnapshot(currentSpaceIDs: ["space-a"]),
+                isAvailable: true
+            )
+        )
+        let target = WallpaperSpaceTarget(spaceID: "space-a", displayID: "display-1")
+
+        coordinator.resumeRule(for: target)
+
+        XCTAssertNil(preferences.manualWallpaperHoldsBySpaceID["space-a"])
+        XCTAssertEqual(store.scopedWrites, [["space-a": ruleWallpaper.id]])
+        XCTAssertEqual(store.currentIDs["space-a"], ruleWallpaper.id)
+    }
+
     func testInvalidSpaceOverrideIsSkippedWhileDefaultRuleContinues() {
         let wallpaper = makeWallpaper(id: "wallpaper")
         let preferences = makePreferences()
