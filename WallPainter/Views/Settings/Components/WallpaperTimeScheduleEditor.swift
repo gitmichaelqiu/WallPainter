@@ -9,7 +9,7 @@ struct WallpaperTimeScheduleEditor: View {
     var body: some View {
         SettingsRow(
             "Time periods",
-            helperText: "Periods repeat every day in your local time. The current wallpaper stays active when no period matches."
+            helperText: "Periods repeat daily in local time. An end time earlier than its start is on the next day. The current wallpaper stays active when no period matches."
         ) {
             Button(periods.isEmpty ? "Set Up…" : "Edit…") {
                 isPresentingEditor = true
@@ -22,7 +22,7 @@ struct WallpaperTimeScheduleEditor: View {
             ) { savedPeriods in
                 periods = savedPeriods
             }
-            .frame(width: 720, height: 520)
+            .frame(width: 720, height: 660)
             .environment(\.isSettingsSearchRegistrationEnabled, false)
         }
     }
@@ -82,81 +82,20 @@ private struct WallpaperTimeScheduleEditorSheet: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 12) {
                     SettingsSection(
                         "Time periods",
-                        helperText: "Periods repeat daily in local time and may cross midnight. Outside configured periods, the current wallpaper stays active."
+                        helperText: "Periods repeat daily in local time. An end time earlier than its start is on the next day; gaps keep the current wallpaper."
                     ) {
-                        ForEach(periods.indices, id: \.self) { index in
-                            let periodID = periods[index].id
-
-                            if index > 0 {
-                                Divider()
-                            }
-
-                            SettingsRow(
-                                "Period \(index + 1)",
-                                id: "schedule.\(periodID.uuidString).title"
-                            ) {
-                                Button(role: .destructive) {
-                                    removePeriod(id: periodID)
-                                } label: {
-                                    Label("Remove", systemImage: "trash")
-                                }
-                            }
-
-                            Divider()
-
-                            SettingsRow(
-                                "Start",
-                                id: "schedule.\(periodID.uuidString).start"
-                            ) {
-                                DatePicker(
-                                    "Start",
-                                    selection: dateBinding(for: $periods[index].startMinute),
-                                    displayedComponents: .hourAndMinute
-                                )
-                                .labelsHidden()
-                                .datePickerStyle(.field)
-                            }
-
-                            Divider()
-
-                            SettingsRow(
-                                "End",
-                                id: "schedule.\(periodID.uuidString).end"
-                            ) {
-                                DatePicker(
-                                    "End",
-                                    selection: dateBinding(for: $periods[index].endMinute),
-                                    displayedComponents: .hourAndMinute
-                                )
-                                .labelsHidden()
-                                .datePickerStyle(.field)
-                            }
-
-                            Divider()
-
-                            SettingsRow(
-                                "Wallpaper",
-                                id: "schedule.\(periodID.uuidString).wallpaper"
-                            ) {
-                                WallpaperPicker(
-                                    selection: $periods[index].wallpaperID,
-                                    wallpapers: wallpapers
-                                )
-                            }
-                        }
-
-                        if !periods.isEmpty {
-                            Divider()
-                        }
-
                         SettingsRow("Add time period", id: "schedule.add") {
                             Button("Add", systemImage: "plus") {
                                 addPeriod()
                             }
                         }
+                    }
+
+                    ForEach(periods) { period in
+                        periodSection(period, number: periodNumber(for: period.id))
                     }
 
                     if !validationIssues.isEmpty {
@@ -202,8 +141,85 @@ private struct WallpaperTimeScheduleEditorSheet: View {
         }
     }
 
+    @ViewBuilder
+    private func periodSection(_ period: WallpaperTimePeriod, number: Int) -> some View {
+        let periodID = period.id
+        let isOvernight = period.startMinute > period.endMinute
+
+        SettingsSection {
+            SettingsRow(
+                "Period \(number)",
+                id: "schedule.\(periodID.uuidString).title"
+            ) {
+                Button(role: .destructive) {
+                    removePeriod(id: periodID)
+                } label: {
+                    Label("Remove", systemImage: "trash")
+                }
+            }
+
+            Divider()
+
+            SettingsRow(
+                "Start",
+                id: "schedule.\(periodID.uuidString).start"
+            ) {
+                DatePicker(
+                    "Start",
+                    selection: dateBinding(for: minuteBinding(for: periodID, keyPath: \.startMinute)),
+                    displayedComponents: .hourAndMinute
+                )
+                .labelsHidden()
+                .datePickerStyle(.field)
+            }
+
+            Divider()
+
+            SettingsRow(
+                isOvernight ? "End (next day)" : "End",
+                id: "schedule.\(periodID.uuidString).end"
+            ) {
+                DatePicker(
+                    "End",
+                    selection: dateBinding(for: minuteBinding(for: periodID, keyPath: \.endMinute)),
+                    displayedComponents: .hourAndMinute
+                )
+                .labelsHidden()
+                .datePickerStyle(.field)
+            }
+
+            Divider()
+
+            SettingsRow(
+                "Wallpaper",
+                id: "schedule.\(periodID.uuidString).wallpaper"
+            ) {
+                WallpaperPicker(
+                    selection: wallpaperBinding(for: periodID),
+                    wallpapers: wallpapers
+                )
+            }
+
+            Divider()
+
+            SettingsRow(
+                "Wallpaper preview",
+                id: "schedule.\(periodID.uuidString).preview"
+            ) {
+                ScheduledWallpaperPreview(
+                    wallpaper: wallpaper(for: period.wallpaperID),
+                    isUnavailable: period.wallpaperID != nil && wallpaper(for: period.wallpaperID) == nil
+                )
+            }
+        }
+    }
+
     private func removePeriod(id: UUID) {
         periods.removeAll { $0.id == id }
+    }
+
+    private func periodNumber(for id: UUID) -> Int {
+        (periods.firstIndex(where: { $0.id == id }) ?? 0) + 1
     }
 
     private func addPeriod() {
@@ -238,6 +254,34 @@ private struct WallpaperTimeScheduleEditorSheet: View {
         )
     }
 
+    private func minuteBinding(
+        for id: UUID,
+        keyPath: WritableKeyPath<WallpaperTimePeriod, Int>
+    ) -> Binding<Int> {
+        Binding(
+            get: { periods.first(where: { $0.id == id })?[keyPath: keyPath] ?? 0 },
+            set: { newValue in
+                guard let index = periods.firstIndex(where: { $0.id == id }) else { return }
+                periods[index][keyPath: keyPath] = newValue
+            }
+        )
+    }
+
+    private func wallpaperBinding(for id: UUID) -> Binding<String?> {
+        Binding(
+            get: { periods.first(where: { $0.id == id })?.wallpaperID },
+            set: { newValue in
+                guard let index = periods.firstIndex(where: { $0.id == id }) else { return }
+                periods[index].wallpaperID = newValue
+            }
+        )
+    }
+
+    private func wallpaper(for id: String?) -> WallpaperItem? {
+        guard let id else { return nil }
+        return wallpapers.first { $0.id == id }
+    }
+
     private func date(for minute: Int) -> Date {
         var components = DateComponents()
         components.calendar = .current
@@ -253,6 +297,44 @@ private struct WallpaperTimeScheduleEditorSheet: View {
     private func minuteOfDay(for date: Date) -> Int {
         let components = Calendar.current.dateComponents([.hour, .minute], from: date)
         return (components.hour ?? 0) * 60 + (components.minute ?? 0)
+    }
+}
+
+private struct ScheduledWallpaperPreview: View {
+    let wallpaper: WallpaperItem?
+    let isUnavailable: Bool
+
+    var body: some View {
+        HStack(spacing: 10) {
+            if let wallpaper {
+                WallpaperThumbnail(url: wallpaper.thumbnailURL)
+                    .frame(width: 144, height: 81)
+                    .clipShape(.rect(cornerRadius: 8))
+
+                Text(wallpaper.name)
+                    .font(.callout)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: 180, alignment: .leading)
+            } else {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(.quaternary.opacity(0.35))
+                    .frame(width: 144, height: 81)
+                    .overlay {
+                        Image(systemName: isUnavailable ? "exclamationmark.triangle" : "photo")
+                            .font(.title3)
+                            .foregroundStyle(.secondary)
+                    }
+
+                Text(isUnavailable ? "Wallpaper unavailable" : "No wallpaper selected")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: 180, alignment: .leading)
+            }
+        }
+        .accessibilityElement(children: .combine)
     }
 }
 

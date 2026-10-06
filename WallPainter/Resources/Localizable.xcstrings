@@ -127,7 +127,7 @@
         }
       }
     },
-    "Add Time Period" : {
+    "Add time period" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -137,7 +137,8 @@
         }
       }
     },
-    "Add time period" : {
+    "Add Time Period" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -487,6 +488,16 @@
         }
       }
     },
+    "End (next day)" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "结束（次日）"
+          }
+        }
+      }
+    },
     "Every space will use the default rule again." : {
       "localizations" : {
         "zh-Hans" : {
@@ -757,6 +768,16 @@
         }
       }
     },
+    "No wallpaper selected" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未选择壁纸"
+          }
+        }
+      }
+    },
     "No regular Mission Control spaces were reported." : {
       "localizations" : {
         "zh-Hans" : {
@@ -910,7 +931,28 @@
         }
       }
     },
+    "Periods repeat daily in local time. An end time earlier than its start is on the next day; gaps keep the current wallpaper." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时段每天按本地时间重复。结束时间早于开始时间表示在次日结束；空档时保持当前壁纸。"
+          }
+        }
+      }
+    },
+    "Periods repeat daily in local time. An end time earlier than its start is on the next day. The current wallpaper stays active when no period matches." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时段每天按本地时间重复。结束时间早于开始时间表示在次日结束。没有时段匹配时，当前壁纸将保持不变。"
+          }
+        }
+      }
+    },
     "Periods repeat daily using your Mac’s local time. Periods may cross midnight." : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -981,6 +1023,7 @@
       }
     },
     "Remove this time period" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -1505,6 +1548,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "壁纸"
+          }
+        }
+      }
+    },
+    "Wallpaper preview" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "壁纸预览"
           }
         }
       }
