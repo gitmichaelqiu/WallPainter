@@ -129,7 +129,8 @@ final class AssetAutomationTestSpaceProvider: SpaceAPIProviding {
                 displayID: "display-1",
                 displayName: "Built-in Display",
                 number: 1,
-                isFullscreen: false
+                isFullscreen: false,
+                managedSpaceID: "managed-space-1"
             )
         ]
     )

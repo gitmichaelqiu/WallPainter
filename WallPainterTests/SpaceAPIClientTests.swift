@@ -102,6 +102,62 @@ final class SpaceAPIClientTests: XCTestCase {
         XCTAssertNil(snapshot.focusedRegularSpaceTarget)
     }
 
+    func testLegacyManagedSpaceIDsAttachOnlyWhenCompleteLayoutsMatch() {
+        let structuredSnapshot = SpaceSnapshot(
+            revision: 7,
+            currentSpaceIDs: ["space-a"],
+            spaces: [
+                makeSpace(id: "space-a", displayID: "display-a"),
+                makeSpace(id: "space-b", displayID: "display-a")
+            ]
+        )
+        let legacySpaces = [
+            makeLegacySpace(id: "managed-a", displayID: "display-a", number: 1, name: "space-a"),
+            makeLegacySpace(id: "managed-b", displayID: "display-a", number: 1, name: "space-b")
+        ]
+
+        let mapped = structuredSnapshot.attachingManagedSpaceIDs(from: legacySpaces)
+
+        XCTAssertEqual(mapped?.spaces.map(\.managedSpaceID), ["managed-a", "managed-b"])
+    }
+
+    func testLegacyManagedSpaceIDsRejectPartialOrAmbiguousMatches() {
+        let structuredSnapshot = SpaceSnapshot(
+            revision: 7,
+            currentSpaceIDs: ["space-a", "space-b"],
+            spaces: [
+                makeSpace(id: "space-a", displayID: "display-a"),
+                makeSpace(id: "space-b", displayID: "display-b")
+            ]
+        )
+        let incompleteLegacySnapshot = [
+            makeLegacySpace(id: "managed-a", displayID: "display-a", number: 1, name: "space-a")
+        ]
+        let ambiguousLegacySnapshot = [
+            makeLegacySpace(id: "managed-a", displayID: "display-a", number: 1, name: "space-a"),
+            makeLegacySpace(id: "managed-b", displayID: "display-a", number: 1, name: "space-a")
+        ]
+        let ambiguousStructuredSnapshot = SpaceSnapshot(
+            revision: 7,
+            currentSpaceIDs: ["space-a", "space-b"],
+            spaces: [
+                makeSpace(id: "space-a", displayID: "display-a"),
+                SpaceDescriptor(
+                    id: "space-b",
+                    name: "space-a",
+                    displayID: "display-a",
+                    displayName: "display-a",
+                    number: 1,
+                    isFullscreen: false
+                )
+            ]
+        )
+
+        XCTAssertNil(structuredSnapshot.attachingManagedSpaceIDs(from: incompleteLegacySnapshot))
+        XCTAssertNil(structuredSnapshot.attachingManagedSpaceIDs(from: ambiguousLegacySnapshot))
+        XCTAssertNil(ambiguousStructuredSnapshot.attachingManagedSpaceIDs(from: ambiguousLegacySnapshot))
+    }
+
     func testRevisionTrackerRejectsStaleEventsAndRequestsResynchronizationAfterGap() {
         var tracker = SpaceAPIRevisionTracker()
 
@@ -120,6 +176,15 @@ final class SpaceAPIClientTests: XCTestCase {
 
         XCTAssertTrue(tracker.acceptSnapshot(revision: 1))
         XCTAssertEqual(tracker.revision, 1)
+    }
+
+    func testRevisionTrackerAcceptsSameRevisionForSnapshotVerification() {
+        var tracker = SpaceAPIRevisionTracker()
+
+        XCTAssertTrue(tracker.acceptSnapshot(revision: 10))
+        XCTAssertTrue(tracker.acceptVerifiedSnapshot(revision: 10))
+        XCTAssertFalse(tracker.acceptVerifiedSnapshot(revision: 9))
+        XCTAssertEqual(tracker.revision, 10)
     }
 
     private func snapshotResponse(revision: UInt64) -> String {
@@ -150,6 +215,23 @@ final class SpaceAPIClientTests: XCTestCase {
             number: 1,
             isFullscreen: isFullscreen,
             managedSpaceID: "managed-\(id)"
+        )
+    }
+
+    private func makeLegacySpace(
+        id: String,
+        displayID: String,
+        number: Int,
+        name: String
+    ) -> SpaceDescriptor {
+        SpaceDescriptor(
+            id: id,
+            name: name,
+            displayID: displayID,
+            displayName: displayID,
+            number: number,
+            isFullscreen: false,
+            managedSpaceID: id
         )
     }
 }

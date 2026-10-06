@@ -218,7 +218,7 @@ struct SystemWallpaperAssetProtector: WallpaperAssetProtecting {
         return WallpaperAssetProtectionStatus(
             protectedIDs: protectedIDs,
             availableIDs: availableIDs,
-            backupSizeInBytes: backupStorageSize(for: protectedIDs)
+            backupSizeInBytes: backupStorageSize()
         )
     }
 
@@ -346,20 +346,17 @@ struct SystemWallpaperAssetProtector: WallpaperAssetProtecting {
         return true
     }
 
-    private func backupStorageSize(for wallpaperIDs: Set<String>) -> Int64 {
-        wallpaperIDs.reduce(into: Int64.zero) { total, wallpaperID in
-            guard let paths = paths(for: wallpaperID) else { return }
+    private func backupStorageSize() -> Int64 {
+        guard let enumerator = fileManager.enumerator(
+            at: backupDirectory,
+            includingPropertiesForKeys: [.isRegularFileKey, .fileSizeKey]
+        ) else { return 0 }
 
-            total += fileSize(at: paths.backupVideoURL)
-            for fileExtension in Self.thumbnailExtensions {
-                guard let thumbnailURL = thumbnailURL(
-                    in: paths.backupThumbnailDirectory,
-                    wallpaperID: wallpaperID,
-                    fileExtension: fileExtension
-                ) else { continue }
-                total += fileSize(at: thumbnailURL)
-            }
+        var total: Int64 = 0
+        for case let fileURL as URL in enumerator {
+            total += fileSize(at: fileURL)
         }
+        return total
     }
 
     private func fileSize(at url: URL) -> Int64 {

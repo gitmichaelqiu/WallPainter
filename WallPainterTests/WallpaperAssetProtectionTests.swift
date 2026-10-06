@@ -51,6 +51,27 @@ final class WallpaperAssetProtectionTests: XCTestCase {
         )
     }
 
+    func testStatusIncludesBackupFilesForNoLongerProtectedWallpapers() throws {
+        let directories = try makeDirectories()
+        let protected = makeWallpaper(id: "currently-protected", directories: directories)
+        let stale = makeWallpaper(id: "removed-from-rules", directories: directories)
+        try writeData(
+            "protected-video",
+            to: backupVideoURL(for: protected, directories: directories)
+        )
+        try writeData(
+            "stale-video",
+            to: backupVideoURL(for: stale, directories: directories)
+        )
+
+        let status = makeProtector(directories: directories).status(for: [protected.id])
+
+        XCTAssertEqual(
+            status.backupSizeInBytes,
+            Int64("protected-video".utf8.count + "stale-video".utf8.count)
+        )
+    }
+
     func testRestoresMissingWallpaperAndThumbnailFromBackup() throws {
         let directories = try makeDirectories()
         let wallpaper = makeWallpaper(

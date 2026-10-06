@@ -45,8 +45,16 @@ final class WallpaperSpaceAutomationTests: XCTestCase {
         XCTAssertEqual(
             model.activeSpaceTargets,
             [
-                WallpaperSpaceTarget(spaceID: "space-a", displayID: "display-1"),
-                WallpaperSpaceTarget(spaceID: "space-b", displayID: "display-2")
+                WallpaperSpaceTarget(
+                    spaceID: "space-a",
+                    displayID: "display-1",
+                    managedSpaceID: "managed-space-a"
+                ),
+                WallpaperSpaceTarget(
+                    spaceID: "space-b",
+                    displayID: "display-2",
+                    managedSpaceID: "managed-space-b"
+                )
             ]
         )
 
@@ -296,7 +304,11 @@ final class WallpaperSpaceAutomationTests: XCTestCase {
 
         XCTAssertEqual(
             model.activeSpaceTargets,
-            [WallpaperSpaceTarget(spaceID: "space-b", displayID: "display-2")]
+            [WallpaperSpaceTarget(
+                spaceID: "space-b",
+                displayID: "display-2",
+                managedSpaceID: "managed-space-b"
+            )]
         )
         XCTAssertEqual(store.scopedWrites, [["space-a": wallpaper.id, "space-b": wallpaper.id]])
     }
@@ -368,7 +380,8 @@ final class WallpaperSpaceAutomationTests: XCTestCase {
                     displayID: "display-1",
                     displayName: "Built-in Display",
                     number: 1,
-                    isFullscreen: false
+                    isFullscreen: false,
+                    managedSpaceID: "managed-space-a"
                 ),
                 SpaceDescriptor(
                     id: "space-b",
@@ -376,7 +389,8 @@ final class WallpaperSpaceAutomationTests: XCTestCase {
                     displayID: "display-2",
                     displayName: "External Display",
                     number: 2,
-                    isFullscreen: false
+                    isFullscreen: false,
+                    managedSpaceID: "managed-space-b"
                 ),
                 SpaceDescriptor(
                     id: "full-screen",
@@ -384,7 +398,8 @@ final class WallpaperSpaceAutomationTests: XCTestCase {
                     displayID: "display-1",
                     displayName: "Built-in Display",
                     number: 0,
-                    isFullscreen: true
+                    isFullscreen: true,
+                    managedSpaceID: "managed-full-screen"
                 )
             ]
         )

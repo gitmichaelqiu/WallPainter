@@ -8,6 +8,11 @@ private struct LegacySpaceSnapshotResponse: Sendable {
     let result: String?
 }
 
+private struct LegacySpaceMappingValidation: Sendable {
+    let expectedRevision: UInt64
+    let spaces: [SpaceDescriptor]
+}
+
 struct SpaceDescriptor: Codable, Equatable, Identifiable, Sendable {
     let id: String
     let name: String
@@ -56,6 +61,62 @@ struct SpaceSnapshot: Codable, Equatable, Sendable {
         self.currentSpaceID = currentSpaceID
         self.currentDisplayID = currentDisplayID
         self.spaces = spaces
+    }
+}
+
+private struct SpacePositionKey: Hashable {
+    let displayID: String
+    let number: Int
+    let name: String
+    let isFullscreen: Bool
+
+    init(_ space: SpaceDescriptor) {
+        displayID = space.displayID
+        number = space.number
+        name = space.name
+        isFullscreen = space.isFullscreen
+    }
+}
+
+extension SpaceSnapshot {
+    /// Joins a legacy snapshot only when it describes the same complete layout.
+    /// Legacy SpaceAPI has no revision, so callers must also verify this against
+    /// a fresh structured snapshot before using the resulting macOS IDs.
+    func attachingManagedSpaceIDs(from legacySpaces: [SpaceDescriptor]) -> SpaceSnapshot? {
+        let structuredKeys = spaces.map(SpacePositionKey.init)
+        let legacyKeys = legacySpaces.map(SpacePositionKey.init)
+        let structuredCounts = Dictionary(grouping: structuredKeys, by: { $0 })
+            .mapValues(\.count)
+        let legacyCounts = Dictionary(grouping: legacyKeys, by: { $0 })
+            .mapValues(\.count)
+
+        guard !spaces.isEmpty,
+              structuredCounts == legacyCounts,
+              legacyCounts.values.allSatisfy({ $0 == 1 })
+        else { return nil }
+
+        let managedIDsByPosition = Dictionary(uniqueKeysWithValues: legacySpaces.map {
+            (SpacePositionKey($0), $0.managedSpaceID ?? $0.id)
+        })
+        let mappedSpaces = spaces.map { space in
+            SpaceDescriptor(
+                id: space.id,
+                name: space.name,
+                displayID: space.displayID,
+                displayName: space.displayName,
+                number: space.number,
+                isFullscreen: space.isFullscreen,
+                managedSpaceID: managedIDsByPosition[SpacePositionKey(space)]
+            )
+        }
+
+        return SpaceSnapshot(
+            revision: revision,
+            currentSpaceIDs: currentSpaceIDs,
+            currentSpaceID: currentSpaceID,
+            currentDisplayID: currentDisplayID,
+            spaces: mappedSpaces
+        )
     }
 }
 
@@ -146,6 +207,12 @@ struct SpaceAPIRevisionTracker: Equatable, Sendable {
         return true
     }
 
+    mutating func acceptVerifiedSnapshot(revision: UInt64) -> Bool {
+        guard self.revision.map({ revision >= $0 }) ?? true else { return false }
+        self.revision = revision
+        return true
+    }
+
     mutating func evaluateEvent(revision: UInt64) -> SpaceAPIEventDisposition {
         guard let currentRevision = self.revision else {
             self.revision = revision
@@ -231,6 +298,10 @@ final class SpaceAPIClient: SpaceAPIProviding {
     @ObservationIgnored private var legacySnapshotRequestID: String?
     @ObservationIgnored private var legacySnapshotRevision: UInt64?
     @ObservationIgnored private var legacySnapshotTimeout: DispatchWorkItem?
+    @ObservationIgnored private var legacyMappingVerificationRequestID: String?
+    @ObservationIgnored private var pendingLegacyMappingValidation: LegacySpaceMappingValidation?
+    @ObservationIgnored private var legacyMappingRetryWorkItem: DispatchWorkItem?
+    @ObservationIgnored private var legacyMappingRetryCount = 0
 
     init(
         center: DistributedNotificationCenter = .default(),
@@ -265,6 +336,8 @@ final class SpaceAPIClient: SpaceAPIProviding {
         legacySnapshotTimeout = nil
         legacySnapshotRequestID = nil
         legacySnapshotRevision = nil
+        cancelLegacyMappingVerification()
+        cancelLegacyMappingRetry()
         revisionTracker.reset()
         isWaitingForSnapshot = false
         desktopRenamerProcessIdentifier = nil
@@ -519,9 +592,26 @@ final class SpaceAPIClient: SpaceAPIProviding {
         legacySnapshotTimeout = nil
         legacySnapshotRequestID = nil
         legacySnapshotRevision = nil
+        cancelLegacyMappingVerification()
+        cancelLegacyMappingRetry()
     }
 
-    private func postRequest(method: String, params: [String: String]? = nil) {
+    private func cancelLegacyMappingVerification() {
+        if let requestID = legacyMappingVerificationRequestID {
+            pendingMethods.removeValue(forKey: requestID)
+            pendingTimeouts.removeValue(forKey: requestID)?.cancel()
+        }
+        legacyMappingVerificationRequestID = nil
+        pendingLegacyMappingValidation = nil
+    }
+
+    private func cancelLegacyMappingRetry() {
+        legacyMappingRetryWorkItem?.cancel()
+        legacyMappingRetryWorkItem = nil
+    }
+
+    @discardableResult
+    private func postRequest(method: String, params: [String: String]? = nil) -> String? {
         let requestID = UUID().uuidString
         guard let payload = try? SpaceAPICodec.requestPayload(
             id: requestID,
@@ -529,7 +619,7 @@ final class SpaceAPIClient: SpaceAPIProviding {
             params: params
         ) else {
             markUnavailable()
-            return
+            return nil
         }
 
         pendingMethods[requestID] = method
@@ -544,11 +634,21 @@ final class SpaceAPIClient: SpaceAPIProviding {
             object: nil,
             userInfo: ["payload": payload]
         )
+        return requestID
     }
 
     private func requestTimedOut(_ requestID: String) {
         guard pendingMethods.removeValue(forKey: requestID) != nil else { return }
         pendingTimeouts.removeValue(forKey: requestID)
+
+        if requestID == legacyMappingVerificationRequestID {
+            legacyMappingVerificationRequestID = nil
+            pendingLegacyMappingValidation = nil
+            isWaitingForSnapshot = false
+            scheduleLegacyMappingRetry()
+            return
+        }
+
         markUnavailable()
     }
 
@@ -558,19 +658,60 @@ final class SpaceAPIClient: SpaceAPIProviding {
         else { return }
 
         pendingTimeouts.removeValue(forKey: responseID)?.cancel()
+        let mappingValidation = responseID == legacyMappingVerificationRequestID
+            ? pendingLegacyMappingValidation
+            : nil
+        if mappingValidation != nil {
+            legacyMappingVerificationRequestID = nil
+            pendingLegacyMappingValidation = nil
+        }
 
         if let responseError = try? SpaceAPICodec.responseError(from: payload) {
             let availability: SpaceAPIAvailability = responseError.code == -32001
                 ? .disabled
                 : .unavailable
-            markUnavailable(as: availability)
-            if method == "getSpaceSnapshot" {
+            if mappingValidation != nil, availability != .disabled {
                 isWaitingForSnapshot = false
+                scheduleLegacyMappingRetry()
+            } else {
+                markUnavailable(as: availability)
+                if method == "getSpaceSnapshot" {
+                    isWaitingForSnapshot = false
+                }
             }
             return
         }
 
         do {
+            if let mappingValidation {
+                let freshSnapshot = try SpaceAPICodec.decodeSnapshot(from: payload)
+                isWaitingForSnapshot = false
+
+                guard freshSnapshot.revision >= mappingValidation.expectedRevision,
+                      revisionTracker.acceptVerifiedSnapshot(revision: freshSnapshot.revision)
+                else {
+                    scheduleLegacyMappingRetry()
+                    return
+                }
+
+                guard let mappedSnapshot = freshSnapshot.attachingManagedSpaceIDs(
+                    from: mappingValidation.spaces
+                ) else {
+                    snapshot = freshSnapshot
+                    setAvailable(true)
+                    postSnapshotDidChange()
+                    scheduleLegacyMappingRetry()
+                    return
+                }
+
+                snapshot = mappedSnapshot
+                setAvailable(true)
+                legacyMappingRetryCount = 0
+                cancelLegacyMappingRetry()
+                postSnapshotDidChange()
+                return
+            }
+
             switch method {
             case "getAPIInfo":
                 let info = try SpaceAPICodec.decodeAPIInfo(from: payload)
@@ -594,6 +735,11 @@ final class SpaceAPIClient: SpaceAPIProviding {
                 break
             }
         } catch {
+            if mappingValidation != nil {
+                isWaitingForSnapshot = false
+                scheduleLegacyMappingRetry()
+                return
+            }
             if method == "getSpaceSnapshot" {
                 isWaitingForSnapshot = false
             }
@@ -623,12 +769,11 @@ final class SpaceAPIClient: SpaceAPIProviding {
             guard revisionTracker.acceptSnapshot(revision: newSnapshot.revision) else { return }
             isWaitingForSnapshot = false
         }
+        cancelLegacySnapshotRequest()
+        cancelLegacyMappingRetry()
         snapshot = newSnapshot
         setAvailable(true)
-        NotificationCenter.default.post(
-            name: .wallPainterSpaceSnapshotDidChange,
-            object: self
-        )
+        postSnapshotDidChange()
         requestLegacySnapshot(for: newSnapshot)
     }
 
@@ -644,6 +789,7 @@ final class SpaceAPIClient: SpaceAPIProviding {
             self.legacySnapshotRequestID = nil
             self.legacySnapshotRevision = nil
             self.legacySnapshotTimeout = nil
+            self.scheduleLegacyMappingRetry()
         }
         legacySnapshotTimeout = timeout
         DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: timeout)
@@ -669,46 +815,35 @@ final class SpaceAPIClient: SpaceAPIProviding {
         legacySnapshotRequestID = nil
         legacySnapshotRevision = nil
 
-        guard let snapshot else { return }
-        let legacySpacesByPosition = Dictionary(grouping: legacySpaces) {
-            SpacePositionKey(
-                displayID: $0.displayID,
-                number: $0.number,
-                name: $0.name,
-                isFullscreen: $0.isFullscreen
-            )
-        }
-        // Structured IDs are the durable preference keys. The legacy snapshot
-        // supplies only the live macOS IDs needed to address wallpaper records.
-        // Join the contemporaneous snapshots by display, number, and name; an
-        // ambiguous or stale match remains unwritable instead of guessing.
-        let mappedSpaces = snapshot.spaces.map { space -> SpaceDescriptor in
-            let key = SpacePositionKey(
-                displayID: space.displayID,
-                number: space.number,
-                name: space.name,
-                isFullscreen: space.isFullscreen
-            )
-            guard let matches = legacySpacesByPosition[key], matches.count == 1 else {
-                return space
-            }
-            return SpaceDescriptor(
-                id: space.id,
-                name: space.name,
-                displayID: space.displayID,
-                displayName: space.displayName,
-                number: space.number,
-                isFullscreen: space.isFullscreen,
-                managedSpaceID: matches[0].id
-            )
-        }
-        self.snapshot = SpaceSnapshot(
-            revision: snapshot.revision,
-            currentSpaceIDs: snapshot.currentSpaceIDs,
-            currentSpaceID: snapshot.currentSpaceID,
-            currentDisplayID: snapshot.currentDisplayID,
-            spaces: mappedSpaces
+        pendingLegacyMappingValidation = LegacySpaceMappingValidation(
+            expectedRevision: revision,
+            spaces: legacySpaces
         )
+        isWaitingForSnapshot = true
+        guard let requestID = postRequest(method: "getSpaceSnapshot") else {
+            pendingLegacyMappingValidation = nil
+            isWaitingForSnapshot = false
+            scheduleLegacyMappingRetry()
+            return
+        }
+        legacyMappingVerificationRequestID = requestID
+    }
+
+    private func scheduleLegacyMappingRetry() {
+        guard isRunning else { return }
+        cancelLegacyMappingRetry()
+        legacyMappingRetryCount += 1
+        let delay = min(pow(2, Double(legacyMappingRetryCount - 1)), 16)
+        let retry = DispatchWorkItem { [weak self] in
+            guard let self, self.isRunning else { return }
+            self.legacyMappingRetryWorkItem = nil
+            self.refresh()
+        }
+        legacyMappingRetryWorkItem = retry
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: retry)
+    }
+
+    private func postSnapshotDidChange() {
         NotificationCenter.default.post(
             name: .wallPainterSpaceSnapshotDidChange,
             object: self
@@ -718,23 +853,13 @@ final class SpaceAPIClient: SpaceAPIProviding {
     private func markUnavailable(
         as availability: SpaceAPIAvailability = .unavailable
     ) {
-        legacySnapshotTimeout?.cancel()
-        legacySnapshotTimeout = nil
-        legacySnapshotRequestID = nil
-        legacySnapshotRevision = nil
+        cancelLegacySnapshotRequest()
         snapshot = nil
         negotiatedAPIInfo = nil
         revisionTracker.reset()
         isWaitingForSnapshot = false
         apiAvailability = availability
         setAvailable(false)
-    }
-
-    private struct SpacePositionKey: Hashable {
-        let displayID: String
-        let number: Int
-        let name: String
-        let isFullscreen: Bool
     }
 
     private func setAvailable(_ value: Bool) {
