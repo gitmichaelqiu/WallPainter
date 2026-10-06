@@ -241,10 +241,11 @@ final class StatusBarController: NSObject, NSMenuDelegate, NSWindowDelegate {
                 let resumeRuleItem = NSMenuItem(
                     title: String(localized: "Resume Rule"),
                     action: #selector(resumeRuleForActiveSpace(_:)),
-                    keyEquivalent: ""
+                    keyEquivalent: "r"
                 )
                 resumeRuleItem.target = self
                 resumeRuleItem.representedObject = activeTarget.spaceID
+                resumeRuleItem.keyEquivalentModifierMask = [.command]
                 menu.addItem(resumeRuleItem)
             }
         }
