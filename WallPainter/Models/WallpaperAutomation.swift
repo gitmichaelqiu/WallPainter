@@ -74,6 +74,7 @@ final class WallpaperAutomationCoordinator {
     @ObservationIgnored private var preferencesObserver: NSObjectProtocol?
     @ObservationIgnored private var spaceSnapshotObserver: NSObjectProtocol?
     @ObservationIgnored private var spaceAvailabilityObserver: NSObjectProtocol?
+    @ObservationIgnored private var systemTimeObservers: [NSObjectProtocol] = []
     @ObservationIgnored private var appearanceEvaluationWorkItem: DispatchWorkItem?
     @ObservationIgnored private var timeScheduleEvaluationWorkItem: DispatchWorkItem?
 
@@ -128,6 +129,22 @@ final class WallpaperAutomationCoordinator {
                 self?.preferencesDidChange()
             }
         }
+        for notificationName in [
+            Notification.Name.NSSystemClockDidChange,
+            Notification.Name.NSSystemTimeZoneDidChange
+        ] {
+            systemTimeObservers.append(
+                notificationCenter.addObserver(
+                    forName: notificationName,
+                    object: nil,
+                    queue: .main
+                ) { [weak self] _ in
+                    Task { @MainActor [weak self] in
+                        self?.systemTimeDidChange()
+                    }
+                }
+            )
+        }
         if let spaceProvider {
             let observedSpaceProvider = spaceProvider as AnyObject
             spaceSnapshotObserver = notificationCenter.addObserver(
@@ -180,10 +197,14 @@ final class WallpaperAutomationCoordinator {
         if let spaceAvailabilityObserver {
             notificationCenter.removeObserver(spaceAvailabilityObserver)
         }
+        for observer in systemTimeObservers {
+            notificationCenter.removeObserver(observer)
+        }
         self.catalogObserver = nil
         self.preferencesObserver = nil
         self.spaceSnapshotObserver = nil
         self.spaceAvailabilityObserver = nil
+        self.systemTimeObservers.removeAll()
         isRunning = false
     }
 
@@ -291,6 +312,10 @@ final class WallpaperAutomationCoordinator {
     private func spaceStateDidChange() {
         migrateSpaceOverrides()
         synchronizeActiveSpaces()
+        evaluateCurrentAppearance()
+    }
+
+    private func systemTimeDidChange() {
         evaluateCurrentAppearance()
     }
 

@@ -828,6 +828,16 @@
         }
       }
     },
+    "No free one-hour window. Shorten an existing period before adding another." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有可用的一小时时段。请先缩短现有时段，再添加时段。"
+          }
+        }
+      }
+    },
     "Next day" : {
       "localizations" : {
         "zh-Hans" : {

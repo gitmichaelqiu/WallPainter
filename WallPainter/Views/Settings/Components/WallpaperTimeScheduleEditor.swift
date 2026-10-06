@@ -81,6 +81,8 @@ private struct WallpaperTimeScheduleEditorSheet: View {
     }
 
     var body: some View {
+        let availablePeriodStartMinute = nextAvailableStartMinute()
+
         VStack(spacing: 0) {
             HStack {
                 Text("Time Schedule")
@@ -112,10 +114,17 @@ private struct WallpaperTimeScheduleEditorSheet: View {
                         }
 
                         SettingsSection {
-                            SettingsRow("Add time period", id: "schedule.add") {
+                            SettingsRow(
+                                "Add time period",
+                                id: "schedule.add",
+                                helperText: availablePeriodStartMinute == nil
+                                    ? "No free one-hour window. Shorten an existing period before adding another."
+                                    : nil
+                            ) {
                                 Button("Add", systemImage: "plus") {
-                                    addPeriod()
+                                    addPeriod(startMinute: availablePeriodStartMinute)
                                 }
+                                .disabled(availablePeriodStartMinute == nil)
                             }
                         }
                         .padding(.top, 10)
@@ -266,8 +275,8 @@ private struct WallpaperTimeScheduleEditorSheet: View {
         (periods.firstIndex(where: { $0.id == id }) ?? 0) + 1
     }
 
-    private func addPeriod() {
-        let startMinute = nextAvailableStartMinute()
+    private func addPeriod(startMinute: Int?) {
+        guard let startMinute else { return }
         let period = WallpaperTimePeriod(
             startMinute: startMinute,
             endMinute: (startMinute + 60) % WallpaperTimeSchedule.minutesPerDay
@@ -282,19 +291,31 @@ private struct WallpaperTimeScheduleEditorSheet: View {
         "schedule.\(id.uuidString).title"
     }
 
-    private func nextAvailableStartMinute() -> Int {
+    private func nextAvailableStartMinute() -> Int? {
         let preferredStart = 9 * 60
-        for offset in stride(from: 0, to: WallpaperTimeSchedule.minutesPerDay, by: 30) {
-            let start = (preferredStart + offset) % WallpaperTimeSchedule.minutesPerDay
+        let validPeriods = periods.filter(\.hasValidTimeRange)
+        let candidateStarts = Set([preferredStart] + validPeriods.map(\.endMinute))
+        let orderedCandidates = candidateStarts.sorted { first, second in
+            let firstOffset = (first - preferredStart + WallpaperTimeSchedule.minutesPerDay)
+                % WallpaperTimeSchedule.minutesPerDay
+            let secondOffset = (second - preferredStart + WallpaperTimeSchedule.minutesPerDay)
+                % WallpaperTimeSchedule.minutesPerDay
+            return firstOffset < secondOffset
+        }
+
+        for start in orderedCandidates {
             let candidate = WallpaperTimePeriod(
                 startMinute: start,
                 endMinute: (start + 60) % WallpaperTimeSchedule.minutesPerDay
             )
-            if !WallpaperTimeSchedule.hasOverlaps(periods + [candidate]) {
+            let overlapsExistingPeriod = validPeriods.contains { period in
+                WallpaperTimeSchedule.hasOverlaps([period, candidate])
+            }
+            if !overlapsExistingPeriod {
                 return start
             }
         }
-        return preferredStart
+        return nil
     }
 
     private func dateBinding(for minute: Binding<Int>) -> Binding<Date> {
