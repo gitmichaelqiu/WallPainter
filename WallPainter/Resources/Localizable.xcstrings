@@ -147,6 +147,16 @@
         }
       }
     },
+    "Approve WallPainter in DesktopRenamer's SpaceAPI settings." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在 DesktopRenamer 的 SpaceAPI 设置中批准 WallPainter。"
+          }
+        }
+      }
+    },
     "App behavior" : {
       "localizations" : {
         "zh-Hans" : {
@@ -407,12 +417,22 @@
         }
       }
     },
-    "DesktopRenamer provides SpaceAPI. Enable it in DesktopRenamer's settings before using space-aware wallpaper rules." : {
+    "Connecting to DesktopRenamer…" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "SpaceAPI 由 DesktopRenamer 提供。使用按桌面设置壁纸的规则前，请先在 DesktopRenamer 设置中启用 SpaceAPI。"
+            "value" : "正在连接 DesktopRenamer…"
+          }
+        }
+      }
+    },
+    "DesktopRenamer provides SpaceAPI. Enable it, then approve WallPainter with read-only access in DesktopRenamer's Settings → General → Advanced → Manage SpaceAPI access." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SpaceAPI 由 DesktopRenamer 提供。请先启用 SpaceAPI，再前往 DesktopRenamer 的“设置 → 通用 → 高级 → 管理 SpaceAPI 访问权限”，以只读权限批准 WallPainter。"
           }
         }
       }

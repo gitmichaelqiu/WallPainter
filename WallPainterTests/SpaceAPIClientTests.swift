@@ -19,6 +19,69 @@ final class SpaceAPIClientTests: XCTestCase {
         XCTAssertNil(object["params"])
     }
 
+    func testAPIInfoDecodesV130SocketAndAccessPolicyCapabilities() throws {
+        let payload = """
+        {"jsonrpc":"2.0","id":"request-1","result":{"contractVersion":"1.3.0","jsonRPCVersion":"2.0","supportedMethods":["getSpaceSnapshot"],"legacyNotifications":false,"legacyCompatibility":"disabledByAccessPolicy","transports":["unixDomainSocket"],"socketEndpoint":"/tmp/dev.mqiu.DesktopRenamer-501.sock","accessRestricted":true}}
+        """
+
+        let info = try SpaceAPICodec.decodeAPIInfo(from: payload)
+
+        XCTAssertEqual(info.contractVersion, "1.3.0")
+        XCTAssertEqual(info.transports, ["unixDomainSocket"])
+        XCTAssertEqual(info.socketEndpoint, "/tmp/dev.mqiu.DesktopRenamer-501.sock")
+        XCTAssertEqual(info.accessRestricted, true)
+        XCTAssertEqual(info.legacyNotifications, false)
+        XCTAssertEqual(info.legacyCompatibility, "disabledByAccessPolicy")
+    }
+
+    func testAPIInfoDecodesOlderDNCOnlyResponses() throws {
+        let payload = """
+        {"jsonrpc":"2.0","id":"request-1","result":{"contractVersion":"1.2.0","jsonRPCVersion":"2.0","supportedMethods":["getSpaceSnapshot"]}}
+        """
+
+        let info = try SpaceAPICodec.decodeAPIInfo(from: payload)
+
+        XCTAssertEqual(info.contractVersion, "1.2.0")
+        XCTAssertNil(info.transports)
+        XCTAssertNil(info.socketEndpoint)
+        XCTAssertNil(info.legacyNotifications)
+    }
+
+    func testSocketFrameCodecHandlesSplitAndCoalescedFrames() throws {
+        let firstFrame = try SpaceAPISocketFrameCodec.encode("first")
+        let secondFrame = try SpaceAPISocketFrameCodec.encode("second")
+        var buffer = Data(firstFrame.prefix(6))
+
+        XCTAssertEqual(try SpaceAPISocketFrameCodec.extractMessages(from: &buffer), [])
+
+        buffer.append(firstFrame.suffix(from: 6))
+        buffer.append(secondFrame)
+
+        XCTAssertEqual(
+            try SpaceAPISocketFrameCodec.extractMessages(from: &buffer),
+            ["first", "second"]
+        )
+        XCTAssertTrue(buffer.isEmpty)
+    }
+
+    func testSocketFrameCodecUsesBigEndianLengthPrefix() throws {
+        let frame = try SpaceAPISocketFrameCodec.encode("hello")
+
+        XCTAssertEqual(Array(frame.prefix(4)), [0, 0, 0, 5])
+        XCTAssertEqual(String(data: frame.dropFirst(4), encoding: .utf8), "hello")
+    }
+
+    func testSocketFrameCodecRejectsOversizedPayloads() throws {
+        var oversizedFrameHeader = Data([0x00, 0x10, 0x00, 0x01])
+
+        XCTAssertThrowsError(
+            try SpaceAPISocketFrameCodec.extractMessages(from: &oversizedFrameHeader)
+        )
+        XCTAssertThrowsError(
+            try SpaceAPISocketFrameCodec.encode(String(repeating: "x", count: 1_048_577))
+        )
+    }
+
     func testResponseCorrelationAndAPIErrorDecoding() throws {
         let errorPayload = """
         {"jsonrpc":"2.0","id":"request-1","error":{"code":-32001,"message":"SpaceAPI is disabled."}}

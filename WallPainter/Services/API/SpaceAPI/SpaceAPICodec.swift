@@ -63,7 +63,12 @@ enum SpaceAPICodec {
         return SpaceAPIInfo(
             contractVersion: contractVersion,
             jsonRPCVersion: jsonRPCVersion,
-            supportedMethods: supportedMethods
+            supportedMethods: supportedMethods,
+            legacyNotifications: result["legacyNotifications"] as? Bool,
+            legacyCompatibility: result["legacyCompatibility"] as? String,
+            transports: result["transports"] as? [String],
+            socketEndpoint: result["socketEndpoint"] as? String,
+            accessRestricted: result["accessRestricted"] as? Bool
         )
     }
 

@@ -14,7 +14,7 @@ struct PermissionsSettingsView: View {
             VStack(alignment: .leading, spacing: 20) {
                 SettingsSection(
                     "Permissions",
-                    helperText: "DesktopRenamer provides SpaceAPI. Enable it in DesktopRenamer's settings before using space-aware wallpaper rules."
+                    helperText: "DesktopRenamer provides SpaceAPI. Enable it, then approve WallPainter with read-only access in DesktopRenamer's Settings → General → Advanced → Manage SpaceAPI access."
                 ) {
                     SettingsRow(
                         "DesktopRenamer SpaceAPI"
@@ -97,6 +97,17 @@ private struct SpaceAPIStatusView: View {
 
             switch spaceManager.apiAvailability {
             case .available, .disabled:
+                Button("Open DesktopRenamer") {
+                    spaceManager.openDesktopRenamer()
+                }
+            case .connecting:
+                ProgressView()
+                    .controlSize(.small)
+                Text("Connecting to DesktopRenamer…")
+                    .foregroundStyle(.secondary)
+            case .accessDenied:
+                Text("Approve WallPainter in DesktopRenamer's SpaceAPI settings.")
+                    .foregroundStyle(.secondary)
                 Button("Open DesktopRenamer") {
                     spaceManager.openDesktopRenamer()
                 }

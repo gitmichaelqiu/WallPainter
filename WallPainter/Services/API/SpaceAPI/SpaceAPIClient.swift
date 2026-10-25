@@ -1,4 +1,5 @@
 import AppKit
+import Darwin
 import Foundation
 import Observation
 
@@ -157,11 +158,18 @@ struct SpaceAPIInfo: Codable, Equatable, Sendable {
     let contractVersion: String
     let jsonRPCVersion: String
     let supportedMethods: [String]
+    let legacyNotifications: Bool?
+    let legacyCompatibility: String?
+    let transports: [String]?
+    let socketEndpoint: String?
+    let accessRestricted: Bool?
 }
 
 enum SpaceAPIAvailability: Equatable, Sendable {
     case available
+    case connecting
     case disabled
+    case accessDenied
     case unavailable
 }
 
@@ -251,19 +259,37 @@ extension Notification.Name {
 @Observable
 final class SpaceAPIClient: SpaceAPIProviding {
     static let requestNotification = Notification.Name(
-        "com.michaelqiu.DesktopRenamer.RPCRequest"
+        "dev.mqiu.DesktopRenamer.RPCRequest"
     )
     static let responseNotification = Notification.Name(
-        "com.michaelqiu.DesktopRenamer.RPCResponse"
+        "dev.mqiu.DesktopRenamer.RPCResponse"
     )
     static let eventNotification = Notification.Name(
-        "com.michaelqiu.DesktopRenamer.RPCEvent"
+        "dev.mqiu.DesktopRenamer.RPCEvent"
     )
     static let apiStateNotification = Notification.Name(
-        "com.michaelqiu.DesktopRenamer.ReturnAPIState"
+        "dev.mqiu.DesktopRenamer.ReturnAPIState"
     )
+    private static let compatibilityRequestNotification = Notification.Name(
+        "com.michaelqiu.DesktopRenamer.RPCRequest"
+    )
+    private static let responseNotifications = [
+        responseNotification,
+        Notification.Name("com.michaelqiu.DesktopRenamer.RPCResponse")
+    ]
+    private static let eventNotifications = [
+        eventNotification,
+        Notification.Name("com.michaelqiu.DesktopRenamer.RPCEvent")
+    ]
+    private static let apiStateNotifications = [
+        apiStateNotification,
+        Notification.Name("com.michaelqiu.DesktopRenamer.ReturnAPIState")
+    ]
     static let legacyRequestNotification = Notification.Name(
         "dev.mqiu.DesktopRenamer.PerformCommand"
+    )
+    private static let compatibilityLegacyRequestNotification = Notification.Name(
+        "com.michaelqiu.DesktopRenamer.PerformCommand"
     )
     private static let legacyResponseNotifications = [
         Notification.Name("dev.mqiu.DesktopRenamer.CommandResult"),
@@ -284,17 +310,23 @@ final class SpaceAPIClient: SpaceAPIProviding {
 
     @ObservationIgnored private let center: DistributedNotificationCenter
     @ObservationIgnored private let disconnectNotifications: SpaceAPIDisconnectNotificationManager
+    @ObservationIgnored private let socketTransport = SpaceAPISocketTransport()
     @ObservationIgnored private var isRunning = false
-    @ObservationIgnored private var responseObserver: NSObjectProtocol?
+    @ObservationIgnored private var usesCompatibilityNotificationNamespace = false
+    @ObservationIgnored private var responseObservers: [NSObjectProtocol] = []
     @ObservationIgnored private var legacyResponseObservers: [NSObjectProtocol] = []
-    @ObservationIgnored private var eventObserver: NSObjectProtocol?
-    @ObservationIgnored private var apiStateObserver: NSObjectProtocol?
+    @ObservationIgnored private var eventObservers: [NSObjectProtocol] = []
+    @ObservationIgnored private var apiStateObservers: [NSObjectProtocol] = []
     @ObservationIgnored private var workspaceObservers: [NSObjectProtocol] = []
     @ObservationIgnored private var pendingMethods: [String: String] = [:]
     @ObservationIgnored private var pendingTimeouts: [String: DispatchWorkItem] = [:]
     @ObservationIgnored private var revisionTracker = SpaceAPIRevisionTracker()
     @ObservationIgnored private var isWaitingForSnapshot = false
     @ObservationIgnored private var desktopRenamerProcessIdentifier: pid_t?
+    @ObservationIgnored private var usesSocketTransport = false
+    @ObservationIgnored private var socketTransportSupported = false
+    @ObservationIgnored private var socketEndpointPath: String?
+    @ObservationIgnored private var socketProbeWorkItems: [DispatchWorkItem] = []
     @ObservationIgnored private var legacySnapshotRequestID: String?
     @ObservationIgnored private var legacySnapshotRevision: UInt64?
     @ObservationIgnored private var legacySnapshotTimeout: DispatchWorkItem?
@@ -318,14 +350,32 @@ final class SpaceAPIClient: SpaceAPIProviding {
     func start() {
         stop()
         isRunning = true
+        usesCompatibilityNotificationNamespace = false
         desktopRenamerProcessIdentifier = currentDesktopRenamerProcessIdentifier
         isWaitingForSnapshot = true
+        socketTransport.onReady = { [weak self] in
+            guard let self, self.isRunning else { return }
+            self.usesSocketTransport = true
+            self.apiAvailability = .connecting
+            self.beginSnapshotResynchronization()
+            self.cancelPendingRequests()
+            self.requestAPIInfo()
+        }
+        socketTransport.onPayload = { [weak self] payload in
+            self?.handleSocketPayload(payload)
+        }
+        socketTransport.onFailure = { [weak self] in
+            guard let self, self.isRunning, self.usesSocketTransport else { return }
+            self.cancelPendingRequests()
+            self.markUnavailable()
+        }
         installObservers()
-        requestAPIInfo()
+        connectPreferredTransport()
     }
 
     func stop() {
         isRunning = false
+        usesCompatibilityNotificationNamespace = false
         removeObservers()
         for timeout in pendingTimeouts.values {
             timeout.cancel()
@@ -338,6 +388,11 @@ final class SpaceAPIClient: SpaceAPIProviding {
         legacySnapshotRevision = nil
         cancelLegacyMappingVerification()
         cancelLegacyMappingRetry()
+        cancelSocketProbes()
+        socketTransport.cancel()
+        usesSocketTransport = false
+        socketTransportSupported = false
+        socketEndpointPath = nil
         revisionTracker.reset()
         isWaitingForSnapshot = false
         desktopRenamerProcessIdentifier = nil
@@ -353,7 +408,16 @@ final class SpaceAPIClient: SpaceAPIProviding {
             markUnavailable()
             return
         }
-        requestAPIInfo()
+
+        if processChanged {
+            socketTransport.cancel()
+            usesSocketTransport = false
+            socketTransportSupported = false
+            socketEndpointPath = nil
+            usesCompatibilityNotificationNamespace = false
+            negotiatedAPIInfo = nil
+        }
+        connectPreferredTransport()
 
         if processChanged {
             // The app may post its launch notification before SpaceAPI installs
@@ -402,14 +466,16 @@ final class SpaceAPIClient: SpaceAPIProviding {
     }
 
     private func installObservers() {
-        responseObserver = center.addObserver(
-            forName: Self.responseNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] notification in
-            guard let payload = notification.userInfo?["payload"] as? String else { return }
-            Task { @MainActor [weak self] in
-                self?.handleResponsePayload(payload)
+        responseObservers = Self.responseNotifications.map { name in
+            center.addObserver(
+                forName: name,
+                object: nil,
+                queue: .main
+            ) { [weak self] notification in
+                guard let payload = notification.userInfo?["payload"] as? String else { return }
+                Task { @MainActor [weak self] in
+                    self?.handleResponsePayload(payload)
+                }
             }
         }
 
@@ -434,28 +500,32 @@ final class SpaceAPIClient: SpaceAPIProviding {
             }
         }
 
-        eventObserver = center.addObserver(
-            forName: Self.eventNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] notification in
-            guard let payload = notification.userInfo?["payload"] as? String else { return }
-            Task { @MainActor [weak self] in
-                self?.handleEventPayload(payload)
+        eventObservers = Self.eventNotifications.map { name in
+            center.addObserver(
+                forName: name,
+                object: nil,
+                queue: .main
+            ) { [weak self] notification in
+                guard let payload = notification.userInfo?["payload"] as? String else { return }
+                Task { @MainActor [weak self] in
+                    self?.handleEventPayload(payload)
+                }
             }
         }
 
-        apiStateObserver = center.addObserver(
-            forName: Self.apiStateNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] notification in
-            guard let isEnabled = notification.userInfo?["isEnabled"] as? Bool else { return }
-            Task { @MainActor [weak self] in
-                if isEnabled {
-                    self?.requestAPIInfo()
-                } else {
-                    self?.markUnavailable(as: .disabled)
+        apiStateObservers = Self.apiStateNotifications.map { name in
+            center.addObserver(
+                forName: name,
+                object: nil,
+                queue: .main
+            ) { [weak self] notification in
+                guard let isEnabled = notification.userInfo?["isEnabled"] as? Bool else { return }
+                Task { @MainActor [weak self] in
+                    if isEnabled {
+                        self?.refresh()
+                    } else {
+                        self?.markUnavailable(as: .disabled)
+                    }
                 }
             }
         }
@@ -512,22 +582,22 @@ final class SpaceAPIClient: SpaceAPIProviding {
     }
 
     private func removeObservers() {
-        if let responseObserver {
-            center.removeObserver(responseObserver)
+        for observer in responseObservers {
+            center.removeObserver(observer)
         }
         for observer in legacyResponseObservers {
             center.removeObserver(observer)
         }
-        if let eventObserver {
-            center.removeObserver(eventObserver)
+        for observer in eventObservers {
+            center.removeObserver(observer)
         }
-        if let apiStateObserver {
-            center.removeObserver(apiStateObserver)
+        for observer in apiStateObservers {
+            center.removeObserver(observer)
         }
-        responseObserver = nil
+        responseObservers.removeAll()
         legacyResponseObservers.removeAll()
-        eventObserver = nil
-        apiStateObserver = nil
+        eventObservers.removeAll()
+        apiStateObservers.removeAll()
 
         let workspaceCenter = NSWorkspace.shared.notificationCenter
         for observer in workspaceObservers {
@@ -539,13 +609,112 @@ final class SpaceAPIClient: SpaceAPIProviding {
 
     private func requestAPIInfo() {
         guard isRunning, pendingMethods.values.contains("getAPIInfo") == false else { return }
+        guard !usesSocketTransport || socketTransport.isReady else { return }
         postRequest(method: "getAPIInfo")
     }
 
     private func requestSnapshot() {
         guard isRunning, pendingMethods.values.contains("getSpaceSnapshot") == false else { return }
+        guard !usesSocketTransport || socketTransport.isReady else { return }
         isWaitingForSnapshot = true
         postRequest(method: "getSpaceSnapshot")
+    }
+
+    private var defaultSocketEndpointPath: String {
+        "/tmp/dev.mqiu.DesktopRenamer-\(getuid()).sock"
+    }
+
+    private var preferredSocketEndpointPath: String {
+        negotiatedAPIInfo?.socketEndpoint
+            ?? socketEndpointPath
+            ?? defaultSocketEndpointPath
+    }
+
+    private func connectPreferredTransport() {
+        guard isRunning else { return }
+
+        if let negotiatedAPIInfo {
+            guard negotiatedAPIInfo.transports?.contains("unixDomainSocket") == true else {
+                socketTransportSupported = false
+                usesSocketTransport = false
+                cancelSocketProbes()
+                requestAPIInfo()
+                return
+            }
+
+            socketTransportSupported = true
+            connectToSocket(at: preferredSocketEndpointPath)
+            return
+        }
+
+        if socketTransportSupported
+            || FileManager.default.fileExists(atPath: defaultSocketEndpointPath) {
+            socketTransportSupported = true
+            connectToSocket(at: preferredSocketEndpointPath)
+            return
+        }
+
+        usesSocketTransport = false
+        apiAvailability = .connecting
+        requestAPIInfo()
+        scheduleSocketProbes()
+    }
+
+    private func connectToSocket(at path: String) {
+        guard isRunning else { return }
+        if socketTransport.endpointPath == path, socketTransport.isConnectingOrReady {
+            if socketTransport.isReady {
+                requestAPIInfo()
+            }
+            return
+        }
+
+        usesSocketTransport = true
+        socketTransportSupported = true
+        socketEndpointPath = path
+        apiAvailability = .connecting
+        cancelSocketProbes()
+        cancelPendingRequests()
+        beginSnapshotResynchronization()
+        socketTransport.connect(path: path)
+    }
+
+    private func scheduleSocketProbes() {
+        guard isRunning, !socketTransportSupported else { return }
+        cancelSocketProbes()
+
+        for delay in [0.5, 1.5, 3.0, 5.0] {
+            let probe = DispatchWorkItem { [weak self] in
+                guard let self, self.isRunning,
+                      !self.socketTransportSupported,
+                      self.negotiatedAPIInfo?.transports?.contains("unixDomainSocket") != false
+                else { return }
+                if FileManager.default.fileExists(atPath: self.defaultSocketEndpointPath) {
+                    self.connectToSocket(at: self.defaultSocketEndpointPath)
+                }
+            }
+            socketProbeWorkItems.append(probe)
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: probe)
+        }
+    }
+
+    private func cancelSocketProbes() {
+        for probe in socketProbeWorkItems {
+            probe.cancel()
+        }
+        socketProbeWorkItems.removeAll()
+    }
+
+    private func handleSocketPayload(_ payload: String) {
+        guard let data = payload.data(using: .utf8),
+              let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        else { return }
+
+        if object.keys.contains("id") {
+            handleResponsePayload(payload)
+        } else {
+            handleEventPayload(payload)
+        }
     }
 
     private var currentDesktopRenamerProcessIdentifier: pid_t? {
@@ -627,18 +796,31 @@ final class SpaceAPIClient: SpaceAPIProviding {
             self?.requestTimedOut(requestID)
         }
         pendingTimeouts[requestID] = timeout
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: timeout)
+        let timeoutInterval: TimeInterval = method == "getAPIInfo" && usesSocketTransport
+            ? 120
+            : 3
+        DispatchQueue.main.asyncAfter(deadline: .now() + timeoutInterval, execute: timeout)
 
-        center.post(
-            name: Self.requestNotification,
-            object: nil,
-            userInfo: ["payload": payload]
-        )
+        if usesSocketTransport {
+            do {
+                try socketTransport.send(payload)
+            } catch {
+                pendingTimeouts.removeValue(forKey: requestID)?.cancel()
+                pendingMethods.removeValue(forKey: requestID)
+                markUnavailable()
+                return nil
+            }
+        } else {
+            let name = usesCompatibilityNotificationNamespace
+                ? Self.compatibilityRequestNotification
+                : Self.requestNotification
+            center.post(name: name, object: nil, userInfo: ["payload": payload])
+        }
         return requestID
     }
 
     private func requestTimedOut(_ requestID: String) {
-        guard pendingMethods.removeValue(forKey: requestID) != nil else { return }
+        guard let pendingMethod = pendingMethods.removeValue(forKey: requestID) else { return }
         pendingTimeouts.removeValue(forKey: requestID)
 
         if requestID == legacyMappingVerificationRequestID {
@@ -646,6 +828,14 @@ final class SpaceAPIClient: SpaceAPIProviding {
             pendingLegacyMappingValidation = nil
             isWaitingForSnapshot = false
             scheduleLegacyMappingRetry()
+            return
+        }
+
+        if pendingMethod == "getAPIInfo",
+           !usesSocketTransport,
+           !usesCompatibilityNotificationNamespace {
+            usesCompatibilityNotificationNamespace = true
+            requestAPIInfo()
             return
         }
 
@@ -667,9 +857,15 @@ final class SpaceAPIClient: SpaceAPIProviding {
         }
 
         if let responseError = try? SpaceAPICodec.responseError(from: payload) {
-            let availability: SpaceAPIAvailability = responseError.code == -32001
-                ? .disabled
-                : .unavailable
+            let availability: SpaceAPIAvailability
+            switch responseError.code {
+            case -32001:
+                availability = .disabled
+            case -32003:
+                availability = .accessDenied
+            default:
+                availability = .unavailable
+            }
             if mappingValidation != nil, availability != .disabled {
                 isWaitingForSnapshot = false
                 scheduleLegacyMappingRetry()
@@ -716,10 +912,28 @@ final class SpaceAPIClient: SpaceAPIProviding {
             case "getAPIInfo":
                 let info = try SpaceAPICodec.decodeAPIInfo(from: payload)
                 guard info.jsonRPCVersion == "2.0",
+                      supportsContractVersion(info.contractVersion),
                       info.supportedMethods.contains("getSpaceSnapshot")
                 else {
                     throw SpaceAPICodecError.unsupportedAPI
                 }
+
+                if info.transports?.contains("unixDomainSocket") == true {
+                    socketTransportSupported = true
+                    let endpointPath = info.socketEndpoint ?? defaultSocketEndpointPath
+                    socketEndpointPath = endpointPath
+                    if !usesSocketTransport || socketTransport.endpointPath != endpointPath {
+                        connectToSocket(at: endpointPath)
+                        return
+                    }
+                } else if !usesSocketTransport {
+                    socketTransportSupported = false
+                    cancelSocketProbes()
+                    guard info.transports?.contains("distributedNotificationCenter") != false else {
+                        throw SpaceAPICodecError.unsupportedAPI
+                    }
+                }
+
                 beginSnapshotResynchronization()
                 cancelPendingRequests()
                 negotiatedAPIInfo = info
@@ -764,6 +978,16 @@ final class SpaceAPIClient: SpaceAPIProviding {
         }
     }
 
+    private func supportsContractVersion(_ version: String) -> Bool {
+        let components = version.split(separator: ".")
+        guard components.count == 3,
+              let major = Int(components[0]),
+              Int(components[1]) != nil,
+              Int(components[2]) != nil
+        else { return false }
+        return major == 1
+    }
+
     private func applySnapshot(_ newSnapshot: SpaceSnapshot, isEvent: Bool) {
         if !isEvent {
             guard revisionTracker.acceptSnapshot(revision: newSnapshot.revision) else { return }
@@ -774,6 +998,9 @@ final class SpaceAPIClient: SpaceAPIProviding {
         snapshot = newSnapshot
         setAvailable(true)
         postSnapshotDidChange()
+        guard negotiatedAPIInfo?.legacyNotifications != false,
+              negotiatedAPIInfo?.legacyCompatibility != "disabledByAccessPolicy"
+        else { return }
         requestLegacySnapshot(for: newSnapshot)
     }
 
@@ -794,8 +1021,11 @@ final class SpaceAPIClient: SpaceAPIProviding {
         legacySnapshotTimeout = timeout
         DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: timeout)
 
+        let name = usesCompatibilityNotificationNamespace
+            ? Self.compatibilityLegacyRequestNotification
+            : Self.legacyRequestNotification
         center.post(
-            name: Self.legacyRequestNotification,
+            name: name,
             object: nil,
             userInfo: ["requestID": requestID, "command": "getSpaceSnapshot"]
         )
