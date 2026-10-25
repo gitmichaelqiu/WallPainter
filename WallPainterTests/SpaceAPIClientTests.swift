@@ -16,6 +16,7 @@ final class SpaceAPIClientTests: XCTestCase {
         XCTAssertEqual(object["jsonrpc"] as? String, "2.0")
         XCTAssertEqual(object["id"] as? String, "request-1")
         XCTAssertEqual(object["method"] as? String, "getSpaceSnapshot")
+        XCTAssertEqual(object["requestedAccess"] as? String, "read")
         XCTAssertNil(object["params"])
     }
 

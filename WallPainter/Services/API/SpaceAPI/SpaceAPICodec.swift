@@ -1,12 +1,18 @@
 import Foundation
 
+enum SpaceAPIRequestedAccess: String {
+    case read
+    case write
+}
+
 enum SpaceAPICodec {
     private static let jsonRPCVersion = "2.0"
 
     static func requestPayload(
         id: String,
         method: String,
-        params: [String: String]? = nil
+        params: [String: String]? = nil,
+        requestedAccess: SpaceAPIRequestedAccess = .read
     ) throws -> String {
         guard !id.isEmpty, !method.isEmpty else {
             throw SpaceAPICodecError.invalidResponse
@@ -15,7 +21,8 @@ enum SpaceAPICodec {
         var request: [String: Any] = [
             "jsonrpc": jsonRPCVersion,
             "id": id,
-            "method": method
+            "method": method,
+            "requestedAccess": requestedAccess.rawValue
         ]
         if let params {
             request["params"] = params
