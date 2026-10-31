@@ -16,7 +16,71 @@ final class SpaceAPIClientTests: XCTestCase {
         XCTAssertEqual(object["jsonrpc"] as? String, "2.0")
         XCTAssertEqual(object["id"] as? String, "request-1")
         XCTAssertEqual(object["method"] as? String, "getSpaceSnapshot")
+        XCTAssertEqual(object["requestedAccess"] as? String, "read")
         XCTAssertNil(object["params"])
+    }
+
+    func testAPIInfoDecodesV130SocketAndAccessPolicyCapabilities() throws {
+        let payload = """
+        {"jsonrpc":"2.0","id":"request-1","result":{"contractVersion":"1.3.0","jsonRPCVersion":"2.0","supportedMethods":["getSpaceSnapshot"],"legacyNotifications":false,"legacyCompatibility":"disabledByAccessPolicy","transports":["unixDomainSocket"],"socketEndpoint":"/tmp/dev.mqiu.DesktopRenamer-501.sock","accessRestricted":true}}
+        """
+
+        let info = try SpaceAPICodec.decodeAPIInfo(from: payload)
+
+        XCTAssertEqual(info.contractVersion, "1.3.0")
+        XCTAssertEqual(info.transports, ["unixDomainSocket"])
+        XCTAssertEqual(info.socketEndpoint, "/tmp/dev.mqiu.DesktopRenamer-501.sock")
+        XCTAssertEqual(info.accessRestricted, true)
+        XCTAssertEqual(info.legacyNotifications, false)
+        XCTAssertEqual(info.legacyCompatibility, "disabledByAccessPolicy")
+    }
+
+    func testAPIInfoDecodesOlderDNCOnlyResponses() throws {
+        let payload = """
+        {"jsonrpc":"2.0","id":"request-1","result":{"contractVersion":"1.2.0","jsonRPCVersion":"2.0","supportedMethods":["getSpaceSnapshot"]}}
+        """
+
+        let info = try SpaceAPICodec.decodeAPIInfo(from: payload)
+
+        XCTAssertEqual(info.contractVersion, "1.2.0")
+        XCTAssertNil(info.transports)
+        XCTAssertNil(info.socketEndpoint)
+        XCTAssertNil(info.legacyNotifications)
+    }
+
+    func testSocketFrameCodecHandlesSplitAndCoalescedFrames() throws {
+        let firstFrame = try SpaceAPISocketFrameCodec.encode("first")
+        let secondFrame = try SpaceAPISocketFrameCodec.encode("second")
+        var buffer = Data(firstFrame.prefix(6))
+
+        XCTAssertEqual(try SpaceAPISocketFrameCodec.extractMessages(from: &buffer), [])
+
+        buffer.append(firstFrame.suffix(from: 6))
+        buffer.append(secondFrame)
+
+        XCTAssertEqual(
+            try SpaceAPISocketFrameCodec.extractMessages(from: &buffer),
+            ["first", "second"]
+        )
+        XCTAssertTrue(buffer.isEmpty)
+    }
+
+    func testSocketFrameCodecUsesBigEndianLengthPrefix() throws {
+        let frame = try SpaceAPISocketFrameCodec.encode("hello")
+
+        XCTAssertEqual(Array(frame.prefix(4)), [0, 0, 0, 5])
+        XCTAssertEqual(String(data: frame.dropFirst(4), encoding: .utf8), "hello")
+    }
+
+    func testSocketFrameCodecRejectsOversizedPayloads() throws {
+        var oversizedFrameHeader = Data([0x00, 0x10, 0x00, 0x01])
+
+        XCTAssertThrowsError(
+            try SpaceAPISocketFrameCodec.extractMessages(from: &oversizedFrameHeader)
+        )
+        XCTAssertThrowsError(
+            try SpaceAPISocketFrameCodec.encode(String(repeating: "x", count: 1_048_577))
+        )
     }
 
     func testResponseCorrelationAndAPIErrorDecoding() throws {
@@ -42,12 +106,24 @@ final class SpaceAPIClientTests: XCTestCase {
         XCTAssertEqual(snapshot.currentSpaceIDs, ["space-1", "space-2"])
         XCTAssertEqual(snapshot.spaces.count, 3)
         XCTAssertTrue(snapshot.spaces.contains { $0.isFullscreen })
+        XCTAssertTrue(snapshot.spaces.allSatisfy { $0.managedSpaceID == nil })
 
         let eventSnapshot = try XCTUnwrap(
             SpaceAPICodec.decodeStateChangedEvent(from: eventPayload)
         )
         XCTAssertEqual(eventSnapshot.revision, 8)
         XCTAssertEqual(eventSnapshot.currentSpaceIDs, ["space-2"])
+    }
+
+    func testSnapshotDecodesCurrentManagedSpaceIDAlongsideStableID() throws {
+        let payload = """
+        {"jsonrpc":"2.0","id":"snapshot-1","result":{"revision":9,"currentSpaceIDs":["stable-space"],"spaces":[{"id":"stable-space","managedSpaceID":"42001","name":"Writing","displayID":"display-1","displayName":"Built-in Display","number":1,"isFullscreen":false}]}}
+        """
+
+        let snapshot = try SpaceAPICodec.decodeSnapshot(from: payload)
+
+        XCTAssertEqual(snapshot.spaces.map(\.id), ["stable-space"])
+        XCTAssertEqual(snapshot.spaces.map(\.managedSpaceID), ["42001"])
     }
 
     func testFocusedRegularSpaceTargetPrefersSpaceAPIFocusedSpace() {
@@ -107,8 +183,22 @@ final class SpaceAPIClientTests: XCTestCase {
             revision: 7,
             currentSpaceIDs: ["space-a"],
             spaces: [
-                makeSpace(id: "space-a", displayID: "display-a"),
-                makeSpace(id: "space-b", displayID: "display-a")
+                SpaceDescriptor(
+                    id: "space-a",
+                    name: "space-a",
+                    displayID: "display-a",
+                    displayName: "display-a",
+                    number: 1,
+                    isFullscreen: false
+                ),
+                SpaceDescriptor(
+                    id: "space-b",
+                    name: "space-b",
+                    displayID: "display-a",
+                    displayName: "display-a",
+                    number: 1,
+                    isFullscreen: false
+                )
             ]
         )
         let legacySpaces = [

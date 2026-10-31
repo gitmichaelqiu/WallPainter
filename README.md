@@ -50,9 +50,11 @@ To resolve this, go to System Settings → the bottom of Privacy & Security → 
 
 <img src="https://github.com/gitmichaelqiu/DesktopRenamer/raw/main/DesktopRenamer/Resources/DesktopRenamerIcon_Default.png?raw=true" width="120"/>
 
-To get the current space's information, [DesktopRenamer](https://github.com/gitmichaelqiu/DesktopRenamer/releases/) is required.
+To get space information, [DesktopRenamer](https://github.com/gitmichaelqiu/DesktopRenamer/releases/) is required. Enable SpaceAPI in Settings → General.
 
-After downloading DesktopRenamer, you need to turn on SpaceAPI in Settings → General.
+WallPainter uses DesktopRenamer's structured SpaceAPI and prefers its authenticated socket transport. If DesktopRenamer restricts SpaceAPI access to approved apps, add WallPainter with read-only access under Settings → General → Advanced → Manage SpaceAPI access.
+
+DesktopRenamer 1.3.1 provides the current macOS space ID in structured records, allowing per-space wallpaper changes while SpaceAPI access is restricted. With DesktopRenamer 1.3.0, per-space targeting requires its legacy notification transport to be enabled.
 
 ## ⚠️ Issues
 

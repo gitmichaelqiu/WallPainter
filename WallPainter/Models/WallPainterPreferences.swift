@@ -12,7 +12,6 @@ final class WallPainterPreferences {
     static let selectedWallpaperKey = "WallPainter.selectedWallpaperID"
     static let showStatusBarItemKey = "WallPainter.showStatusBarItem"
     static let wallpaperProtectionEnabledKey = "WallPainter.wallpaperProtectionEnabled"
-    static let notifyOnSpaceAPIDisconnectKey = "WallPainter.notifyOnSpaceAPIDisconnect"
     static let defaultWallpaperRuleKey = "WallPainter.defaultWallpaperRule"
     static let spaceOverridesKey = "WallPainter.spaceOverrides"
     static let manualWallpaperHoldsKey = "WallPainter.manualWallpaperHoldsBySpaceID"
@@ -38,16 +37,6 @@ final class WallPainterPreferences {
             defaults.set(
                 wallpaperProtectionEnabled,
                 forKey: Self.wallpaperProtectionEnabledKey
-            )
-            postChange()
-        }
-    }
-
-    var notifyOnSpaceAPIDisconnect: Bool {
-        didSet {
-            defaults.set(
-                notifyOnSpaceAPIDisconnect,
-                forKey: Self.notifyOnSpaceAPIDisconnectKey
             )
             postChange()
         }
@@ -93,14 +82,12 @@ final class WallPainterPreferences {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        defaults.removeObject(forKey: "WallPainter.notifyOnSpaceAPIDisconnect")
         selectedWallpaperID = defaults.string(forKey: Self.selectedWallpaperKey)
         showStatusBarItem = defaults.object(forKey: Self.showStatusBarItemKey) as? Bool ?? true
         wallpaperProtectionEnabled = defaults.object(
             forKey: Self.wallpaperProtectionEnabledKey
         ) as? Bool ?? true
-        notifyOnSpaceAPIDisconnect = defaults.object(
-            forKey: Self.notifyOnSpaceAPIDisconnectKey
-        ) as? Bool ?? false
         defaultWallpaperRule = Self.decode(
             WallpaperRule.self,
             from: defaults,

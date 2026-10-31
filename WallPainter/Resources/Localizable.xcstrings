@@ -137,12 +137,12 @@
         }
       }
     },
-    "Allow notifications for WallPainter in System Settings, then try again." : {
+    "Approve WallPainter in DesktopRenamer's SpaceAPI settings." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请在系统设置中允许 WallPainter 发送通知，然后重试。"
+            "value" : "请在 DesktopRenamer 的 SpaceAPI 设置中批准 WallPainter。"
           }
         }
       }
@@ -297,16 +297,6 @@
         }
       }
     },
-    "Could not request notification access: %@" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法请求通知权限：%@"
-          }
-        }
-      }
-    },
     "Couldn't remove backups" : {
       "localizations" : {
         "zh-Hans" : {
@@ -407,12 +397,22 @@
         }
       }
     },
-    "DesktopRenamer provides SpaceAPI. Enable it in DesktopRenamer's settings before using space-aware wallpaper rules." : {
+    "Connecting to DesktopRenamer…" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "SpaceAPI 由 DesktopRenamer 提供。使用按桌面设置壁纸的规则前，请先在 DesktopRenamer 设置中启用 SpaceAPI。"
+            "value" : "正在连接 DesktopRenamer…"
+          }
+        }
+      }
+    },
+    "DesktopRenamer provides SpaceAPI. Enable it, then approve WallPainter with read-only access in DesktopRenamer's Settings → General → Advanced → Manage SpaceAPI access." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SpaceAPI 由 DesktopRenamer 提供。请先启用 SpaceAPI，再前往 DesktopRenamer 的“设置 → 通用 → 高级 → 管理 SpaceAPI 访问权限”，以只读权限批准 WallPainter。"
           }
         }
       }
@@ -877,26 +877,6 @@
         }
       }
     },
-    "Notification access" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "通知权限"
-          }
-        }
-      }
-    },
-    "Notify on disconnect" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "断开连接时通知"
-          }
-        }
-      }
-    },
     "Off" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1160,16 +1140,6 @@
         }
       }
     },
-    "Send a macOS notification when a previously available SpaceAPI connection drops. Requires notification access." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SpaceAPI 从已连接变为断开时发送 macOS 通知。需要通知权限。"
-          }
-        }
-      }
-    },
     "Set Up…" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1216,26 +1186,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "桌面行为"
-          }
-        }
-      }
-    },
-    "Space-aware wallpaper changes are paused until DesktopRenamer reconnects." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "基于桌面的壁纸更改已暂停，等待 DesktopRenamer 重新连接。"
-          }
-        }
-      }
-    },
-    "SpaceAPI disconnected" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SpaceAPI 已断开连接"
           }
         }
       }
