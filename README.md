@@ -54,6 +54,8 @@ To get space information, [DesktopRenamer](https://github.com/gitmichaelqiu/Desk
 
 WallPainter uses DesktopRenamer's structured SpaceAPI and prefers its authenticated socket transport. If DesktopRenamer restricts SpaceAPI access to approved apps, add WallPainter with read-only access under Settings → General → Advanced → Manage SpaceAPI access.
 
+DesktopRenamer 1.3.1 provides the current macOS space ID in structured records, allowing per-space wallpaper changes while SpaceAPI access is restricted. With DesktopRenamer 1.3.0, per-space targeting requires its legacy notification transport to be enabled.
+
 ## ⚠️ Issues
 
 You are welcome to create issues/suggestions in [GitHub Issues](https://github.com/gitmichaelqiu/WallPainter/issues).

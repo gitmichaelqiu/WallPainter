@@ -21,7 +21,7 @@ struct SpaceDescriptor: Codable, Equatable, Identifiable, Sendable {
     let displayName: String
     let number: Int
     let isFullscreen: Bool
-    /// Current macOS ID from the legacy SpaceAPI snapshot; never a persisted key.
+    /// Current-session macOS ID for system calls; persist the stable `id` instead.
     let managedSpaceID: String?
 
     init(
@@ -80,6 +80,10 @@ private struct SpacePositionKey: Hashable {
 }
 
 extension SpaceSnapshot {
+    var hasCompleteManagedSpaceIDs: Bool {
+        spaces.allSatisfy { $0.managedSpaceID != nil }
+    }
+
     /// Joins a legacy snapshot only when it describes the same complete layout.
     /// Legacy SpaceAPI has no revision, so callers must also verify this against
     /// a fresh structured snapshot before using the resulting macOS IDs.
@@ -107,7 +111,7 @@ extension SpaceSnapshot {
                 displayName: space.displayName,
                 number: space.number,
                 isFullscreen: space.isFullscreen,
-                managedSpaceID: managedIDsByPosition[SpacePositionKey(space)]
+                managedSpaceID: space.managedSpaceID ?? managedIDsByPosition[SpacePositionKey(space)]
             )
         }
 
@@ -890,9 +894,10 @@ final class SpaceAPIClient: SpaceAPIProviding {
                     return
                 }
 
-                guard let mappedSnapshot = freshSnapshot.attachingManagedSpaceIDs(
-                    from: mappingValidation.spaces
-                ) else {
+                let verifiedSnapshot = freshSnapshot.hasCompleteManagedSpaceIDs
+                    ? freshSnapshot
+                    : freshSnapshot.attachingManagedSpaceIDs(from: mappingValidation.spaces)
+                guard let verifiedSnapshot else {
                     snapshot = freshSnapshot
                     setAvailable(true)
                     postSnapshotDidChange()
@@ -900,7 +905,7 @@ final class SpaceAPIClient: SpaceAPIProviding {
                     return
                 }
 
-                snapshot = mappedSnapshot
+                snapshot = verifiedSnapshot
                 setAvailable(true)
                 legacyMappingRetryCount = 0
                 cancelLegacyMappingRetry()
@@ -998,9 +1003,13 @@ final class SpaceAPIClient: SpaceAPIProviding {
         snapshot = newSnapshot
         setAvailable(true)
         postSnapshotDidChange()
-        guard negotiatedAPIInfo?.legacyNotifications != false,
+        guard !newSnapshot.hasCompleteManagedSpaceIDs,
+              negotiatedAPIInfo?.legacyNotifications != false,
               negotiatedAPIInfo?.legacyCompatibility != "disabledByAccessPolicy"
-        else { return }
+        else {
+            legacyMappingRetryCount = 0
+            return
+        }
         requestLegacySnapshot(for: newSnapshot)
     }
 

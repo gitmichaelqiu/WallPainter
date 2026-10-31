@@ -119,6 +119,16 @@ enum SpaceAPICodec {
                 throw SpaceAPICodecError.invalidResponse
             }
 
+            let managedSpaceID: String?
+            if let value = space["managedSpaceID"] {
+                guard let value = value as? String, !value.isEmpty else {
+                    throw SpaceAPICodecError.invalidResponse
+                }
+                managedSpaceID = value
+            } else {
+                managedSpaceID = nil
+            }
+
             return SpaceDescriptor(
                 id: id,
                 name: name,
@@ -185,7 +195,8 @@ enum SpaceAPICodec {
                 displayID: displayID,
                 displayName: displayName,
                 number: number,
-                isFullscreen: isFullscreen
+                isFullscreen: isFullscreen,
+                managedSpaceID: managedSpaceID
             )
         }
 
