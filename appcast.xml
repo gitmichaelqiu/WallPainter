@@ -5,6 +5,19 @@
         <link>https://github.com/gitmichaelqiu/WallPainter/releases</link>
         <description>WallPainter software updates</description>
         <item>
+            <title>1.1.1</title>
+            <pubDate>Sat, 31 Oct 2026 12:09:22 +0800</pubDate>
+            <link>https://wallpainter.mqiu.dev</link>
+            <sparkle:releaseNotesLink>https://github.com/gitmichaelqiu/WallPainter/releases/tag/v1.1.1</sparkle:releaseNotesLink>
+            <sparkle:version>3</sparkle:version>
+            <sparkle:shortVersionString>1.1.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/gitmichaelqiu/WallPainter/releases/download/v1.1.1/WallPainter.1.1.1.dmg" length="28795344" type="application/octet-stream" sparkle:edSignature="TrU5Ank1/B+VtV9CdqcZJEbqCVG+W9cbyKUX0lw827i45iqYMso61Zc7S74sVFx1NEdCxTzZhkd6pwER2qnDDg=="/>
+            <sparkle:deltas>
+                <enclosure url="https://github.com/gitmichaelqiu/WallPainter/releases/download/v1.1.1/WallPainter3-2.delta" sparkle:deltaFrom="2" length="260910" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976448" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="CWzi5dhGPhqJxaE7WiXSNIuESPwpxmnEAarHHlziB+v0lKDpwf0w5eemCRFy2frhlVL2czNbbeeU6ekRzeSvAw=="/>
+            </sparkle:deltas>
+        </item>
+        <item>
             <title>1.1.0</title>
             <pubDate>Tue, 06 Oct 2026 16:26:28 +0800</pubDate>
             <link>https://wallpainter.mqiu.dev</link>
