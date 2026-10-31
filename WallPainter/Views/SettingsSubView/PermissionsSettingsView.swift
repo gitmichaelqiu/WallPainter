@@ -3,18 +3,12 @@ import SwiftUI
 struct PermissionsSettingsView: View {
     let spaceManager: SpaceAPIClient?
 
-    @Environment(WallPainterPreferences.self) private var preferences
-    @State private var notificationPermissionMessage: String?
-    @State private var isRequestingNotificationPermission = false
-
     var body: some View {
-        @Bindable var preferences = preferences
-
         SettingsContainer(.permissions) {
             VStack(alignment: .leading, spacing: 20) {
                 SettingsSection(
                     "Permissions",
-                    helperText: "DesktopRenamer provides SpaceAPI. Enable it in DesktopRenamer's settings before using space-aware wallpaper rules."
+                    helperText: "DesktopRenamer provides SpaceAPI. Enable it, then approve WallPainter with read-only access in DesktopRenamer's Settings → General → Advanced → Manage SpaceAPI access."
                 ) {
                     SettingsRow(
                         "DesktopRenamer SpaceAPI"
@@ -27,47 +21,6 @@ struct PermissionsSettingsView: View {
                                 Text("Unavailable")
                                     .foregroundStyle(.secondary)
                             }
-                        }
-                    }
-
-                    Divider()
-
-                    SettingsRow(
-                        "Notify on disconnect",
-                        helperText: "Send a macOS notification when a previously available SpaceAPI connection drops. Requires notification access."
-                    ) {
-                        Toggle(
-                            "",
-                            isOn: Binding(
-                                get: { preferences.notifyOnSpaceAPIDisconnect },
-                                set: { enabled in
-                                    guard let manager = spaceManager?
-                                        .disconnectNotificationManager
-                                    else {
-                                        return
-                                    }
-                                    isRequestingNotificationPermission = true
-                                    Task { @MainActor in
-                                        defer {
-                                            isRequestingNotificationPermission = false
-                                        }
-                                        await manager.setEnabled(enabled)
-                                        notificationPermissionMessage = manager.permissionMessage
-                                    }
-                                }
-                            )
-                        )
-                        .labelsHidden()
-                        .toggleStyle(.switch)
-                        .disabled(spaceManager == nil || isRequestingNotificationPermission)
-                    }
-
-                    if let notificationPermissionMessage {
-                        Divider()
-
-                        SettingsRow("Notification access") {
-                            Text(notificationPermissionMessage)
-                                .foregroundStyle(.orange)
                         }
                     }
                 }
@@ -97,6 +50,17 @@ private struct SpaceAPIStatusView: View {
 
             switch spaceManager.apiAvailability {
             case .available, .disabled:
+                Button("Open DesktopRenamer") {
+                    spaceManager.openDesktopRenamer()
+                }
+            case .connecting:
+                ProgressView()
+                    .controlSize(.small)
+                Text("Connecting to DesktopRenamer…")
+                    .foregroundStyle(.secondary)
+            case .accessDenied:
+                Text("Approve WallPainter in DesktopRenamer's SpaceAPI settings.")
+                    .foregroundStyle(.secondary)
                 Button("Open DesktopRenamer") {
                     spaceManager.openDesktopRenamer()
                 }

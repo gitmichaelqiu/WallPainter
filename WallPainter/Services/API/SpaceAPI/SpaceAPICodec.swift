@@ -1,12 +1,18 @@
 import Foundation
 
+enum SpaceAPIRequestedAccess: String {
+    case read
+    case write
+}
+
 enum SpaceAPICodec {
     private static let jsonRPCVersion = "2.0"
 
     static func requestPayload(
         id: String,
         method: String,
-        params: [String: String]? = nil
+        params: [String: String]? = nil,
+        requestedAccess: SpaceAPIRequestedAccess = .read
     ) throws -> String {
         guard !id.isEmpty, !method.isEmpty else {
             throw SpaceAPICodecError.invalidResponse
@@ -15,7 +21,8 @@ enum SpaceAPICodec {
         var request: [String: Any] = [
             "jsonrpc": jsonRPCVersion,
             "id": id,
-            "method": method
+            "method": method,
+            "requestedAccess": requestedAccess.rawValue
         ]
         if let params {
             request["params"] = params
@@ -63,7 +70,12 @@ enum SpaceAPICodec {
         return SpaceAPIInfo(
             contractVersion: contractVersion,
             jsonRPCVersion: jsonRPCVersion,
-            supportedMethods: supportedMethods
+            supportedMethods: supportedMethods,
+            legacyNotifications: result["legacyNotifications"] as? Bool,
+            legacyCompatibility: result["legacyCompatibility"] as? String,
+            transports: result["transports"] as? [String],
+            socketEndpoint: result["socketEndpoint"] as? String,
+            accessRestricted: result["accessRestricted"] as? Bool
         )
     }
 
@@ -167,13 +179,24 @@ enum SpaceAPICodec {
                 throw SpaceAPICodecError.invalidResponse
             }
 
+            let managedSpaceID: String?
+            if let value = space["managedSpaceID"] {
+                guard let value = value as? String, !value.isEmpty else {
+                    throw SpaceAPICodecError.invalidResponse
+                }
+                managedSpaceID = value
+            } else {
+                managedSpaceID = nil
+            }
+
             return SpaceDescriptor(
                 id: id,
                 name: name,
                 displayID: displayID,
                 displayName: displayName,
                 number: number,
-                isFullscreen: isFullscreen
+                isFullscreen: isFullscreen,
+                managedSpaceID: managedSpaceID
             )
         }
 
