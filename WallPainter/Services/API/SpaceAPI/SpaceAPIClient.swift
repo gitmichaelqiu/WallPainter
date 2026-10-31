@@ -313,7 +313,6 @@ final class SpaceAPIClient: SpaceAPIProviding {
     private(set) var negotiatedAPIInfo: SpaceAPIInfo?
 
     @ObservationIgnored private let center: DistributedNotificationCenter
-    @ObservationIgnored private let disconnectNotifications: SpaceAPIDisconnectNotificationManager
     @ObservationIgnored private let socketTransport = SpaceAPISocketTransport()
     @ObservationIgnored private var isRunning = false
     @ObservationIgnored private var usesCompatibilityNotificationNamespace = false
@@ -339,16 +338,8 @@ final class SpaceAPIClient: SpaceAPIProviding {
     @ObservationIgnored private var legacyMappingRetryWorkItem: DispatchWorkItem?
     @ObservationIgnored private var legacyMappingRetryCount = 0
 
-    init(
-        center: DistributedNotificationCenter = .default(),
-        disconnectNotifications: SpaceAPIDisconnectNotificationManager
-    ) {
+    init(center: DistributedNotificationCenter = .default()) {
         self.center = center
-        self.disconnectNotifications = disconnectNotifications
-    }
-
-    var disconnectNotificationManager: SpaceAPIDisconnectNotificationManager {
-        disconnectNotifications
     }
 
     func start() {
@@ -1106,12 +1097,7 @@ final class SpaceAPIClient: SpaceAPIProviding {
             apiAvailability = .available
         }
         guard isAvailable != value else { return }
-        let wasAvailable = isAvailable
         isAvailable = value
-        disconnectNotifications.availabilityDidChange(
-            from: wasAvailable,
-            to: value
-        )
         NotificationCenter.default.post(
             name: .wallPainterSpaceAvailabilityDidChange,
             object: self

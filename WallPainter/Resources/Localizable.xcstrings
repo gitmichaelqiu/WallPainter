@@ -137,16 +137,6 @@
         }
       }
     },
-    "Allow notifications for WallPainter in System Settings, then try again." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请在系统设置中允许 WallPainter 发送通知，然后重试。"
-          }
-        }
-      }
-    },
     "Approve WallPainter in DesktopRenamer's SpaceAPI settings." : {
       "localizations" : {
         "zh-Hans" : {
@@ -303,16 +293,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "控制每个桌面显示哪些 App 和 Dock。"
-          }
-        }
-      }
-    },
-    "Could not request notification access: %@" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法请求通知权限：%@"
           }
         }
       }
@@ -897,26 +877,6 @@
         }
       }
     },
-    "Notification access" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "通知权限"
-          }
-        }
-      }
-    },
-    "Notify on disconnect" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "断开连接时通知"
-          }
-        }
-      }
-    },
     "Off" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1180,16 +1140,6 @@
         }
       }
     },
-    "Send a macOS notification when a previously available SpaceAPI connection drops. Requires notification access." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SpaceAPI 从已连接变为断开时发送 macOS 通知。需要通知权限。"
-          }
-        }
-      }
-    },
     "Set Up…" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1236,26 +1186,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "桌面行为"
-          }
-        }
-      }
-    },
-    "Space-aware wallpaper changes are paused until DesktopRenamer reconnects." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "基于桌面的壁纸更改已暂停，等待 DesktopRenamer 重新连接。"
-          }
-        }
-      }
-    },
-    "SpaceAPI disconnected" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SpaceAPI 已断开连接"
           }
         }
       }
