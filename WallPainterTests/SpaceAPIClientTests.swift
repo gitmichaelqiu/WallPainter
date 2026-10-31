@@ -106,12 +106,24 @@ final class SpaceAPIClientTests: XCTestCase {
         XCTAssertEqual(snapshot.currentSpaceIDs, ["space-1", "space-2"])
         XCTAssertEqual(snapshot.spaces.count, 3)
         XCTAssertTrue(snapshot.spaces.contains { $0.isFullscreen })
+        XCTAssertTrue(snapshot.spaces.allSatisfy { $0.managedSpaceID == nil })
 
         let eventSnapshot = try XCTUnwrap(
             SpaceAPICodec.decodeStateChangedEvent(from: eventPayload)
         )
         XCTAssertEqual(eventSnapshot.revision, 8)
         XCTAssertEqual(eventSnapshot.currentSpaceIDs, ["space-2"])
+    }
+
+    func testSnapshotDecodesCurrentManagedSpaceIDAlongsideStableID() throws {
+        let payload = """
+        {"jsonrpc":"2.0","id":"snapshot-1","result":{"revision":9,"currentSpaceIDs":["stable-space"],"spaces":[{"id":"stable-space","managedSpaceID":"42001","name":"Writing","displayID":"display-1","displayName":"Built-in Display","number":1,"isFullscreen":false}]}}
+        """
+
+        let snapshot = try SpaceAPICodec.decodeSnapshot(from: payload)
+
+        XCTAssertEqual(snapshot.spaces.map(\.id), ["stable-space"])
+        XCTAssertEqual(snapshot.spaces.map(\.managedSpaceID), ["42001"])
     }
 
     func testFocusedRegularSpaceTargetPrefersSpaceAPIFocusedSpace() {
@@ -171,8 +183,22 @@ final class SpaceAPIClientTests: XCTestCase {
             revision: 7,
             currentSpaceIDs: ["space-a"],
             spaces: [
-                makeSpace(id: "space-a", displayID: "display-a"),
-                makeSpace(id: "space-b", displayID: "display-a")
+                SpaceDescriptor(
+                    id: "space-a",
+                    name: "space-a",
+                    displayID: "display-a",
+                    displayName: "display-a",
+                    number: 1,
+                    isFullscreen: false
+                ),
+                SpaceDescriptor(
+                    id: "space-b",
+                    name: "space-b",
+                    displayID: "display-a",
+                    displayName: "display-a",
+                    number: 1,
+                    isFullscreen: false
+                )
             ]
         )
         let legacySpaces = [
